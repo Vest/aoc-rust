@@ -1,0 +1,15 @@
+[package]
+name = "adv2015"
+version = "0.1.0"
+authors = ["Vest <Vest@users.noreply.github.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "adv2015"
+path = "src/lib.rs"
+bench = false
+doc = false
+
+[dependencies]
+reqwest = { version="0.10.6", features = ["blocking"] }
