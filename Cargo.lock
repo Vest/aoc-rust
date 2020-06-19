@@ -3,15 +3,13 @@
 [[package]]
 name = "adv2015"
 version = "0.1.0"
-dependencies = [
- "reqwest",
-]
 
 [[package]]
 name = "adventofcode"
 version = "0.1.0"
 dependencies = [
  "adv2015",
+ "reqwest",
 ]
 
 [[package]]
