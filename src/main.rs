@@ -42,7 +42,7 @@ fn main() {
         Ok(session_value) => {
             let session = session_value.as_str();
 
-            for day in 1..32 {
+            for day in 1..26 {
                 match get_input(day, 2015, session) {
                     Ok(input) => adv2015::print_answers(day, input),
                     Err(_) => eprintln!("Couldn't get Input value for day {} / 2015.", day),
