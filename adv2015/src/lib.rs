@@ -1,11 +1,12 @@
-use crate::day1::{count_brackets, count_position};
-
-pub mod day1;
+mod day2;
+mod day1;
 
 pub fn print_answers(day: u8, input: String) {
     let input = input.as_str();
+    let prefix = format!("Day {} / 2015:", day);
     match day {
-        1 => println!("Day1 / 2015: {} and {}", count_brackets(input), count_position(input)),
+        1 => println!("{} {} and {}", prefix, day1::count_brackets(input), day1::count_position(input)),
+        2 => println!("{} {}", prefix, ""),
         _ => { eprintln!("2015: I don't know the answer for day {} :(", day) }
     }
 }
