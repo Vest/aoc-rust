@@ -2,7 +2,7 @@ pub fn calc_packs(s: &str) -> u32 {
     s.lines()
         .map(|line| {
             let (l, w, h) = parse_line(line);
-            return calc_paper(l, w, h);
+            calc_paper(l, w, h)
         })
         .sum()
 }
@@ -11,7 +11,7 @@ pub fn calc_ribbons(s: &str) -> u32 {
     s.lines()
         .map(|line| {
             let (l, w, h) = parse_line(line);
-            return calc_ribbon(l, w, h);
+            calc_ribbon(l, w, h)
         })
         .sum()
 }
