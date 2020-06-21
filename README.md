@@ -5,3 +5,5 @@ To run the application, you have to define the system environment variable with 
 e.g. ADVENT_SESSION=5361.....
 
 I have tried to download input files instead of hard-coding them, or supplying as .txt.
+
+Simple tests: ![Rust](https://github.com/Vest/adventofcode/workflows/Rust/badge.svg?branch=master)
