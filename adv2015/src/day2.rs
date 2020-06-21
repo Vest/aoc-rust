@@ -50,7 +50,7 @@ fn calc_ribbon(l: u8, w: u8, h: u8) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    use crate::day2::{calc_paper, parse_line, calc_packs, calc_ribbon, calc_ribbons};
+    use super::*;
 
     #[test]
     fn test_calc_paper_random() {
