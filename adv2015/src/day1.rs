@@ -38,7 +38,7 @@ pub fn count_position(s: &str) -> i16 {
 
 #[cfg(test)]
 mod tests {
-    use crate::day1::{count_brackets, count_position};
+    use super::*;
 
     #[test]
     fn test_count_brackets() {
