@@ -47,42 +47,43 @@ fn is_nice(s: &str) -> bool {
 
 fn is_nice_advanced(s: &str) -> bool {
     let s = s.to_lowercase();
-    let mut pair = (' ', ' ', ' ');  // use last two only.
-    let mut three = (' ', ' ', ' ');
 
     let mut is_three = false;
     let mut is_two = false;
+
+    let mut overlap = (' ', ' ', ' ');
+    let mut three = (' ', ' ', ' ');
     let mut pairs: HashSet<(char, char)> = HashSet::new();
 
     for c in s.as_str().chars() {
-        if !is_three {
-            if three.2 == ' ' {
-                three.2 = c;
-            } else {
-                three = (three.1, three.2, c);
+        if !is_two {
+            // Bugfix: handle xxxx, aaaa, bbbb etc
+            if overlap.0 == overlap.1 && overlap.1 == overlap.2 && overlap.2 == c {
+                is_two = true;
+            }
 
-                if three.0 == three.2 {
-                    is_three = true;
+            overlap = (overlap.1, overlap.2, c);
+            let pair = (overlap.1, overlap.2);
+
+            if overlap.0 != overlap.1 || overlap.1 != overlap.2 {
+                if pairs.contains(&pair) {
+                    is_two = true;
                 }
+
+                pairs.insert(pair);
             }
         }
 
-        if !is_two {
-            if pair.2 == ' ' {
-                pair.2 = c;
-            } else {
-                pair = (pair.1, pair.2, c);
+        if !is_three {
+            three = (three.1, three.2, c);
 
-                if !pairs.contains(&(pair.1, pair.2))  && pair.0 != pair.1 {
-                    pairs.insert((pair.1, pair.2));
-                } else {
-                    is_two = true;
-                }
+            if three.0 == three.2 {
+                is_three = true;
             }
         }
     }
 
-    return is_three && is_two;
+    return is_two && is_three;
 }
 
 fn is_vowel(c: &char) -> bool {
@@ -139,4 +140,16 @@ mod tests {
                 assert!(!is_nice_advanced(s), "{} is nice (advanced), but it wasn't", s);
             });
     }
+
+    #[test]
+    fn test_is_naughty_advanced_bugfix() {
+        assert!(!is_nice_advanced("dieatyxxxlvhneoj"), "dieatyxxxlvhneoj is nice (advanced), but it wasn't");
+    }
+
+    #[test]
+    fn test_is_nice_advanced_bugfix() {
+        assert!(is_nice_advanced("xxxx"), "xxxx is nice (advanced), but it wasn't");
+        assert!(is_nice_advanced("xxaxx"), "xxaxx is nice (advanced), but it wasn't");
+    }
 }
+
