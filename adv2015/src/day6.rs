@@ -1,5 +1,11 @@
 use std::fmt;
 
+pub fn count_bulbs(input: &str) -> usize {
+    let mut santa = SantaInterpreter::new();
+    santa.interpret(String::from(input));
+    santa.get_state()
+}
+
 const LIGHT_MAX_SIZE: usize = 1000;
 
 struct NextToken(Token, usize);
@@ -50,7 +56,7 @@ struct Parser {
 }
 
 struct SantaInterpreter {
-    state: [[bool; LIGHT_MAX_SIZE]; LIGHT_MAX_SIZE],
+    state: Vec<Vec<bool>>,
     parser: Parser,
 }
 
@@ -168,7 +174,16 @@ impl Iterator for Parser {
 }
 
 impl SantaInterpreter {
-    fn interpret(&mut self) -> usize {
+    fn new() -> SantaInterpreter {
+        SantaInterpreter {
+            parser: Parser::new(String::from("")),
+            state: vec![vec![false; LIGHT_MAX_SIZE]; LIGHT_MAX_SIZE],
+        }
+    }
+
+    fn interpret(&mut self, input: String) {
+        self.parser = Parser::new(input);
+
         while let Some(c) = self.parser.next() {
             match c {
                 Call::Call(op, c1, c2) => {
@@ -185,25 +200,26 @@ impl SantaInterpreter {
                 Call::EOF => break,
             };
         }
+    }
 
+    fn reset(&mut self) {
+        for x in 0..LIGHT_MAX_SIZE {
+            for y in 0..LIGHT_MAX_SIZE {
+                self.state[x][y] = false;
+            }
+        }
+    }
+
+    fn get_state(&self) -> usize {
         self.state.iter()
-            .fold(0usize, |acc, &line| {
-                acc + line.iter()
-                    .filter(|&bulb| *bulb)
-                    .count()
+            .fold(0usize, |acc1, line| {
+                acc1 + line.iter()
+                    .fold(0usize, |acc2, &bulb| {
+                        acc2 + if bulb { 1 } else { 0 }
+                    })
             })
     }
 }
-
-impl SantaInterpreter {
-    fn new(input: String) -> SantaInterpreter {
-        SantaInterpreter {
-            parser: Parser::new(input),
-            state: [[false; LIGHT_MAX_SIZE]; LIGHT_MAX_SIZE],
-        }
-    }
-}
-
 
 fn get_token(input: &str, from: usize) -> NextToken {
     let mut word = String::with_capacity(7);
@@ -240,7 +256,6 @@ fn get_token(input: &str, from: usize) -> NextToken {
 
     return NextToken(Token::parse_token(word.as_str()), input.chars().count());
 }
-
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -439,8 +454,9 @@ mod tests {
     fn test_santa_interpreter_all_on() {
         let input = String::from(format!("turn on 0,0 through {},{}", LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1));
         println!("Testing: {}", input);
-        let mut basic = SantaInterpreter::new(input);
-        let answer = basic.interpret();
+        let mut basic = SantaInterpreter::new();
+        basic.interpret(input);
+        let answer = basic.get_state();
         println!("{} bulbs are showing us Christmas", answer);
 
         assert_eq!(answer, LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, "{} bulbs are showing us Christmas, but we see {} only",
@@ -451,8 +467,9 @@ mod tests {
     fn test_santa_interpreter_all_off() {
         let input = String::from(format!("turn on 0,0 through {},{}\r\nturn off 0,0 through {},{}",
                                          LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1));
-        let mut basic = SantaInterpreter::new(input);
-        let answer = basic.interpret();
+        let mut basic = SantaInterpreter::new();
+        basic.interpret(input);
+        let answer = basic.get_state();
         assert_eq!(answer, 0, "{} bulbs are showing us Christmas, but we see {} only",
                    0, answer);
     }
@@ -461,16 +478,18 @@ mod tests {
     fn test_santa_interpreter_all_toggle() {
         let input = String::from(format!("turn on 0,0 through {},{}\r\ntoggle 0,0 through {},{}",
                                          LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1));
-        let mut basic = SantaInterpreter::new(input);
-        let answer = basic.interpret();
+        let mut basic = SantaInterpreter::new();
+        basic.interpret(input);
+        let answer = basic.get_state();
         assert_eq!(answer, 0, "{} bulbs are showing us Christmas, but we see {} only",
                    0, answer);
     }
 
     #[test]
     fn test_santa_interpreter() {
-        let mut basic = SantaInterpreter::new(String::from("turn on 0,0 through 99,99\r\ntoggle 100,100 through 199,199"));
-        let answer = basic.interpret();
+        let mut basic = SantaInterpreter::new();
+        basic.interpret(String::from("turn on 0,0 through 99,99\r\ntoggle 100,100 through 199,199"));
+        let answer = basic.get_state();
         assert_eq!(answer, 100 * 100 * 2, "{} bulbs are showing us Christmas, but we see {} only",
                    100 * 100 * 2, answer);
     }
