@@ -1,4 +1,11 @@
+use std::fmt;
+
+const LIGHT_MAX_SIZE: usize = 1000;
+
 struct NextToken(Token, usize);
+
+#[derive(Copy, Clone)]
+struct Coord(usize, usize);
 
 enum Token {
     // toggle
@@ -14,19 +21,59 @@ enum Token {
     Through,
 
     // 768,548
-    Coord(u16, u16),
+    Coord(usize, usize),
 
     EOF,
 }
 
+#[derive(Copy, Clone)]
 enum Operation {
-    Call(Token, Token, Token),
+    TurnOn,
+    TurnOff,
+    Toggle,
+}
+
+#[derive(Copy, Clone)]
+enum Call {
+    Call(Operation, Coord, Coord),
     EOF,
 }
 
 struct Lexer {
     input: String,
     current_pos: usize,
+}
+
+struct Parser {
+    lexer: Lexer,
+    parsing: bool,
+}
+
+struct SantaInterpreter {
+    state: [[bool; LIGHT_MAX_SIZE]; LIGHT_MAX_SIZE],
+    parser: Parser,
+}
+
+impl Token {
+    fn parse_token(input: &str) -> Token {
+        match input {
+            "turn on" => return Token::TurnOn,
+            "turn off" => return Token::TurnOff,
+            "toggle" => return Token::Toggle,
+            "through" => return Token::Through,
+            _ if input.contains(',') => return {
+                let coord_pair: Vec<&str> = input.split(',').collect();
+                let res_x = coord_pair[0].parse::<usize>();
+                let res_y = coord_pair[1].parse::<usize>();
+
+                Token::Coord(
+                    res_x.unwrap_or(0usize),
+                    res_y.unwrap_or(0usize),
+                )
+            },
+            _ => Token::EOF,
+        }
+    }
 }
 
 impl Lexer {
@@ -47,6 +94,117 @@ impl Lexer {
     }
 }
 
+impl Parser {
+    fn new(input: String) -> Parser {
+        Parser {
+            lexer: Lexer::new(input),
+            parsing: true,
+        }
+    }
+
+    fn next_operation(&mut self) -> Call {
+        if !self.parsing {
+            return Call::EOF;
+        }
+
+        match self.lexer.next_token() {
+            Token::EOF => {
+                self.parsing = false;
+                Call::EOF
+            }
+            token @ Token::TurnOn
+            | token @ Token::TurnOff
+            | token @ Token::Toggle => {
+                let op = match token {
+                    Token::Toggle => Operation::Toggle,
+                    Token::TurnOn => Operation::TurnOn,
+                    Token::TurnOff => Operation::TurnOff,
+                    _ => {
+                        println!("Unexpected token in the line: {}", token);
+                        return Call::EOF;
+                    }
+                };
+                let c1 = match self.lexer.next_token() {
+                    Token::Coord(x, y) => Coord(x, y),
+                    t => {
+                        println!("Unexpected token {} after token {}", t, token);
+                        return Call::EOF;
+                    }
+                };
+                let th = match self.lexer.next_token() {
+                    t @ Token::Through => t,
+                    t => {
+                        println!("Unexpected token {} after token {}", t, c1);
+                        return Call::EOF;
+                    }
+                };
+                let c2 = match self.lexer.next_token() {
+                    Token::Coord(x, y) => Coord(x, y),
+                    t => {
+                        println!("Unexpected token {} after token {}", t, th);
+                        return Call::EOF;
+                    }
+                };
+
+                Call::Call(op, c1, c2)
+            }
+            token => {
+                println!("Unexpected token in the line: {}", token);
+                Call::EOF
+            }
+        }
+    }
+}
+
+impl Iterator for Parser {
+    type Item = Call;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.next_operation() {
+            Call::EOF => None,
+            result => Some(result),
+        }
+    }
+}
+
+impl SantaInterpreter {
+    fn interpret(&mut self) -> usize {
+        while let Some(c) = self.parser.next() {
+            match c {
+                Call::Call(op, c1, c2) => {
+                    for x in c1.0..=c2.0 {
+                        for y in c1.1..=c2.1 {
+                            match op {
+                                Operation::TurnOn => self.state[x][y] = true,
+                                Operation::TurnOff => self.state[x][y] = false,
+                                Operation::Toggle => self.state[x][y] = !self.state[x][y],
+                            };
+                        }
+                    }
+                }
+                Call::EOF => break,
+            };
+        }
+
+        self.state.iter()
+            .fold(0usize, |acc, &line| {
+                acc + line.iter()
+                    .filter(|&bulb| *bulb)
+                    .count()
+            })
+    }
+}
+
+impl SantaInterpreter {
+    fn new(input: String) -> SantaInterpreter {
+        SantaInterpreter {
+            parser: Parser::new(input),
+            state: [[false; LIGHT_MAX_SIZE]; LIGHT_MAX_SIZE],
+        }
+    }
+}
+
+
 fn get_token(input: &str, from: usize) -> NextToken {
     let mut word = String::with_capacity(7);
     let chars = input.chars();
@@ -61,7 +219,7 @@ fn get_token(input: &str, from: usize) -> NextToken {
             _ if c.is_whitespace() && !word.is_empty() => {
                 match word.as_str() {
                     "turn" => word.push(' '),
-                    _ => return NextToken(parse_token(word.as_str()), i),
+                    _ => return NextToken(Token::parse_token(word.as_str()), i),
                 }
             }
 
@@ -80,26 +238,45 @@ fn get_token(input: &str, from: usize) -> NextToken {
         }
     }
 
-    return NextToken(parse_token(word.as_str()), input.chars().count());
+    return NextToken(Token::parse_token(word.as_str()), input.chars().count());
 }
 
-fn parse_token(input: &str) -> Token {
-    match input {
-        "turn on" => return Token::TurnOn,
-        "turn off" => return Token::TurnOff,
-        "toggle" => return Token::Toggle,
-        "through" => return Token::Through,
-        _ if input.contains(',') => return {
-            let coord_pair: Vec<&str> = input.split(',').collect();
-            let res_x = coord_pair[0].parse::<u16>();
-            let res_y = coord_pair[1].parse::<u16>();
 
-            Token::Coord(
-                res_x.unwrap_or(0u16),
-                res_y.unwrap_or(0u16),
-            )
-        },
-        _ => Token::EOF,
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Token::Toggle => f.write_str("tg"),
+            Token::TurnOn => f.write_str("on"),
+            Token::TurnOff => f.write_str("off"),
+            Token::Through => f.write_str(";"),
+            Token::Coord(x, y) => f.write_fmt(format_args!("({},{})", x, y)),
+            Token::EOF => f.write_str(";"),
+        }
+    }
+}
+
+impl fmt::Display for Coord {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!("({},{})", self.0, self.1))
+    }
+}
+
+impl fmt::Display for Operation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Operation::TurnOn => f.write_str("on"),
+            Operation::TurnOff => f.write_str("off"),
+            Operation::Toggle => f.write_str("tg"),
+        }
+    }
+}
+
+impl fmt::Display for Call {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Call::Call(op, c1, c2) => f.write_fmt(format_args!("{}({}; {})", op, c1, c2)),
+            Call::EOF => f.write_str("End"),
+        }
     }
 }
 
@@ -108,6 +285,7 @@ fn parse_token(input: &str) -> Token {
 mod tests {
     use super::*;
     use std::{cmp, fmt};
+    use std::fmt::Formatter;
 
     impl fmt::Debug for NextToken {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -151,6 +329,42 @@ mod tests {
         }
     }
 
+    impl cmp::PartialEq for Operation {
+        fn eq(&self, other: &Self) -> bool {
+            match (self, other) {
+                (Operation::TurnOn, Operation::TurnOn)
+                | (Operation::TurnOff, Operation::TurnOff)
+                | (Operation::Toggle, Operation::Toggle) => true,
+                _ => false,
+            }
+        }
+    }
+
+    impl fmt::Debug for Operation {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            match self {
+                Operation::TurnOn => f.write_str("on"),
+                Operation::TurnOff => f.write_str("off"),
+                Operation::Toggle => f.write_str("tg"),
+            }
+        }
+    }
+
+    impl fmt::Debug for Coord {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.write_fmt(format_args!("({},{})", self.0, self.1))
+        }
+    }
+
+    impl cmp::PartialEq for Coord {
+        fn eq(&self, other: &Self) -> bool {
+            let Coord(x1, y1) = self;
+            let Coord(x2, y2) = other;
+
+            x1 == x2 && y1 == y2
+        }
+    }
+
     #[test]
     fn test_get_token_toggle() {
         let input = "toggle 461,550 through 564,900";
@@ -185,5 +399,79 @@ mod tests {
         assert_eq!(lexer.next_token(), Token::Coord(599, 989), "Unexpected Token");
         assert_eq!(lexer.next_token(), Token::Through, "Unexpected Token");
         assert_eq!(lexer.next_token(), Token::Coord(806, 993), "Unexpected Token");
+    }
+
+    #[test]
+    fn test_parser() {
+        let mut parser = Parser::new(String::from("turn on 499,989 through 806,992"));
+        let operation = match parser.next_operation() {
+            Call::Call(op, c1, c2) => {
+                assert_eq!(op, Operation::TurnOn);
+                assert_eq!(c1, Coord(499, 989));
+                assert_eq!(c2, Coord(806, 992));
+            }
+            Call::EOF => assert!(false, "Shouldn't happen"),
+        };
+    }
+
+    #[test]
+    fn test_multiline_parser() {
+        let mut parser = Parser::new(String::from("turn on 59,99 through 806,99\r\nturn off 812,389 through 865,874"));
+        let _ = match parser.next_operation() {
+            Call::Call(op, c1, c2) => {
+                assert_eq!(op, Operation::TurnOn);
+                assert_eq!(c1, Coord(59, 99));
+                assert_eq!(c2, Coord(806, 99));
+            }
+            Call::EOF => panic!("Shouldn't happen"),
+        };
+        let _ = match parser.next_operation() {
+            Call::Call(op, c1, c2) => {
+                assert_eq!(op, Operation::TurnOff);
+                assert_eq!(c1, Coord(812, 389));
+                assert_eq!(c2, Coord(865, 874));
+            }
+            Call::EOF => panic!("Shouldn't happen"),
+        };
+    }
+
+    #[test]
+    fn test_santa_interpreter_all_on() {
+        let input = String::from(format!("turn on 0,0 through {},{}", LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1));
+        println!("Testing: {}", input);
+        let mut basic = SantaInterpreter::new(input);
+        let answer = basic.interpret();
+        println!("{} bulbs are showing us Christmas", answer);
+
+        assert_eq!(answer, LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, "{} bulbs are showing us Christmas, but we see {} only",
+                   LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, answer);
+    }
+
+    #[test]
+    fn test_santa_interpreter_all_off() {
+        let input = String::from(format!("turn on 0,0 through {},{}\r\nturn off 0,0 through {},{}",
+                                         LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1));
+        let mut basic = SantaInterpreter::new(input);
+        let answer = basic.interpret();
+        assert_eq!(answer, 0, "{} bulbs are showing us Christmas, but we see {} only",
+                   0, answer);
+    }
+
+    #[test]
+    fn test_santa_interpreter_all_toggle() {
+        let input = String::from(format!("turn on 0,0 through {},{}\r\ntoggle 0,0 through {},{}",
+                                         LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1));
+        let mut basic = SantaInterpreter::new(input);
+        let answer = basic.interpret();
+        assert_eq!(answer, 0, "{} bulbs are showing us Christmas, but we see {} only",
+                   0, answer);
+    }
+
+    #[test]
+    fn test_santa_interpreter() {
+        let mut basic = SantaInterpreter::new(String::from("turn on 0,0 through 99,99\r\ntoggle 100,100 through 199,199"));
+        let answer = basic.interpret();
+        assert_eq!(answer, 100 * 100 * 2, "{} bulbs are showing us Christmas, but we see {} only",
+                   100 * 100 * 2, answer);
     }
 }
