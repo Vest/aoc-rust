@@ -31,18 +31,19 @@ struct Lexer {
 
 impl Lexer {
     fn new(input: String) -> Lexer {
+        let input = input.to_lowercase();
+
         Lexer {
-            input: input.to_lowercase(),
-            current_pos: 0,
+            input,
+            current_pos: 0usize,
         }
     }
 
-    fn next_token(self: &Lexer) -> Token {
-        // let mut word: Vec<&str> = Vec::new();
+    fn next_token(&mut self) -> Token {
+        let next_token = get_token(self.input.as_str(), self.current_pos);
+        self.current_pos = next_token.1;
 
-        //  while inpu {}
-
-        Token::EOF
+        next_token.0
     }
 }
 
@@ -89,13 +90,14 @@ fn parse_token(input: &str) -> Token {
         "toggle" => return Token::Toggle,
         "through" => return Token::Through,
         _ if input.contains(',') => return {
-            let mut coord_pair: Vec<&str> = input.split(',').collect();
+            let coord_pair: Vec<&str> = input.split(',').collect();
             let res_x = coord_pair[0].parse::<u16>();
             let res_y = coord_pair[1].parse::<u16>();
-            let mut x = res_x.unwrap_or(0u16);
-            let mut y = res_y.unwrap_or(0u16);
 
-            Token::Coord(x, y)
+            Token::Coord(
+                res_x.unwrap_or(0u16),
+                res_y.unwrap_or(0u16),
+            )
         },
         _ => Token::EOF,
     }
@@ -162,17 +164,26 @@ mod tests {
     fn test_get_token_turn_off() {
         let input = "turn off 812,389 through 865,874";
         assert_eq!(get_token(input, 0), NextToken(Token::TurnOff, 8), "Unexpected Token");
-        assert_eq!(get_token(input, 8), NextToken(Token::Coord(812,389), 16), "Unexpected Token");
+        assert_eq!(get_token(input, 8), NextToken(Token::Coord(812, 389), 16), "Unexpected Token");
         assert_eq!(get_token(input, 16), NextToken(Token::Through, 24), "Unexpected Token");
-        assert_eq!(get_token(input, 24), NextToken(Token::Coord(865,874), input.len()), "Unexpected Token");
+        assert_eq!(get_token(input, 24), NextToken(Token::Coord(865, 874), input.len()), "Unexpected Token");
     }
 
     #[test]
     fn test_get_token_turn_on() {
         let input = "turn on 599,989 through 806,993";
         assert_eq!(get_token(input, 0), NextToken(Token::TurnOn, 7), "Unexpected Token");
-        assert_eq!(get_token(input, 8), NextToken(Token::Coord(599,989), 15), "Unexpected Token");
+        assert_eq!(get_token(input, 8), NextToken(Token::Coord(599, 989), 15), "Unexpected Token");
         assert_eq!(get_token(input, 15), NextToken(Token::Through, 23), "Unexpected Token");
-        assert_eq!(get_token(input, 23), NextToken(Token::Coord(806,993), input.len()), "Unexpected Token");
+        assert_eq!(get_token(input, 23), NextToken(Token::Coord(806, 993), input.len()), "Unexpected Token");
+    }
+
+    #[test]
+    fn test_lexer() {
+        let mut lexer = Lexer::new(String::from("turn on 599,989 through 806,993"));
+        assert_eq!(lexer.next_token(), Token::TurnOn, "Unexpected Token");
+        assert_eq!(lexer.next_token(), Token::Coord(599, 989), "Unexpected Token");
+        assert_eq!(lexer.next_token(), Token::Through, "Unexpected Token");
+        assert_eq!(lexer.next_token(), Token::Coord(806, 993), "Unexpected Token");
     }
 }
