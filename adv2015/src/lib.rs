@@ -14,7 +14,7 @@ pub fn print_answers(day: u8, input: String) {
         3 => println!("{} {} and {}", prefix, day3::count_houses(input), day3::count_houses_together(input)),
         4 => println!("{} {} and {}", prefix, day4::mine_suffix(input, 5), day4::mine_suffix(input, 6)),
         5 => println!("{} {} and {}", prefix, day5::count_nice_lines(input), day5::count_nice_lines_advanced(input)),
-        6 => println!("{} {} and {}", prefix, day6::count_bulbs(input), ""),
+        6 => println!("{} {} and {}", prefix, day6::count_bulbs(input), day6::count_brightness(input)),
         _ => { eprintln!("2015: I don't know the answer for day {} :(", day) }
     }
 }

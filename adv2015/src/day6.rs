@@ -6,6 +6,12 @@ pub fn count_bulbs(input: &str) -> usize {
     santa.get_state()
 }
 
+pub fn count_brightness(input: &str) -> usize {
+    let mut santa = SantaBetterInterpreter::new();
+    santa.interpret(String::from(input));
+    santa.get_state()
+}
+
 const LIGHT_MAX_SIZE: usize = 1000;
 
 struct NextToken(Token, usize);
@@ -57,6 +63,11 @@ struct Parser {
 
 struct SantaInterpreter {
     state: Vec<Vec<bool>>,
+    parser: Parser,
+}
+
+struct SantaBetterInterpreter {
+    state: Vec<Vec<usize>>,
     parser: Parser,
 }
 
@@ -189,10 +200,10 @@ impl SantaInterpreter {
                 Call::Call(op, c1, c2) => {
                     for x in c1.0..=c2.0 {
                         for y in c1.1..=c2.1 {
-                            match op {
-                                Operation::TurnOn => self.state[x][y] = true,
-                                Operation::TurnOff => self.state[x][y] = false,
-                                Operation::Toggle => self.state[x][y] = !self.state[x][y],
+                            self.state[x][y] = match op {
+                                Operation::TurnOn => true,
+                                Operation::TurnOff => false,
+                                Operation::Toggle => !self.state[x][y],
                             };
                         }
                     }
@@ -202,6 +213,7 @@ impl SantaInterpreter {
         }
     }
 
+    #[allow(dead_code)]
     fn reset(&mut self) {
         for x in 0..LIGHT_MAX_SIZE {
             for y in 0..LIGHT_MAX_SIZE {
@@ -217,6 +229,53 @@ impl SantaInterpreter {
                     .fold(0usize, |acc2, &bulb| {
                         acc2 + if bulb { 1 } else { 0 }
                     })
+            })
+    }
+}
+
+impl SantaBetterInterpreter {
+    fn new() -> SantaBetterInterpreter {
+        SantaBetterInterpreter {
+            parser: Parser::new(String::from("")),
+            state: vec![vec![0; LIGHT_MAX_SIZE]; LIGHT_MAX_SIZE],
+        }
+    }
+
+    fn interpret(&mut self, input: String) {
+        self.parser = Parser::new(input);
+
+        while let Some(c) = self.parser.next() {
+            match c {
+                Call::Call(op, c1, c2) => {
+                    for x in c1.0..=c2.0 {
+                        for y in c1.1..=c2.1 {
+                            self.state[x][y] = match op {
+                                Operation::TurnOn => self.state[x][y].saturating_add(1),
+                                Operation::TurnOff => self.state[x][y].saturating_sub(1),
+                                Operation::Toggle => self.state[x][y].saturating_add(2),
+                            };
+                        }
+                    }
+                }
+                Call::EOF => break,
+            };
+        }
+    }
+
+    #[allow(dead_code)]
+    fn reset(&mut self) {
+        for x in 0..LIGHT_MAX_SIZE {
+            for y in 0..LIGHT_MAX_SIZE {
+                self.state[x][y] = 0;
+            }
+        }
+    }
+
+    fn get_state(&self) -> usize {
+        self.state.iter()
+            .fold(0usize, |acc1, line| {
+                acc1.saturating_add(line.iter()
+                    .fold(0usize, |acc2, &brightness| acc2.saturating_add(brightness)))
             })
     }
 }
@@ -295,12 +354,10 @@ impl fmt::Display for Call {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::{cmp, fmt};
-    use std::fmt::Formatter;
 
     impl fmt::Debug for NextToken {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -419,7 +476,7 @@ mod tests {
     #[test]
     fn test_parser() {
         let mut parser = Parser::new(String::from("turn on 499,989 through 806,992"));
-        let operation = match parser.next_operation() {
+        match parser.next_operation() {
             Call::Call(op, c1, c2) => {
                 assert_eq!(op, Operation::TurnOn);
                 assert_eq!(c1, Coord(499, 989));
@@ -492,5 +549,49 @@ mod tests {
         let answer = basic.get_state();
         assert_eq!(answer, 100 * 100 * 2, "{} bulbs are showing us Christmas, but we see {} only",
                    100 * 100 * 2, answer);
+    }
+
+    #[test]
+    fn test_santa_better_interpreter_all_on() {
+        let input = String::from(format!("turn on 0,0 through {},{}", LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1));
+        println!("Testing: {}", input);
+        let mut basic = SantaBetterInterpreter::new();
+        basic.interpret(input);
+        let answer = basic.get_state();
+        println!("{} Christmas brightness", answer);
+
+        assert_eq!(answer, LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, "{} is Christmas brightness, but we have {} only",
+                   LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, answer);
+    }
+
+    #[test]
+    fn test_santa_better_interpreter_all_off() {
+        let input = String::from(format!("turn on 0,0 through {},{}\r\nturn off 0,0 through {},{}",
+                                         LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1));
+        let mut basic = SantaBetterInterpreter::new();
+        basic.interpret(input);
+        let answer = basic.get_state();
+        assert_eq!(answer, 0, "{} is Christmas brightness, but we have {} only",
+                   0, answer);
+    }
+
+    #[test]
+    fn test_santa_better_interpreter_all_toggle() {
+        let input = String::from(format!("toggle 0,0 through {},{}",
+                                         LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1));
+        let mut basic = SantaBetterInterpreter::new();
+        basic.interpret(input);
+        let answer = basic.get_state();
+        assert_eq!(answer, 2 * LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, "{} is Christmas brightness, but we have {} only",
+                   2 * LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, answer);
+    }
+
+    #[test]
+    fn test_santa_better_interpreter_one_toggle() {
+        let input = String::from("toggle 0,0 through 0,0");
+        let mut basic = SantaBetterInterpreter::new();
+        basic.interpret(input);
+        let answer = basic.get_state();
+        assert_eq!(answer, 2, "{} is Christmas brightness, but we have {} only", 2, answer);
     }
 }
