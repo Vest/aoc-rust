@@ -36,7 +36,6 @@ enum Token {
 
 #[derive(Copy, Clone)]
 enum Operation {
-    Assign,
     And,
     Or,
     LShift,
@@ -323,7 +322,6 @@ impl fmt::Display for LValue {
 impl fmt::Display for Operation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
-            Operation::Assign => "->",
             Operation::And => "&",
             Operation::Or => "|",
             Operation::LShift => "<<",
@@ -363,9 +361,8 @@ impl BobbyInterpreter {
         while let Some(e) = self.parser.next() {
             match e {
                 Expression::Assign(c, r) => {
-                    if let RValue::Var(var_name) = r {
-                        self.tree.insert(var_name, c);
-                    }
+                    let RValue::Var(var_name) = r;
+                    self.tree.insert(var_name, c);
                 }
                 Expression::NOP => {}
             };
@@ -619,11 +616,8 @@ mod tests {
                 } else {
                     assert!(false, "It wasn't parsed correctly");
                 }
-                if let RValue::Var(s) = v {
-                    assert_eq!(s, "x", "A wrong wire was parsed");
-                } else {
-                    assert!(false, "It wasn't parsed correctly");
-                }
+                let RValue::Var(s) = v;
+                assert_eq!(s, "x", "A wrong wire was parsed");
             }
             _ => assert!(false, "Shouldn't happen"),
         };
@@ -635,11 +629,8 @@ mod tests {
                 } else {
                     assert!(false, "It wasn't parsed correctly");
                 }
-                if let RValue::Var(s) = v {
-                    assert_eq!(s, "y", "A wrong wire was parsed");
-                } else {
-                    assert!(false, "It wasn't parsed correctly");
-                }
+                let RValue::Var(s) = v;
+                assert_eq!(s, "y", "A wrong wire was parsed");
             }
             _ => assert!(false, "Shouldn't happen"),
         };
@@ -652,11 +643,8 @@ mod tests {
                 } else {
                     assert!(false, "It wasn't parsed correctly");
                 }
-                if let RValue::Var(s) = v {
-                    assert_eq!(s, "d", "A wrong wire was parsed");
-                } else {
-                    assert!(false, "It wasn't parsed correctly");
-                }
+                let RValue::Var(s) = v;
+                assert_eq!(s, "d", "A wrong wire was parsed");
             }
             _ => assert!(false, "Shouldn't happen"),
         };
@@ -669,11 +657,8 @@ mod tests {
                 } else {
                     assert!(false, "It wasn't parsed correctly");
                 }
-                if let RValue::Var(s) = v {
-                    assert_eq!(s, "e", "A wrong wire was parsed");
-                } else {
-                    assert!(false, "It wasn't parsed correctly");
-                }
+                let RValue::Var(s) = v;
+                assert_eq!(s, "e", "A wrong wire was parsed");
             }
             _ => assert!(false, "Shouldn't happen"),
         };
@@ -733,11 +718,8 @@ mod tests {
                 } else {
                     assert!(false, "It wasn't parsed correctly");
                 }
-                if let RValue::Var(s) = v {
-                    assert_eq!(s, "js", "A wrong wire was parsed");
-                } else {
-                    assert!(false, "It wasn't parsed correctly");
-                }
+                let RValue::Var(s) = v;
+                assert_eq!(s, "js", "A wrong wire was parsed");
             }
             _ => assert!(false, "Shouldn't happen"),
         };
@@ -750,11 +732,8 @@ mod tests {
                 } else {
                     assert!(false, "It wasn't parsed correctly");
                 }
-                if let RValue::Var(s) = v {
-                    assert_eq!(s, "ip", "A wrong wire was parsed");
-                } else {
-                    assert!(false, "It wasn't parsed correctly");
-                }
+                let RValue::Var(s) = v;
+                assert_eq!(s, "ip", "A wrong wire was parsed");
             }
             _ => assert!(false, "Shouldn't happen"),
         };
@@ -767,11 +746,8 @@ mod tests {
                 } else {
                     assert!(false, "It wasn't parsed correctly");
                 }
-                if let RValue::Var(s) = v {
-                    assert_eq!(s, "es", "A wrong wire was parsed");
-                } else {
-                    assert!(false, "It wasn't parsed correctly");
-                }
+                let RValue::Var(s) = v;
+                assert_eq!(s, "es", "A wrong wire was parsed");
             }
             _ => assert!(false, "Shouldn't happen"),
         };
