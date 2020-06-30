@@ -167,6 +167,7 @@ impl Parser {
             }
             token => {
                 println!("Unexpected token in the line: {}", token);
+                self.parsing = false;
                 Call::EOF
             }
         }
@@ -414,11 +415,7 @@ mod tests {
 
     impl fmt::Debug for Operation {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            match self {
-                Operation::TurnOn => f.write_str("on"),
-                Operation::TurnOff => f.write_str("off"),
-                Operation::Toggle => f.write_str("tg"),
-            }
+            f.write_fmt(format_args!("{}", self))
         }
     }
 
