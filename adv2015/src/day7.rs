@@ -1,4 +1,21 @@
 use std::fmt;
+use std::collections::HashMap;
+use std::fmt::Formatter;
+
+pub fn count_input_a(input: &str) -> u16 {
+    let mut bobby = BobbyInterpreter::new();
+    bobby.interpret(String::from(input));
+
+    bobby.evaluate(&String::from("a")).unwrap()
+}
+
+pub fn count_input_a_override(input: &str) -> u16 {
+    let mut bobby = BobbyInterpreter::new();
+    bobby.interpret(String::from(input));
+
+    let value_for_b = bobby.evaluate(&String::from("a")).unwrap();
+    bobby.evaluate_override_signal(&String::from("a"), &String::from("b"), value_for_b).unwrap()
+}
 
 struct NextToken(Token, usize);
 
@@ -47,8 +64,6 @@ enum Command {
 
     // x A
     Unary(Operation, LValue),
-
-    EOF,
 }
 
 #[derive(Clone)]
@@ -67,6 +82,13 @@ struct Parser {
     lexer: Lexer,
     parsing: bool,
 }
+
+struct BobbyInterpreter {
+    parser: Parser,
+    tree: HashMap<String, Command>,
+    cache: HashMap<String, u16>,
+}
+
 
 impl Lexer {
     fn new(input: String) -> Lexer {
@@ -93,11 +115,17 @@ impl Token {
             "RSHIFT" => return Token::RightShift,
             "NOT" => return Token::Not,
             "->" => return Token::Assign,
-            str_value => if let Ok(value) = str_value.parse::<u16>() {
-                Token::Signal(value)
-            } else {
-                Token::Wire(String::from(str_value))
-            },
+            str_value => {
+                if str_value.is_empty() {
+                    return Token::EOF;
+                }
+
+                if let Ok(value) = str_value.parse::<u16>() {
+                    Token::Signal(value)
+                } else {
+                    Token::Wire(String::from(str_value))
+                }
+            }
         }
     }
 }
@@ -208,6 +236,17 @@ impl Parser {
     }
 }
 
+impl Iterator for Parser {
+    type Item = Expression;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.next_operation() {
+            Expression::NOP => None,
+            result => Some(result),
+        }
+    }
+}
+
 fn lvalue_from_one(commands: &Vec<Token>) -> Option<LValue> {
     assert_eq!(commands.len(), 1);
     let lvalue = &commands[0];
@@ -243,6 +282,8 @@ fn lvalue_from_three(commands: &Vec<Token>) -> Option<Command> {
         Token::And =>
             if let (Token::Wire(s1), Token::Wire(s2)) = (lvalue1, lvalue2) {
                 Some(Command::Binary(LValue::Var(s1.clone()), Operation::And, LValue::Var(s2.clone())))
+            } else if let (Token::Signal(u1), Token::Wire(s2)) = (lvalue1, lvalue2) {
+                Some(Command::Binary(LValue::Const(u1.clone()), Operation::And, LValue::Var(s2.clone())))
             } else { None },
         Token::Or =>
             if let (Token::Wire(s1), Token::Wire(s2)) = (lvalue1, lvalue2) {
@@ -261,6 +302,168 @@ fn lvalue_from_three(commands: &Vec<Token>) -> Option<Command> {
     }
 }
 
+impl fmt::Display for Expression {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Expression::NOP => { f.write_str("NOP") }
+            Expression::Assign(_, _) => { f.write_str("Assign") }
+        }
+    }
+}
+
+impl fmt::Display for LValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            LValue::Const(c) => f.write_fmt(format_args!("{}", c)),
+            LValue::Var(v) => f.write_fmt(format_args!("{}", v)),
+        }
+    }
+}
+
+impl fmt::Display for Operation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Operation::Assign => "->",
+            Operation::And => "&",
+            Operation::Or => "|",
+            Operation::LShift => "<<",
+            Operation::RShift => ">>",
+            Operation::Not => "!",
+        })
+    }
+}
+
+impl fmt::Display for Command {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Command::Result(lvalue) =>
+                f.write_fmt(format_args!("{}", lvalue)),
+            Command::Binary(lvalue1, op, lvalue2) =>
+                f.write_fmt(format_args!("{} {} {}", lvalue1, op, lvalue2)),
+            Command::Unary(op, lvalue) =>
+                f.write_fmt(format_args!("{} {}", op, lvalue)),
+        }
+    }
+}
+
+impl BobbyInterpreter {
+    fn new() -> BobbyInterpreter {
+        BobbyInterpreter {
+            parser: Parser::new(String::from("")),
+            tree: HashMap::new(),
+            cache: HashMap::new(),
+        }
+    }
+
+    fn interpret(&mut self, input: String) {
+        self.parser = Parser::new(input);
+        self.tree.clear();
+        self.cache.clear();
+
+        while let Some(e) = self.parser.next() {
+            match e {
+                Expression::Assign(c, r) => {
+                    if let RValue::Var(var_name) = r {
+                        self.tree.insert(var_name, c);
+                    }
+                }
+                Expression::NOP => {}
+            };
+        }
+    }
+
+    #[allow(dead_code)]
+    fn print_ast(&self) {
+        println!("Print AST:");
+        for i in self.tree.iter() {
+            println!("{} = {}", i.0, i.1);
+        }
+    }
+
+    fn evaluate(&mut self, wire: &String) -> Option<u16> {
+        // Read from cache, if the value exists there
+        if let Some(&cached_value) = self.cache.get(wire) {
+            return Some(cached_value);
+        }
+
+        let next_command = self.tree.get(&wire.clone());
+        if next_command.is_none() {
+            eprintln!("Wire '{}' doesn't have a command", wire);
+            return None;
+        }
+
+        let result = match next_command.unwrap().clone() {
+            Command::Result(lvalue) => {
+                match lvalue {
+                    LValue::Const(c) => {
+                        Some(c.clone())
+                    }
+                    LValue::Var(w) => self.evaluate(&w),
+                }
+            }
+            Command::Unary(op, lvalue) => {
+                // There is only one Unary operation, for more you can add "match"
+                if let Operation::Not = op {
+                    match lvalue {
+                        LValue::Const(c) => Some(!c.clone()),
+                        LValue::Var(w) => {
+                            if let Some(value) = self.evaluate(&w) {
+                                Some(!value)
+                            } else {
+                                None
+                            }
+                        }
+                    }
+                } else {
+                    None
+                }
+            }
+            Command::Binary(l1, op, l2) => {
+                let lvalue1 = match l1 {
+                    LValue::Const(c) => c.clone(),
+                    LValue::Var(w) => {
+                        self.evaluate(&w).unwrap()
+                    }
+                };
+
+                let lvalue2 = match l2 {
+                    LValue::Const(c) => c.clone(),
+                    LValue::Var(w) => {
+                        if let Some(value) = self.evaluate(&w) {
+                            value
+                        } else {
+                            return None;
+                        }
+                    }
+                };
+
+                match op {
+                    Operation::And => Some(lvalue1 & lvalue2),
+                    Operation::Or => Some(lvalue1 | lvalue2),
+                    Operation::LShift => Some(lvalue1 << lvalue2),
+                    Operation::RShift => Some(lvalue1 >> lvalue2),
+                    _ => None,
+                }
+            }
+        };
+
+        if let Some(u) = result {
+            // Store to cache, if we can
+            // println!("Store to cache: {}={}", wire, u);
+            self.cache.insert(wire.clone(), u);
+        }
+
+        result
+    }
+
+    fn evaluate_override_signal(&mut self, wire: &String, new_wire: &String, new_value: u16) -> Option<u16> {
+        self.cache.clear();
+        self.tree.insert((*new_wire).clone(), Command::Result(LValue::Const(new_value)));
+
+        self.evaluate(wire)
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -273,6 +476,25 @@ mod tests {
                 .field(&self.0)
                 .field(&self.1)
                 .finish()
+        }
+    }
+
+    impl fmt::Debug for LValue {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            match self {
+                LValue::Const(c) => f.write_fmt(format_args!("{}", c)),
+                LValue::Var(v) => f.write_fmt(format_args!("{}", v)),
+            }
+        }
+    }
+
+    impl cmp::PartialEq for LValue {
+        fn eq(&self, other: &Self) -> bool {
+            match (self, other) {
+                (LValue::Const(c1), LValue::Const(c2)) if c1 == c2 => true,
+                (LValue::Var(w1), LValue::Var(w2)) if w1 == w2 => true,
+                _ => false,
+            }
         }
     }
 
@@ -340,7 +562,7 @@ mod tests {
     #[test]
     fn test_get_token_rshift() {
         let input = "y RSHIFT 2 -> g";
-        assert_eq!(get_token(input, 0), NextToken(Token::Wire(String::from("x")), 1), "Unexpected Token");
+        assert_eq!(get_token(input, 0), NextToken(Token::Wire(String::from("y")), 1), "Unexpected Token");
         assert_eq!(get_token(input, 1), NextToken(Token::RightShift, 8), "Unexpected Token");
         assert_eq!(get_token(input, 8), NextToken(Token::Signal(2), 10), "Unexpected Token");
         assert_eq!(get_token(input, 10), NextToken(Token::Assign, 13), "Unexpected Token");
@@ -380,10 +602,16 @@ mod tests {
         assert_eq!(lexer.next_token(), Token::Wire(String::from("e")), "Unexpected Token");
     }
 
-
     #[test]
     fn test_parser() {
-        let mut parser = Parser::new(String::from("123 -> x\r\n456 -> y\r\nx AND y -> d\r\nx OR y -> e"));
+        let mut parser = Parser::new(String::from("123 -> x
+                                           456 -> y
+                                           x AND y -> d
+                                           x OR y -> e
+                                           x LSHIFT 2 -> f
+                                           y RSHIFT 2 -> g
+                                           NOT x -> h
+                                           NOT y -> i"));
         match parser.next_operation() {
             Expression::Assign(c, v) => {
                 if let Command::Result(LValue::Const(u)) = c {
@@ -449,5 +677,115 @@ mod tests {
             }
             _ => assert!(false, "Shouldn't happen"),
         };
+    }
+
+    #[test]
+    fn test_bobby_interpreter() {
+        let input = String::from("123 -> x
+                                           456 -> y
+                                           x AND y -> d
+                                           x OR y -> e
+                                           x LSHIFT 2 -> f
+                                           y RSHIFT 2 -> g
+                                           NOT x -> h
+                                           NOT y -> i");
+        let mut bobby = BobbyInterpreter::new();
+        bobby.interpret(input);
+        bobby.print_ast();
+        let def = 0xffffu16;
+
+        assert_eq!(bobby.evaluate(&String::from("x")).unwrap_or(def.clone()), 123, "Unexpected value X");
+        assert_eq!(bobby.evaluate(&String::from("y")).unwrap_or(def.clone()), 456, "Unexpected value Y");
+        assert_eq!(bobby.evaluate(&String::from("h")).unwrap_or(def.clone()), 65412, "Unexpected value H");
+        assert_eq!(bobby.evaluate(&String::from("i")).unwrap_or(def.clone()), 65079, "Unexpected value I");
+        assert_eq!(bobby.evaluate(&String::from("d")).unwrap_or(def.clone()), 72, "Unexpected value D");
+        assert_eq!(bobby.evaluate(&String::from("e")).unwrap_or(def.clone()), 507, "Unexpected value E");
+        assert_eq!(bobby.evaluate(&String::from("f")).unwrap_or(def.clone()), 492, "Unexpected value F");
+        assert_eq!(bobby.evaluate(&String::from("g")).unwrap_or(def.clone()), 114, "Unexpected value G");
+    }
+
+    #[test]
+    fn test_lexer_eof() {
+        let mut lexer = Lexer::new(String::from("123 -> x
+                                           456 -> y"));
+        assert_eq!(lexer.next_token(), Token::Signal(123), "Unexpected Token");
+        assert_eq!(lexer.next_token(), Token::Assign, "Unexpected Token");
+        assert_eq!(lexer.next_token(), Token::Wire(String::from("x")), "Unexpected Token");
+
+        assert_eq!(lexer.next_token(), Token::Signal(456), "Unexpected Token");
+        assert_eq!(lexer.next_token(), Token::Assign, "Unexpected Token");
+        assert_eq!(lexer.next_token(), Token::Wire(String::from("y")), "Unexpected Token");
+
+        assert_eq!(lexer.next_token(), Token::EOF, "Unexpected Token");
+    }
+
+    #[test]
+    fn test_parser_with_const() {
+        let mut parser = Parser::new(String::from("jp RSHIFT 5 -> js
+        1 AND io -> ip
+        eo LSHIFT 15 -> es"));
+
+        match parser.next_operation() {
+            Expression::Assign(c, v) => {
+                if let Command::Binary(LValue::Var(x), Operation::RShift, LValue::Const(y)) = c {
+                    assert_eq!(x, "jp", "A wrong wire was parsed");
+                    assert_eq!(y, 5, "A wrong wire was parsed");
+                } else {
+                    assert!(false, "It wasn't parsed correctly");
+                }
+                if let RValue::Var(s) = v {
+                    assert_eq!(s, "js", "A wrong wire was parsed");
+                } else {
+                    assert!(false, "It wasn't parsed correctly");
+                }
+            }
+            _ => assert!(false, "Shouldn't happen"),
+        };
+
+        match parser.next_operation() {
+            Expression::Assign(c, v) => {
+                if let Command::Binary(LValue::Const(x), Operation::And, LValue::Var(y)) = c {
+                    assert_eq!(x, 1, "A wrong wire was parsed");
+                    assert_eq!(y, "io", "A wrong wire was parsed");
+                } else {
+                    assert!(false, "It wasn't parsed correctly");
+                }
+                if let RValue::Var(s) = v {
+                    assert_eq!(s, "ip", "A wrong wire was parsed");
+                } else {
+                    assert!(false, "It wasn't parsed correctly");
+                }
+            }
+            _ => assert!(false, "Shouldn't happen"),
+        };
+
+        match parser.next_operation() {
+            Expression::Assign(c, v) => {
+                if let Command::Binary(LValue::Var(x), Operation::LShift, LValue::Const(y)) = c {
+                    assert_eq!(x, "eo", "A wrong wire was parsed");
+                    assert_eq!(y, 15, "A wrong wire was parsed");
+                } else {
+                    assert!(false, "It wasn't parsed correctly");
+                }
+                if let RValue::Var(s) = v {
+                    assert_eq!(s, "es", "A wrong wire was parsed");
+                } else {
+                    assert!(false, "It wasn't parsed correctly");
+                }
+            }
+            _ => assert!(false, "Shouldn't happen"),
+        };
+    }
+
+    #[test]
+    fn test_bobby_interpreter_empty() {
+        let input = String::from("123 -> x
+                                           456 -> y");
+        let mut bobby = BobbyInterpreter::new();
+        bobby.interpret(input);
+        bobby.print_ast();
+        let def = 0xffffu16;
+
+        assert_eq!(bobby.evaluate(&String::from("vest")).unwrap_or(def.clone()), 0xffffu16, "We shouldn't find any value");
     }
 }
