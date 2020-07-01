@@ -6,6 +6,7 @@ mod day5;
 mod day6;
 mod day7;
 mod day8;
+mod day9;
 
 pub fn print_answers(day: u8, input: String) {
     let input = input.as_str();
@@ -19,6 +20,7 @@ pub fn print_answers(day: u8, input: String) {
         6 => println!("{} {} and {}", prefix, day6::count_bulbs(input), day6::count_brightness(input)),
         7 => println!("{} {} and {}", prefix, day7::count_input_a(input), day7::count_input_a_override(input)),
         8 => println!("{} {} and {}", prefix, day8::calc_difference(input), day8::calc_new_difference(input)),
+        9 => println!("{} {} and {}", prefix, day9::calc_shortest(input), day9::calc_longest(input)),
         _ => { eprintln!("2015: I don't know the answer for day {} :(", day) }
     }
 }

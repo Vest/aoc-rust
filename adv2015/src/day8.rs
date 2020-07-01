@@ -49,11 +49,11 @@ fn unescape(input: &str) -> String {
     let mut in_single_quote = false;
     let mut in_double_quote = false;
 
-    let mut chars = input.chars().enumerate();
+    let mut chars = input.chars();
 
     let mut res = String::with_capacity(input.len());
 
-    while let Some((idx, c)) = chars.next() {
+    while let Some(c) = chars.next() {
         if in_single_quote {
             if c == '\'' {
                 in_single_quote = false;
@@ -68,7 +68,7 @@ fn unescape(input: &str) -> String {
             if c == '\\' {
                 match chars.next() {
                     None => return String::new(),
-                    Some((idx, c2)) => {
+                    Some(c2) => {
                         res.push(match c2 {
                             '\\' => '\\',
                             '\'' => '\'',
@@ -97,12 +97,12 @@ fn unescape(input: &str) -> String {
 }
 
 fn escape(input: &str) -> String {
-    let mut chars = input.chars().enumerate();
+    let mut chars = input.chars();
 
     let mut res = String::with_capacity(input.len());
     res.push('"');
 
-    while let Some((idx, c)) = chars.next() {
+    while let Some(c) = chars.next() {
         match c {
             '\'' | '"' | '\\' => {
                 res.push('\\');
@@ -117,9 +117,9 @@ fn escape(input: &str) -> String {
 
 fn parse_unicode<I>(chars: &mut I) -> char
     where
-        I: Iterator<Item=(usize, char)> {
-    let c1 = chars.next().unwrap().1;
-    let c2 = chars.next().unwrap().1;
+        I: Iterator<Item=char> {
+    let c1 = chars.next().unwrap();
+    let c2 = chars.next().unwrap();
 
     let d1 = c1.to_digit(16).unwrap();
     let d2 = c2.to_digit(16).unwrap();
