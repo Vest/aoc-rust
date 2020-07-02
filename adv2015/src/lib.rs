@@ -1,3 +1,4 @@
+/* <editor-fold desc="mod - days import"> */
 mod day1;
 mod day2;
 mod day3;
@@ -7,6 +8,8 @@ mod day6;
 mod day7;
 mod day8;
 mod day9;
+mod day10;
+/* </editor-fold> */
 
 pub fn print_answers(day: u8, input: String) {
     let input = input.as_str();
@@ -21,6 +24,7 @@ pub fn print_answers(day: u8, input: String) {
         7 => println!("{} {} and {}", prefix, day7::count_input_a(input), day7::count_input_a_override(input)),
         8 => println!("{} {} and {}", prefix, day8::calc_difference(input), day8::calc_new_difference(input)),
         9 => println!("{} {} and {}", prefix, day9::calc_shortest(input), day9::calc_longest(input)),
+        10 => println!("{} {} and {}", prefix, day10::calc_first(input), day10::calc_second(input)),
         _ => { eprintln!("2015: I don't know the answer for day {} :(", day) }
     }
 }
