@@ -18,10 +18,6 @@ jobs:
         rust: [stable, nightly]
 
     steps:
-    - uses: hecrj/setup-rust-action@v1
-      with:
-        rust-version: ${{ matrix.rust }}
-
     - uses: actions/checkout@master
 
     - uses: actions/cache@v2
@@ -30,7 +26,11 @@ jobs:
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: ${{ matrix.os }}-cargo-${{ hashFiles('Cargo.lock') }}
+        key: ${{ matrix.os }}-rust-${{ matrix.rust }}-${{ hashFiles('Cargo.lock') }}
+
+    - uses: hecrj/setup-rust-action@v1
+      with:
+        rust-version: ${{ matrix.rust }}
 
     - name: Run tests
       run: cargo test --verbose
