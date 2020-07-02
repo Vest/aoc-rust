@@ -18,6 +18,12 @@ jobs:
         rust: [stable, nightly]
 
     steps:
+    - uses: hecrj/setup-rust-action@v1
+      with:
+        rust-version: ${{ matrix.rust }}
+
+    - uses: actions/checkout@master
+
     - uses: actions/cache@v2
       with:
         path: |
@@ -26,10 +32,5 @@ jobs:
           target
         key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
 
-    - uses: hecrj/setup-rust-action@v1
-      with:
-        rust-version: ${{ matrix.rust }}
-
-    - uses: actions/checkout@master
     - name: Run tests
       run: cargo test --verbose
