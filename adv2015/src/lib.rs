@@ -9,6 +9,7 @@ mod day7;
 mod day8;
 mod day9;
 mod day10;
+mod day11;
 /* </editor-fold> */
 
 pub fn print_answers(day: u8, input: String) {
