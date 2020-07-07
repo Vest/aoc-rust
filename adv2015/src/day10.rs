@@ -10,7 +10,7 @@ pub fn calc_second(input: &str) -> usize {
 }
 
 fn calc_length(input: &str, iterations: usize) -> usize {
-    let mut look_and_say = String::from(input.trim());
+    let mut look_and_say = String::from(input);
     for _ in 0..iterations {
         look_and_say = convert_to_look(&look_and_say);
     }
