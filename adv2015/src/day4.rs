@@ -1,6 +1,5 @@
 pub fn mine_suffix(secret: &str, zeroes: u8) -> u32 {
     let mut answer = 1;
-    let secret = secret.trim();
 
     let mut pattern = String::with_capacity(zeroes as usize);
     for _ in 0..zeroes {
@@ -45,13 +44,13 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn test_mine_suffix_long() {
+    fn test_mine_suffix_slow() {
         assert_eq!(mine_suffix("abcdef", 5), 609043, "Didn't mine suffix properly");
         assert_eq!(mine_suffix("pqrstuv", 5), 1048970, "Didn't mine suffix properly");
     }
 
     #[test]
-    fn test_mine_suffix_quick() {
+    fn test_mine_suffix_fast() {
         let abc = mine_suffix("abcdef", 1);
         assert_eq!(abc, 31, "Didn't mine suffix properly");
 
