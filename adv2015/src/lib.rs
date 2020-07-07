@@ -13,7 +13,8 @@ mod day11;
 /* </editor-fold> */
 
 pub fn print_answers(day: u8, input: String) {
-    let input = input.as_str();
+    // Trim is mandatory for one-line inputs
+    let input = input.as_str().trim();
     let prefix = format!("Day {} / 2015:", day);
     match day {
         1 => println!("{} {} and {}", prefix, day1::count_brackets(input), day1::count_position(input)),
@@ -26,6 +27,7 @@ pub fn print_answers(day: u8, input: String) {
         8 => println!("{} {} and {}", prefix, day8::calc_difference(input), day8::calc_new_difference(input)),
         9 => println!("{} {} and {}", prefix, day9::calc_shortest(input), day9::calc_longest(input)),
         10 => println!("{} {} and {}", prefix, day10::calc_first(input), day10::calc_second(input)),
+        11 => println!("{} {} and {}", prefix, day11::get_expired_once(input), day11::get_expired_twice(input)),
         _ => { eprintln!("2015: I don't know the answer for day {} :(", day) }
     }
 }
