@@ -22,6 +22,7 @@ impl Password {
         }
     }
 
+    #[allow(dead_code)]
     fn new() -> Password {
         let mut pwd = Password {
             state: String::with_capacity(MAX_LENGTH)
