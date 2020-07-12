@@ -1,4 +1,5 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use permute::permutations_of;
 
 pub fn get_answer(input: &str) -> i32 {
     0
@@ -41,18 +42,56 @@ fn parse_input(input: &str) -> Vec<PersonToPerson> {
 }
 
 fn build_relationships(input: &Vec<PersonToPerson>) -> HashMap<(String, String), i32> {
-    let mut hashMap: HashMap<(String, String), i32> = HashMap::with_capacity(10);
+    let mut hash_map: HashMap<(String, String), i32> = HashMap::with_capacity(10);
 
     for person in input {
-        hashMap.insert((person.who.clone(), person.next.clone()), person.attitude);
+        hash_map.insert((person.who.clone(), person.next.clone()), person.attitude);
     }
 
-    hashMap
+    hash_map
+}
+
+fn extract_names(input: &Vec<PersonToPerson>) -> HashSet<String> {
+    let mut hash_set: HashSet<String> = HashSet::with_capacity(5);
+
+    input.iter().for_each(|person| { hash_set.insert(person.who.clone()); });
+
+    hash_set
+}
+
+fn calculate_happiness(people: &Vec<String>, relationship: &HashMap<(String, String), i32>) -> i32 {
+    let mut result = 0i32;
+    let mut previous = String::from(people.last().unwrap());
+
+    for current in people.iter() {
+        result += relationship[&(previous.clone(), current.clone())];
+        result += relationship[&(current.clone(), previous.clone())];
+        previous = current.clone();
+    }
+
+    result
+}
+
+fn calculate_everyone() {
+    // for permutation in permutations_of(&vector) {
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const INPUT: &'static str = r#"Alice would gain 54 happiness units by sitting next to Bob.
+                                   Alice would lose 79 happiness units by sitting next to Carol.
+                                   Alice would lose 2 happiness units by sitting next to David.
+                                   Bob would gain 83 happiness units by sitting next to Alice.
+                                   Bob would lose 7 happiness units by sitting next to Carol.
+                                   Bob would lose 63 happiness units by sitting next to David.
+                                   Carol would lose 62 happiness units by sitting next to Alice.
+                                   Carol would gain 60 happiness units by sitting next to Bob.
+                                   Carol would gain 55 happiness units by sitting next to David.
+                                   David would gain 46 happiness units by sitting next to Alice.
+                                   David would lose 7 happiness units by sitting next to Bob.
+                                   David would gain 41 happiness units by sitting next to Carol."#;
 
     #[test]
     fn test_parse_line_1() {
@@ -72,20 +111,7 @@ mod tests {
 
     #[test]
     fn test_parse_input() {
-        let input = r#"Alice would gain 54 happiness units by sitting next to Bob.
-                            Alice would lose 79 happiness units by sitting next to Carol.
-                            Alice would lose 2 happiness units by sitting next to David.
-                            Bob would gain 83 happiness units by sitting next to Alice.
-                            Bob would lose 7 happiness units by sitting next to Carol.
-                            Bob would lose 63 happiness units by sitting next to David.
-                            Carol would lose 62 happiness units by sitting next to Alice.
-                            Carol would gain 60 happiness units by sitting next to Bob.
-                            Carol would gain 55 happiness units by sitting next to David.
-                            David would gain 46 happiness units by sitting next to Alice.
-                            David would lose 7 happiness units by sitting next to Bob.
-                            David would gain 41 happiness units by sitting next to Carol."#;
-
-        let result = parse_input(input);
+        let result = parse_input(INPUT);
         let single_line = result.get(10).unwrap();
 
         assert_eq!(result.len(), 12);
@@ -95,5 +121,36 @@ mod tests {
     }
 
     #[test]
-    fn test_build_relationships() {}
+    fn test_build_relationships() {
+        let result = parse_input(INPUT);
+        let hash_map = build_relationships(&result);
+
+        let key = (String::from("David"), String::from("Bob")); // David -> Bob
+
+        assert_eq!(hash_map.len(), 12);
+        assert_eq!(hash_map[&key], -7);
+    }
+
+    #[test]
+    fn test_extract_names() {
+        let result = parse_input(INPUT);
+        let people = extract_names(&result);
+
+        assert_eq!(people.len(), 4);
+        assert!(people.contains("Alice"));
+        assert!(people.contains("Bob"));
+        assert!(people.contains("Carol"));
+        assert!(people.contains("David"));
+    }
+
+    #[test]
+    fn test_calculate_happiness() {
+        let people = parse_input(INPUT);
+        let hash_map = build_relationships(&people);
+        let table: Vec<String> = vec!["Alice".to_string(), "Bob".to_string(), "Carol".to_string(), "David".to_string()];
+
+        let result = calculate_happiness(&table, &hash_map);
+        assert_eq!(result, 330);
+
+    }
 }
