@@ -1,8 +1,13 @@
 use std::collections::{HashMap, HashSet};
 use permute::permutations_of;
+use std::cmp::max;
 
 pub fn get_answer(input: &str) -> i32 {
-    0
+    calculate_everyone(input)
+}
+
+pub fn get_answer_with_me(input: &str) -> i32 {
+    calculate_everyone_and_me(input)
 }
 
 struct PersonToPerson {
@@ -72,8 +77,57 @@ fn calculate_happiness(people: &Vec<String>, relationship: &HashMap<(String, Str
     result
 }
 
-fn calculate_everyone() {
-    // for permutation in permutations_of(&vector) {
+fn calculate_happiness_with_me(people: &Vec<String>, relationship: &HashMap<(String, String), i32>) -> i32 {
+    let mut result = 0i32;
+    let mut previous = String::from(people.last().unwrap());
+
+    for current in people.iter() {
+        if current.eq("Me") || previous.eq("Me") {
+            previous = current.clone();
+            continue;
+        }
+
+        result += relationship[&(previous.clone(), current.clone())];
+        result += relationship[&(current.clone(), previous.clone())];
+        previous = current.clone();
+    }
+
+    result
+}
+
+fn calculate_everyone(input: &str) -> i32 {
+    let people = parse_input(input);
+    let relationship = build_relationships(&people);
+    let table: Vec<String> = extract_names(&people).iter().map(|n| (*n).clone()).collect();
+
+    let mut result = 0i32;
+
+    for permutation in permutations_of(&table) {
+        let guessed_table: Vec<String> = permutation.map(|n| (*n).clone()).collect();
+
+        let current_happiness = calculate_happiness(&guessed_table, &relationship);
+        result = max(result, current_happiness);
+    }
+
+    result
+}
+
+fn calculate_everyone_and_me(input: &str) -> i32 {
+    let people = parse_input(input);
+    let relationship = build_relationships(&people);
+    let mut table: Vec<String> = extract_names(&people).iter().map(|n| (*n).clone()).collect();
+    table.push("Me".to_string());
+
+    let mut result = 0i32;
+
+    for permutation in permutations_of(&table) {
+        let guessed_table: Vec<String> = permutation.map(|n| (*n).clone()).collect();
+
+        let current_happiness = calculate_happiness_with_me(&guessed_table, &relationship);
+        result = max(result, current_happiness);
+    }
+
+    result
 }
 
 #[cfg(test)]
@@ -151,6 +205,11 @@ mod tests {
 
         let result = calculate_happiness(&table, &hash_map);
         assert_eq!(result, 330);
+    }
 
+    #[test]
+    fn test_calculate_everyone() {
+        let result = calculate_everyone(INPUT);
+        assert_eq!(result, 330);
     }
 }
