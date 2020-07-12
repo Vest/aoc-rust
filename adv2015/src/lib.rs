@@ -11,6 +11,7 @@ mod day9;
 mod day10;
 mod day11;
 mod day12;
+mod day13;
 /* </editor-fold> */
 
 pub fn print_answers(day: u8, input: String) {
@@ -30,6 +31,7 @@ pub fn print_answers(day: u8, input: String) {
         10 => println!("{} {} and {}", prefix, day10::calc_first(input), day10::calc_second(input)),
         11 => println!("{} {} and {}", prefix, day11::get_expired_once(input), day11::get_expired_twice(input)),
         12 => println!("{} {} and {}", prefix, day12::get_answer(input), day12::get_answer_without_red(input)),
+        13 => println!("{} {} and {}", prefix, day13::get_answer(input), day13::get_answer(input)),
         _ => { eprintln!("2015: I don't know the answer for day {} :(", day) }
     }
 }
