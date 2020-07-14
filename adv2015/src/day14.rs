@@ -90,9 +90,12 @@ fn deer_race(input: &str, duration: usize) -> usize {
                 }
             });
 
-        if let Some(fastest_deer) = deers.iter_mut()
-            .max_by_key(|d| d.distance) {
-            fastest_deer.points += 1;
+        if let Some(max_distance) = deers.iter()
+            .map(|d| d.distance)
+            .max() {
+            deers.iter_mut()
+                .filter(|d| d.distance == max_distance)
+                .for_each(|d| d.points += 1);
         }
     }
 
