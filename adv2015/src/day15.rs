@@ -1,7 +1,17 @@
 use std::cmp::max;
 
 pub fn get_answer(input: &str) -> usize {
-    0
+    let ingredients = parse_lines(input);
+    let spoons = find_spoons(&ingredients);
+
+    calc_spoons(&ingredients, &spoons)
+}
+
+pub fn get_answer_with_calories(input: &str) -> usize {
+    let ingredients = parse_lines(input);
+    let spoons = find_spoons_with_calories(&ingredients);
+
+    calc_spoons(&ingredients, &spoons)
 }
 
 struct Ingredient {
@@ -43,13 +53,13 @@ fn parse_lines(input: &str) -> Vec<Ingredient> {
 fn calc_spoons(ingredients: &Vec<Ingredient>, spoons: &Vec<i32>) -> usize {
     let mut result = 1usize;
     assert_eq!(ingredients.len(), spoons.len());
-    let mut result_ingredient = Ingredient{
+    let mut result_ingredient = Ingredient {
         name: String::from("Result"),
         capacity: 0,
         durability: 0,
         flavor: 0,
         texture: 0,
-        calories: 0
+        calories: 0,
     };
 
     for (index, spoon) in spoons.iter().enumerate() {
@@ -57,7 +67,6 @@ fn calc_spoons(ingredients: &Vec<Ingredient>, spoons: &Vec<i32>) -> usize {
         result_ingredient.durability += ingredients[index].durability * spoon;
         result_ingredient.flavor += ingredients[index].flavor * spoon;
         result_ingredient.texture += ingredients[index].texture * spoon;
-
     }
     result *= max(0, result_ingredient.capacity) as usize;
     result *= max(0, result_ingredient.durability) as usize;
@@ -66,6 +75,93 @@ fn calc_spoons(ingredients: &Vec<Ingredient>, spoons: &Vec<i32>) -> usize {
 
     result
 }
+
+fn find_spoons(ingredients: &Vec<Ingredient>) -> Vec<i32> {
+    let spoons_count: usize = ingredients.len();
+    let max_size: usize = 100usize.pow(spoons_count as u32) + 1;
+    let mut spoons: Vec<i32> = vec![0; spoons_count];
+    let mut result = spoons.clone();
+    let mut max_result: usize = 0;
+
+    for cur_size in 1..max_size {
+        let mut total = 0;
+
+        for i in 0..spoons_count {
+            spoons[i] = (cur_size % 100usize.pow(i as u32 + 1)) as i32;
+
+            if i > 0 {
+                spoons[i] -= spoons[i - 1] * 100i32.pow(i as u32 - 1);
+                spoons[i] = spoons[i] / 100i32.pow(i as u32);
+            }
+
+            total += spoons[i];
+
+            if total > 100 {
+                break;
+            }
+        }
+
+        if total != 100 {
+            continue;
+        }
+
+        let score = calc_spoons(&ingredients, &spoons);
+        if score > max_result {
+            result = spoons.clone();
+            max_result = score;
+        }
+    }
+
+    result
+}
+
+fn find_spoons_with_calories(ingredients: &Vec<Ingredient>) -> Vec<i32> {
+    let spoons_count: usize = ingredients.len();
+    const TOTAL_CALORIES: i32 = 500;
+    let max_size: usize = 100usize.pow(spoons_count as u32) + 1;
+    let mut spoons: Vec<i32> = vec![0; spoons_count];
+    let mut result = spoons.clone();
+    let mut max_result: usize = 0;
+
+    for cur_size in 1..max_size {
+        let mut total = 0;
+
+        for i in 0..spoons_count {
+            spoons[i] = (cur_size % 100usize.pow(i as u32 + 1)) as i32;
+
+            if i > 0 {
+                spoons[i] -= spoons[i - 1] * 100i32.pow(i as u32 - 1);
+                spoons[i] = spoons[i] / 100i32.pow(i as u32);
+            }
+
+            total += spoons[i];
+
+            if total > 100 {
+                break;
+            }
+        }
+
+        if total != 100 {
+            continue;
+        }
+
+        let calories: i32 = spoons.iter()
+            .enumerate()
+            .map(|(i, s)| ingredients[i].calories * s)
+            .sum();
+        if calories == TOTAL_CALORIES {
+            let score = calc_spoons(&ingredients, &spoons);
+
+            if score > max_result {
+                result = spoons.clone();
+                max_result = score;
+            }
+        }
+    }
+
+    result
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -97,5 +193,37 @@ mod tests {
         let result = calc_spoons(&ingredients, &spoons);
 
         assert_eq!(result, 62842880);
+    }
+
+    #[test]
+    fn test_find_spoons() {
+        let ingredients = parse_lines("Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8\nCinnamon: capacity 2, durability 3, flavor -2, texture -1, calories 3");
+        let spoons = find_spoons(&ingredients);
+
+        assert_eq!(spoons.len(), 2);
+        assert_eq!(spoons[0], 44);
+        assert_eq!(spoons[1], 56);
+    }
+
+    #[test]
+    fn test_get_answer() {
+        let result = get_answer("Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8\nCinnamon: capacity 2, durability 3, flavor -2, texture -1, calories 3");
+        assert_eq!(result, 62842880);
+    }
+
+    #[test]
+    fn test_find_spoons_with_calories() {
+        let ingredients = parse_lines("Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8\nCinnamon: capacity 2, durability 3, flavor -2, texture -1, calories 3");
+        let spoons = find_spoons_with_calories(&ingredients);
+
+        assert_eq!(spoons.len(), 2);
+        assert_eq!(spoons[0], 40);
+        assert_eq!(spoons[1], 60);
+    }
+
+    #[test]
+    fn test_get_answer_with_calories() {
+        let result = get_answer_with_calories("Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8\nCinnamon: capacity 2, durability 3, flavor -2, texture -1, calories 3");
+        assert_eq!(result, 57600000);
     }
 }

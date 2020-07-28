@@ -35,7 +35,7 @@ pub fn print_answers(day: u8, input: String) {
         12 => println!("{} {} and {}", prefix, day12::get_answer(input), day12::get_answer_without_red(input)),
         13 => println!("{} {} and {}", prefix, day13::get_answer(input), day13::get_answer_with_me(input)),
         14 => println!("{} {} and {}", prefix, day14::get_answer(input), day14::get_answer_points(input)),
-        15 => println!("{} {} and {}", prefix, day15::get_answer(input), day14::get_answer(input)),
+        15 => println!("{} {} and {}", prefix, day15::get_answer(input), day15::get_answer_with_calories(input)),
         _ => { eprintln!("2015: I don't know the answer for day {} :(", day) }
     }
 }
