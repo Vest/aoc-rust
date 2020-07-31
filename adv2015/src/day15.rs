@@ -15,6 +15,7 @@ pub fn get_answer_with_calories(input: &str) -> usize {
 }
 
 struct Ingredient {
+    #[allow(dead_code)]
     name: String,
     capacity: i32,
     durability: i32,
@@ -54,7 +55,7 @@ fn calc_spoons(ingredients: &Vec<Ingredient>, spoons: &Vec<i32>) -> usize {
     let mut result = 1usize;
     assert_eq!(ingredients.len(), spoons.len());
     let mut result_ingredient = Ingredient {
-        name: String::from("Result"),
+        name: String::new(),
         capacity: 0,
         durability: 0,
         flavor: 0,
@@ -78,7 +79,7 @@ fn calc_spoons(ingredients: &Vec<Ingredient>, spoons: &Vec<i32>) -> usize {
 
 fn find_spoons(ingredients: &Vec<Ingredient>) -> Vec<i32> {
     let spoons_count: usize = ingredients.len();
-    let max_size: usize = 100usize.pow(spoons_count as u32) + 1;
+    let max_size: usize = 100usize.pow(spoons_count as u32 - 1) + 1;
     let mut spoons: Vec<i32> = vec![0; spoons_count];
     let mut result = spoons.clone();
     let mut max_result: usize = 0;
@@ -86,7 +87,7 @@ fn find_spoons(ingredients: &Vec<Ingredient>) -> Vec<i32> {
     for cur_size in 1..max_size {
         let mut total = 0;
 
-        for i in 0..spoons_count {
+        for i in 0..spoons_count - 1 {
             spoons[i] = (cur_size % 100usize.pow(i as u32 + 1)) as i32;
 
             if i > 0 {
@@ -95,15 +96,12 @@ fn find_spoons(ingredients: &Vec<Ingredient>) -> Vec<i32> {
             }
 
             total += spoons[i];
-
-            if total > 100 {
-                break;
-            }
         }
-
-        if total != 100 {
+        if total > 100 {
             continue;
         }
+
+        spoons[spoons_count - 1] = 100 - total;
 
         let score = calc_spoons(&ingredients, &spoons);
         if score > max_result {
@@ -118,7 +116,7 @@ fn find_spoons(ingredients: &Vec<Ingredient>) -> Vec<i32> {
 fn find_spoons_with_calories(ingredients: &Vec<Ingredient>) -> Vec<i32> {
     let spoons_count: usize = ingredients.len();
     const TOTAL_CALORIES: i32 = 500;
-    let max_size: usize = 100usize.pow(spoons_count as u32) + 1;
+    let max_size: usize = 100usize.pow(spoons_count as u32 - 1) + 1;
     let mut spoons: Vec<i32> = vec![0; spoons_count];
     let mut result = spoons.clone();
     let mut max_result: usize = 0;
@@ -126,7 +124,7 @@ fn find_spoons_with_calories(ingredients: &Vec<Ingredient>) -> Vec<i32> {
     for cur_size in 1..max_size {
         let mut total = 0;
 
-        for i in 0..spoons_count {
+        for i in 0..spoons_count - 1 {
             spoons[i] = (cur_size % 100usize.pow(i as u32 + 1)) as i32;
 
             if i > 0 {
@@ -135,15 +133,13 @@ fn find_spoons_with_calories(ingredients: &Vec<Ingredient>) -> Vec<i32> {
             }
 
             total += spoons[i];
-
-            if total > 100 {
-                break;
-            }
         }
 
-        if total != 100 {
+        if total > 100 {
             continue;
         }
+
+        spoons[spoons_count - 1] = 100 - total;
 
         let calories: i32 = spoons.iter()
             .enumerate()
