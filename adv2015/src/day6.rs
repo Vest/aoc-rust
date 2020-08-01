@@ -468,6 +468,7 @@ mod tests {
         assert_eq!(lexer.next_token(), Token::Coord(599, 989), "Unexpected Token");
         assert_eq!(lexer.next_token(), Token::Through, "Unexpected Token");
         assert_eq!(lexer.next_token(), Token::Coord(806, 993), "Unexpected Token");
+        assert_eq!(lexer.next_token(), Token::EOF, "Unexpected Token");
     }
 
     #[test]
@@ -590,5 +591,17 @@ mod tests {
         basic.interpret(input);
         let answer = basic.get_state();
         assert_eq!(answer, 2, "{} is Christmas brightness, but we have {} only", 2, answer);
+    }
+
+    #[test]
+    fn test_count_bulbs() {
+        let result = count_bulbs("toggle 0,0 through 0,0\ntoggle 1,1 through 1,1");
+        assert_eq!(result, 2);
+    }
+
+    #[test]
+    fn test_count_brightness() {
+        let result = count_brightness("toggle 0,0 through 0,0\ntoggle 1,1 through 1,1");
+        assert_eq!(result, 4);
     }
 }
