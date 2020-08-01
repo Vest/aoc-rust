@@ -32,7 +32,7 @@ jobs:
           ~/.cargo/git
           ~/.cargo/bin
           target
-        key: ${{ matrix.os }}-rust-${{ matrix.rust }}
+        key: advent-cover-${{ matrix.os }}-rust-${{ matrix.rust }}
 
     - name: Install a minimal Rust (nightly)
       uses: actions-rs/toolchain@v1
