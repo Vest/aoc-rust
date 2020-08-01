@@ -32,10 +32,5 @@ jobs:
       with:
         rust-version: ${{ matrix.rust }}
 
-    - name: Coveralls
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.ADVENT_TOKEN }}
-
     - name: Run tests
       run: cargo test --verbose
