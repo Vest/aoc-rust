@@ -24,7 +24,7 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Restore from cache
+    - name: Use cache
       uses: actions/cache@v2
       with:
         path: |
