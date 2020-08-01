@@ -1,4 +1,4 @@
-name: Rust
+name: Rust (All tests)
 
 on:
   push:
@@ -20,7 +20,8 @@ jobs:
     steps:
     - uses: actions/checkout@master
 
-    - uses: actions/cache@v2
+    - name: Use cache
+      uses: actions/cache@v2
       with:
         path: |
           ~/.cargo/registry
@@ -28,7 +29,8 @@ jobs:
           target
         key: ${{ matrix.os }}-rust-${{ matrix.rust }}-${{ hashFiles('Cargo.lock') }}
 
-    - uses: hecrj/setup-rust-action@v1
+    - name: Install Rust (${{ matrix.rust }})
+      uses: hecrj/setup-rust-action@v1
       with:
         rust-version: ${{ matrix.rust }}
 
