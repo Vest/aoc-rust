@@ -435,6 +435,13 @@ mod tests {
     }
 
     #[test]
+    fn test_partial_eq() {
+        assert_ne!(Token::TurnOn, Token::TurnOff);
+
+        assert_ne!(Operation::TurnOn, Operation::TurnOff);
+    }
+
+    #[test]
     fn test_get_token_toggle() {
         let input = "toggle 461,550 through 564,900";
         assert_eq!(get_token(input, 0), NextToken(Token::Toggle, 6), "Unexpected Token");
@@ -550,6 +557,16 @@ mod tests {
     }
 
     #[test]
+    fn test_santa_reset() {
+        let mut basic = SantaInterpreter::new();
+        basic.interpret(String::from("turn on 0,0 through 99,99\r\ntoggle 100,100 through 199,199"));
+        basic.reset();
+        let answer = basic.get_state();
+
+        assert_eq!(answer, 0, "There was a reset");
+    }
+
+    #[test]
     fn test_santa_better_interpreter_all_on() {
         let input = String::from(format!("turn on 0,0 through {},{}", LIGHT_MAX_SIZE - 1, LIGHT_MAX_SIZE - 1));
         println!("Testing: {}", input);
@@ -594,6 +611,16 @@ mod tests {
     }
 
     #[test]
+    fn test_santa_better_reset() {
+        let mut basic = SantaBetterInterpreter::new();
+        basic.interpret(String::from("turn on 0,0 through 99,99\r\ntoggle 100,100 through 199,199"));
+        basic.reset();
+        let answer = basic.get_state();
+
+        assert_eq!(answer, 0, "There was a reset");
+    }
+
+    #[test]
     fn test_count_bulbs() {
         let result = count_bulbs("toggle 0,0 through 0,0\ntoggle 1,1 through 1,1");
         assert_eq!(result, 2);
@@ -603,5 +630,31 @@ mod tests {
     fn test_count_brightness() {
         let result = count_brightness("toggle 0,0 through 0,0\ntoggle 1,1 through 1,1");
         assert_eq!(result, 4);
+    }
+
+    #[test]
+    fn test_lexer_unexpected_token() {
+        let mut lexer = Lexer::new(String::from("turn on oops 599,989 through 806,993"));
+        assert_eq!(lexer.next_token(), Token::TurnOn, "Unexpected Token");
+        assert_eq!(lexer.next_token(), Token::EOF, "Unexpected Token");
+    }
+
+    #[test]
+    fn test_display() {
+        assert_eq!(Token::Toggle.to_string(), "tg");
+        assert_eq!(Token::TurnOn.to_string(), "on");
+        assert_eq!(Token::TurnOff.to_string(), "off");
+        assert_eq!(Token::EOF.to_string(), ";");
+        assert_eq!(Token::Through.to_string(), ";");
+        assert_eq!(Token::Coord(23, 32).to_string(), "(23,32)");
+
+        assert_eq!(Coord(23, 32).to_string(), "(23,32)");
+
+        assert_eq!(Operation::Toggle.to_string(), "tg");
+        assert_eq!(Operation::TurnOn.to_string(), "on");
+        assert_eq!(Operation::TurnOff.to_string(), "off");
+
+        assert_eq!(Call::Call(Operation::TurnOn, Coord(1, 2), Coord(3, 4)).to_string(), "on((1,2); (3,4))");
+        assert_eq!(Call::EOF.to_string(), "End");
     }
 }
