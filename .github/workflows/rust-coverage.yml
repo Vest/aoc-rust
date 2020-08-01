@@ -47,6 +47,7 @@ jobs:
       with:
         command: install
         args: grcov
+      continue-on-error: true
 
     - name: cargo test
       uses: actions-rs/cargo@v1
