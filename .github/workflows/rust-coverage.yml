@@ -49,6 +49,11 @@ jobs:
         args: grcov
       continue-on-error: true
 
+    - name: Cargo Clean
+      uses: actions-rs/cargo@v1
+      with:
+        command: clean
+
     - name: cargo test
       uses: actions-rs/cargo@v1
       with:
