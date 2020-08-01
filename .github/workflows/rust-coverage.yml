@@ -36,15 +36,15 @@ jobs:
         rust-version: ${{ matrix.rust }}
 
     - name: Run grcov
-       env:
-         PROJECT_NAME: "<your_project_name>"
-         RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-chec  ks=off -Zno-landing-pads"
-         CARGO_INCREMENTAL: 0
-       run: |
-         cargo build --verbose
-         cargo test --verbose
-         zip -0 cov.zip $(find . -name "$PROJECT_NAME*.gc*" -print)
-         grcov cov.zip -s . -t lcov --llvm --ignore-not-existing --ignore "/*" -o lcov.info
+      env:
+        PROJECT_NAME: "adventofcode"
+        RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-chec  ks=off -Zno-landing-pads"
+        CARGO_INCREMENTAL: 0
+      run: |
+        cargo build --verbose
+        cargo test --verbose
+        zip -0 cov.zip $(find . -name "$PROJECT_NAME*.gc*" -print)
+        grcov cov.zip -s . -t lcov --llvm --ignore-not-existing --ignore "/*" -o lcov.info
 
     - name: Coveralls
       uses: coverallsapp/github-action@master
