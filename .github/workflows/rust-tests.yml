@@ -35,5 +35,13 @@ jobs:
       with:
         rust-version: ${{ matrix.rust }}
 
+    - name: Cargo Clean
+      uses: actions-rs/cargo@v1
+      with:
+        command: clean
+
     - name: Run tests
-      run: cargo test --verbose
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --verbose
