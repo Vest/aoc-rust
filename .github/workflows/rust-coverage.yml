@@ -35,7 +35,11 @@ jobs:
       with:
         profile: minimal
         toolchain: ${{ matrix.rust }}
-        components: grcov
+
+    - uses: actions-rs/cargo@v1
+      with:
+        comand: install
+        args: grcov
 
     - uses: actions-rs/cargo@v1
       with:
