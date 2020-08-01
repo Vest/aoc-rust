@@ -88,11 +88,7 @@ fn is_nice_advanced(s: &str) -> bool {
 
 fn is_vowel(c: &char) -> bool {
     return match c {
-        'a' => true,
-        'e' => true,
-        'i' => true,
-        'o' => true,
-        'u' => true,
+        'a' | 'e' | 'i' | 'o' | 'u' => true,
         _ => false,
     };
 }
@@ -123,6 +119,14 @@ mod tests {
             .join("\n");
 
         assert_eq!(count_nice_lines(input.as_str()), 2, "{} has two nice strings", input);
+    }
+
+    #[test]
+    fn test_count_nice_lines_advanced() {
+        let input = ["qjhvhtzxzqqjkmpb", "xxyxx", "dieatyxxxlvhneoj", "xxxx"]
+            .join("\n");
+
+        assert_eq!(count_nice_lines_advanced(input.as_str()), 3, "{} has three nice strings", input);
     }
 
     #[test]

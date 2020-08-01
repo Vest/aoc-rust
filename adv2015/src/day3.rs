@@ -32,7 +32,7 @@ pub fn count_houses(path: &str) -> usize {
         house.step(c);
 
         if !houses.contains(&house) {
-            houses.push(house);
+            houses.push(house.clone());
         }
     }
 
@@ -52,12 +52,12 @@ pub fn count_houses_together(path: &str) -> usize {
         if santa_turn {
             santa.step(c);
             if !houses.contains(&santa) {
-                houses.push(santa);
+                houses.push(santa.clone());
             }
         } else {
             robot.step(c);
             if !houses.contains(&robot) {
-                houses.push(robot);
+                houses.push(robot.clone());
             }
         }
 
@@ -81,6 +81,10 @@ mod tests {
         c.step('v');
         c.step('^');
         assert_eq!(c, Coord { x: 0, y: 0 }, "We should arrive to (0, 0) instead of {:?}", c);
+
+        // To increase the coverage level
+        assert_eq!(c.x, 0);
+        assert_eq!(c.y, 0);
     }
 
     #[test]
