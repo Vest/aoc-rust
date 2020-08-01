@@ -31,9 +31,11 @@ jobs:
           target
         key: ${{ matrix.os }}-rust-${{ matrix.rust }}-${{ hashFiles('Cargo.lock') }}
 
-    - uses: hecrj/setup-rust-action@v1
+    - uses: actions-rs/toolchain@v1
       with:
-        rust-version: ${{ matrix.rust }}
+        profile: minimal
+        toolchain: ${{ matrix.rust }}
+        components: grcov
 
     - uses: actions-rs/cargo@v1
       with:
@@ -46,8 +48,8 @@ jobs:
     
     - uses: actions-rs/grcov@v0.1
         
-    - name: Coveralls
+    - name: Upload to coveralls
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: ${{ steps.coverage.outputs.report }}"
+        path-to-lcov: ${{ steps.coverage.outputs.report }}
