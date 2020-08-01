@@ -21,7 +21,7 @@ pub fn print_answers(day: u8, input: String) {
     let input = input.as_str().trim();
     let prefix = format!("Day {} / 2015:", day);
     match day {
-        1 => println!("{} {} and {}", prefix, day1::count_brackets(input), day1::count_position(input)),
+        1 => println!("{} {} and {}", prefix, day1::count_brackets(input), day1::count_position(input).unwrap_or(-1)),
         2 => println!("{} {} and {}", prefix, day2::calc_packs(input), day2::calc_ribbons(input)),
         3 => println!("{} {} and {}", prefix, day3::count_houses(input), day3::count_houses_together(input)),
         4 => println!("{} {} and {}", prefix, day4::mine_suffix(input, 5), day4::mine_suffix(input, 6)),
