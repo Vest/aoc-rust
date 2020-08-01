@@ -26,6 +26,7 @@ jobs:
         path: |
           ~/.cargo/registry
           ~/.cargo/git
+          ~/.cargo/bin
           target
         key: ${{ matrix.os }}-rust-${{ matrix.rust }}-${{ hashFiles('Cargo.lock') }}
 
