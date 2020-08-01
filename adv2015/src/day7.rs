@@ -6,7 +6,7 @@ pub fn count_input_a(input: &str) -> u16 {
     let mut bobby = BobbyInterpreter::new();
     bobby.interpret(String::from(input));
 
-    bobby.evaluate(&String::from("a")).unwrap()
+    bobby.evaluate(&String::from("a")).unwrap_or_default()
 }
 
 pub fn count_input_a_override(input: &str) -> u16 {
@@ -14,7 +14,7 @@ pub fn count_input_a_override(input: &str) -> u16 {
     bobby.interpret(String::from(input));
 
     let value_for_b = bobby.evaluate(&String::from("a")).unwrap();
-    bobby.evaluate_override_signal(&String::from("a"), &String::from("b"), value_for_b).unwrap()
+    bobby.evaluate_override_signal(&String::from("a"), &String::from("b"), value_for_b).unwrap_or_default()
 }
 
 struct NextToken(Token, usize);

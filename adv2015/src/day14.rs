@@ -59,7 +59,7 @@ fn find_fastest_deer(input: &str, total: usize) -> usize {
         .map(|l| parse_line(l))
         .map(|d| calculate_deer(&d, total))
         .max()
-        .unwrap()
+        .unwrap_or_default()
 }
 
 fn deer_race(input: &str, duration: usize) -> usize {
@@ -99,10 +99,12 @@ fn deer_race(input: &str, duration: usize) -> usize {
         }
     }
 
-    deers.iter()
-        .max_by_key(|d| d.points)
-        .unwrap()
-        .points
+    return if let Some(deer) = deers.iter()
+        .max_by_key(|d| d.points) {
+        deer.points
+    } else {
+        0
+    }
 }
 
 #[cfg(test)]
