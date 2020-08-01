@@ -43,9 +43,26 @@ pub fn print_answers(day: u8, input: String) {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
+    fn test_print_answers() {
+        for i in 0..26 {
+            let mut input = String::new();
+
+            // Required to speed-up tests & increase the coverage
+            if i == 4 {
+                input = String::from("abcdef");
+            } else if i == 7 {
+                input = String::from("123 -> a");
+            } else if i == 13 {
+                input = String::from("Vest would gain 1 happiness units by sitting next to Vest.");
+            } else if i == 15 {
+                input = String::from("Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8");
+            }
+
+            print_answers(i, input);
+        }
     }
 }
 
