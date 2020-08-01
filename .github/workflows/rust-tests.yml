@@ -1,4 +1,4 @@
-name: Rust (All tests)
+name: Rust (all tests)
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
           ~/.cargo/git
           ~/.cargo/bin
           target
-        key: ${{ matrix.os }}-rust-${{ matrix.rust }}-${{ hashFiles('Cargo.lock') }}
+        key: advent-${{ matrix.os }}-rust-${{ matrix.rust }}-${{ hashFiles('Cargo.lock') }}
 
     - name: Install Rust (${{ matrix.rust }})
       uses: hecrj/setup-rust-action@v1
