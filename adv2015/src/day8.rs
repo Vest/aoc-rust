@@ -175,4 +175,14 @@ mod tests {
         assert_eq!(count_escaped_chars("\"aaa\\\"aaa\""), 16);
         assert_eq!(count_escaped_chars("\"\\x27\""), 11);
     }
+
+    #[test]
+    fn test_calc_difference() {
+        assert_eq!(calc_difference("\"aaa\\\"aaa\""), 3);
+    }
+
+    #[test]
+    fn test_calc_new_difference() {
+        assert_eq!(calc_new_difference("\"aaa\\\"aaa\""), 6);
+    }
 }
