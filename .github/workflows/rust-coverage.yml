@@ -42,7 +42,7 @@ jobs:
         default: true
         override: true
 
-    - name: Install grcov & rust-covfix
+    - name: Install grcov
       uses: actions-rs/cargo@v1
       with:
         command: install
