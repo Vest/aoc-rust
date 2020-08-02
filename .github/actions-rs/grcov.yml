@@ -2,3 +2,4 @@ output-path: ./lcov.info
 ignore:
   - "/usr/*"
   - "/rustc/*"
+  - "/cargo/*"
