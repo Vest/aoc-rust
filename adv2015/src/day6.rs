@@ -481,35 +481,26 @@ mod tests {
     #[test]
     fn test_parser() {
         let mut parser = Parser::new(String::from("turn on 499,989 through 806,992"));
-        match parser.next_operation() {
-            Call::Call(op, c1, c2) => {
-                assert_eq!(op, Operation::TurnOn);
-                assert_eq!(c1, Coord(499, 989));
-                assert_eq!(c2, Coord(806, 992));
-            }
-            Call::EOF => assert!(false, "Shouldn't happen"),
-        };
+        if let Call::Call(op, c1, c2) = parser.next_operation() {
+            assert_eq!(op, Operation::TurnOn);
+            assert_eq!(c1, Coord(499, 989));
+            assert_eq!(c2, Coord(806, 992));
+        } else { panic!("Shouldn't happen"); }
     }
 
     #[test]
     fn test_multiline_parser() {
         let mut parser = Parser::new(String::from("turn on 59,99 through 806,99\r\nturn off 812,389 through 865,874"));
-        let _ = match parser.next_operation() {
-            Call::Call(op, c1, c2) => {
-                assert_eq!(op, Operation::TurnOn);
-                assert_eq!(c1, Coord(59, 99));
-                assert_eq!(c2, Coord(806, 99));
-            }
-            Call::EOF => panic!("Shouldn't happen"),
-        };
-        let _ = match parser.next_operation() {
-            Call::Call(op, c1, c2) => {
-                assert_eq!(op, Operation::TurnOff);
-                assert_eq!(c1, Coord(812, 389));
-                assert_eq!(c2, Coord(865, 874));
-            }
-            Call::EOF => panic!("Shouldn't happen"),
-        };
+        if let Call::Call(op, c1, c2) = parser.next_operation() {
+            assert_eq!(op, Operation::TurnOn);
+            assert_eq!(c1, Coord(59, 99));
+            assert_eq!(c2, Coord(806, 99));
+        } else { panic!("Shouldn't happen"); }
+        if let Call::Call(op, c1, c2) = parser.next_operation() {
+            assert_eq!(op, Operation::TurnOff);
+            assert_eq!(c1, Coord(812, 389));
+            assert_eq!(c2, Coord(865, 874));
+        } else { panic!("Shouldn't happen"); }
     }
 
     #[test]
@@ -541,8 +532,7 @@ mod tests {
         let mut basic = SantaInterpreter::new();
         basic.interpret(input);
         let answer = basic.get_state();
-        assert_eq!(answer, 0, "{} bulbs are showing us Christmas, but we see {} only",
-                   0, answer);
+        assert_eq!(answer, 0, "{} bulbs are showing us Christmas, but we see {} only", 0, answer);
     }
 
     #[test]
@@ -550,8 +540,7 @@ mod tests {
         let mut basic = SantaInterpreter::new();
         basic.interpret(String::from("turn on 0,0 through 99,99\r\ntoggle 100,100 through 199,199"));
         let answer = basic.get_state();
-        assert_eq!(answer, 100 * 100 * 2, "{} bulbs are showing us Christmas, but we see {} only",
-                   100 * 100 * 2, answer);
+        assert_eq!(answer, 100 * 100 * 2, "{} bulbs are showing us Christmas, but we see {} only", 100 * 100 * 2, answer);
     }
 
     #[test]
@@ -666,5 +655,14 @@ mod tests {
         assert_eq!(format!("{:?}", Token::EOF), "EOF");
         assert_eq!(format!("{:?}", Token::Through), "Through");
         assert_eq!(format!("{:?}", Token::Coord(23, 32)), "Coord(23, 32)");
+    }
+
+    #[test]
+    fn test_wrong_syntax() {
+        let mut basic = SantaInterpreter::new();
+        basic.interpret(String::from("turn on through"));
+
+        let mut basic = SantaBetterInterpreter::new();
+        basic.interpret(String::from("turn off through"));
     }
 }
