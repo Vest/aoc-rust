@@ -42,11 +42,11 @@ jobs:
         default: true
         override: true
 
-    - name: Install grcov
+    - name: Install grcov & rust-covfix
       uses: actions-rs/cargo@v1
       with:
         command: install
-        args: grcov
+        args: grcov rust-covfix
       continue-on-error: true
 
     - name: Cargo Clean
@@ -67,6 +67,9 @@ jobs:
     - id: coverage
       name: grcov
       uses: actions-rs/grcov@v0.1
+
+    - name: rust-covfix
+      run: rust-covfix -o ${{ steps.coverage.outputs.report }} ${{ steps.coverage.outputs.report }}
         
     - name: Upload to coveralls
       uses: coverallsapp/github-action@master
