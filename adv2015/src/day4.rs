@@ -23,7 +23,6 @@ fn calc_md5(secret: &str, suffix: u32) -> String {
     format!("{:x}", digest)
 }
 
-#[inline]
 fn is_adventcoin(hash: &str, pattern: &str) -> bool {
     hash.starts_with(pattern)
 }
