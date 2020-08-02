@@ -46,7 +46,7 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: install
-        args: grcov rust-covfix
+        args: grcov
       continue-on-error: true
 
     - name: Cargo Clean
@@ -68,9 +68,6 @@ jobs:
       name: grcov
       uses: actions-rs/grcov@v0.1
 
-    - name: rust-covfix
-      run: rust-covfix -o ${{ steps.coverage.outputs.report }} ${{ steps.coverage.outputs.report }}
-        
     - name: Upload to coveralls
       uses: coverallsapp/github-action@master
       with:
