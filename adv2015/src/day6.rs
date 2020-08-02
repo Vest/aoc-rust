@@ -521,8 +521,7 @@ mod tests {
         let answer = basic.get_state();
         println!("{} bulbs are showing us Christmas", answer);
 
-        assert_eq!(answer, LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, "{} bulbs are showing us Christmas, but we see {} only",
-                   LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, answer);
+        assert_eq!(answer, LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, "{} bulbs are showing us Christmas, but we see {} only", LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, answer);
     }
 
     #[test]
@@ -532,8 +531,7 @@ mod tests {
         let mut basic = SantaInterpreter::new();
         basic.interpret(input);
         let answer = basic.get_state();
-        assert_eq!(answer, 0, "{} bulbs are showing us Christmas, but we see {} only",
-                   0, answer);
+        assert_eq!(answer, 0, "{} bulbs are showing us Christmas, but we see {} only", 0, answer);
     }
 
     #[test]
@@ -575,8 +573,7 @@ mod tests {
         let answer = basic.get_state();
         println!("{} Christmas brightness", answer);
 
-        assert_eq!(answer, LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, "{} is Christmas brightness, but we have {} only",
-                   LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, answer);
+        assert_eq!(answer, LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, "{} is Christmas brightness, but we have {} only", LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, answer);
     }
 
     #[test]
@@ -586,8 +583,7 @@ mod tests {
         let mut basic = SantaBetterInterpreter::new();
         basic.interpret(input);
         let answer = basic.get_state();
-        assert_eq!(answer, 0, "{} is Christmas brightness, but we have {} only",
-                   0, answer);
+        assert_eq!(answer, 0, "{} is Christmas brightness, but we have {} only", 0, answer);
     }
 
     #[test]
@@ -597,8 +593,7 @@ mod tests {
         let mut basic = SantaBetterInterpreter::new();
         basic.interpret(input);
         let answer = basic.get_state();
-        assert_eq!(answer, 2 * LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, "{} is Christmas brightness, but we have {} only",
-                   2 * LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, answer);
+        assert_eq!(answer, 2 * LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, "{} is Christmas brightness, but we have {} only", 2 * LIGHT_MAX_SIZE * LIGHT_MAX_SIZE, answer);
     }
 
     #[test]
@@ -656,5 +651,20 @@ mod tests {
 
         assert_eq!(Call::Call(Operation::TurnOn, Coord(1, 2), Coord(3, 4)).to_string(), "on((1,2); (3,4))");
         assert_eq!(Call::EOF.to_string(), "End");
+    }
+
+    #[test]
+    fn test_debug() {
+        assert_eq!(format!("{:?}", Operation::Toggle), format!("{}", Operation::Toggle));
+
+        assert_eq!(format!("{:?}", Coord(1, 2)), "(1,2)");
+        assert_eq!(format!("{:?}", NextToken(Token::Toggle, 13)), "NextToken(Toggle, 13)");
+
+        assert_eq!(format!("{:?}", Token::Toggle), "Toggle");
+        assert_eq!(format!("{:?}", Token::TurnOn), "TurnOn");
+        assert_eq!(format!("{:?}", Token::TurnOff), "TurnOff");
+        assert_eq!(format!("{:?}", Token::EOF), "EOF");
+        assert_eq!(format!("{:?}", Token::Through), "Through");
+        assert_eq!(format!("{:?}", Token::Coord(23, 32)), "Coord(23, 32)");
     }
 }
