@@ -69,6 +69,7 @@ jobs:
 
     - name: rust-covfix
       run: rust-covfix -o ${{ steps.coverage.outputs.report }} ${{ steps.coverage.outputs.report }}
+      working-directory: /home/runner/work/adventofcode/adventofcode
         
     - name: Upload to coveralls
       uses: coverallsapp/github-action@master
