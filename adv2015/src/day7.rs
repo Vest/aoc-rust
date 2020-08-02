@@ -764,4 +764,20 @@ mod tests {
 
         assert_eq!(bobby.evaluate(&String::from("vest")).unwrap_or(def.clone()), 0xffffu16, "We shouldn't find any value");
     }
+
+    #[test]
+    fn test_display() {
+        assert_eq!(Token::Signal(23).to_string(), "23");
+        assert_eq!(Token::Wire(String::from("Vest")).to_string(), "Vest");
+        assert_eq!(Token::And.to_string(), "and");
+        assert_eq!(Token::Or.to_string(), "or");
+        assert_eq!(Token::LeftShift.to_string(), "lshift");
+        assert_eq!(Token::RightShift.to_string(), "rshift");
+        assert_eq!(Token::Not.to_string(), "not");
+        assert_eq!(Token::Assign.to_string(), "->");
+        assert_eq!(Token::EOF.to_string(), "eof");
+
+        assert_eq!(Expression::Assign(Command::Result(LValue::Const(23)), RValue::Var(String::from("abc"))).to_string(), "Assign");
+        assert_eq!(Expression::NOP.to_string(), "NOP");
+    }
 }
