@@ -81,10 +81,11 @@ mod tests {
         c.step('v');
         c.step('^');
         assert_eq!(c, Coord { x: 0, y: 0 }, "We should arrive to (0, 0) instead of {:?}", c);
-
         // To increase the coverage level
-        assert_eq!(c.x, 0);
-        assert_eq!(c.y, 0);
+        c.x = 1;
+        c.y = 1;
+        assert_eq!(c.x, 1);
+        assert_eq!(c.y, 1);
     }
 
     #[test]
@@ -98,7 +99,6 @@ mod tests {
     #[test]
     fn test_count_houses() {
         assert_eq!(count_houses(""), 1, "We always start with one house");
-
         assert_eq!(count_houses(">"), 2, "> - 2");
         assert_eq!(count_houses("^>v<"), 4, "^>v< - 4");
         assert_eq!(count_houses("^v^v^v^v^v"), 2, "^v^v^v^v^v - 2");
@@ -107,7 +107,6 @@ mod tests {
     #[test]
     fn test_count_houses_together() {
         assert_eq!(count_houses_together(""), 1, "We always start with one house");
-
         assert_eq!(count_houses_together("^v"), 3, "^v - 3");
         assert_eq!(count_houses_together("^>v<"), 3, "^>v< - 3");
         assert_eq!(count_houses_together("^v^v^v^v^v"), 11, "^v^v^v^v^v - 11");
