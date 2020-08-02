@@ -179,10 +179,12 @@ mod tests {
     #[test]
     fn test_calc_difference() {
         assert_eq!(calc_difference("\"aaa\\\"aaa\""), 3);
+        assert_eq!(calc_difference("\'aaa\\\'aaa\'"), 3);
     }
 
     #[test]
     fn test_calc_new_difference() {
         assert_eq!(calc_new_difference("\"aaa\\\"aaa\""), 6);
+        assert_eq!(calc_new_difference("\'aaa\\\'aaa\'"), 6);
     }
 }
