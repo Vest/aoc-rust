@@ -37,6 +37,7 @@ jobs:
     - name: Install a minimal Rust (nightly)
       uses: actions-rs/toolchain@v1
       with:
+        profile: minimal
         toolchain: ${{ matrix.rust }}
         default: true
         override: true
