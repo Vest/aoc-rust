@@ -1,5 +1,4 @@
 ignore-not-existing: true
-excl-line: (#\\[derive\\()
 ignore:
   - "/usr/*"
   - "/rustc/*"
