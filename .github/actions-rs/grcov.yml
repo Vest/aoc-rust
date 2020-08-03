@@ -1,3 +1,5 @@
+ignore-not-existing: false
+excl-br-line: "(#\[derive\()|(panic!)"
 ignore:
   - "/usr/*"
   - "/rustc/*"
