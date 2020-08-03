@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::str::FromStr;
 use std::fmt;
 
+const IDEAL_AUNT: &str = r#"Sue 0: children: 3, cats: 7, samoyeds: 2, pomeranians: 3, akitas: 0, vizslas: 0, goldfish: 5, trees: 3, cars: 2, perfumes: 1"#;
+
 pub fn get_answer(_input: &str) -> usize {
     0
 }
@@ -123,6 +125,14 @@ impl FromStr for Aunt {
     }
 }
 
+fn parse_aunts(input: &str) -> Vec<Aunt> {
+    input.lines()
+        .map(|l| Aunt::from_str(l))
+        .filter(|a| a.is_ok())
+        .map(|a| a.unwrap())
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -172,7 +182,26 @@ mod tests {
         let things_result = Things::from_str("Vest");
         assert!(things_result.is_err());
         let things_error = things_result.unwrap_err();
-        assert_eq!(format!("{:?}",things_error ), r#"ParseThingsError("Vest")"#);
+        assert_eq!(format!("{:?}", things_error), r#"ParseThingsError("Vest")"#);
         assert_eq!(format!("{}", things_error), r#"ParseThingsError: couldn't parse 'Vest' to Things"#);
+    }
+
+    #[test]
+    fn test_parse_aunts() {
+        let aunts = parse_aunts(r#"Sue 1: cars: 9, akitas: 3, goldfish: 0
+        Sue 2: akitas: 9, children: 3, samoyeds: 9
+        Sue 3: trees: 6, cars: 6, children: 4
+        Sue 4: trees: 4, vizslas: 4, goldfish: 9
+        Vest
+        Sue 5: akitas: 9, vizslas: 7, cars: 5
+        Sue 6: vizslas: 6, goldfish: 6, akitas: 3"#);
+
+        assert_eq!(aunts.len(), 6);
+    }
+
+    #[test]
+    fn test_parse_ideal_aunt() {
+        let aunt = Aunt::from_str(IDEAL_AUNT);
+        assert!(aunt.is_ok());
     }
 }
