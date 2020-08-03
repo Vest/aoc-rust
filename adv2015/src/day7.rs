@@ -614,12 +614,12 @@ mod tests {
                 if let Command::Result(LValue::Const(u)) = c {
                     assert_eq!(u, 123, "A wrong signal was parsed");
                 } else {
-                    assert!(false, "It wasn't parsed correctly");
+                    panic!("It wasn't parsed correctly");
                 }
                 let RValue::Var(s) = v;
                 assert_eq!(s, "x", "A wrong wire was parsed");
             }
-            _ => assert!(false, "Shouldn't happen"),
+            _ => panic!("Shouldn't happen"),
         };
 
         match parser.next_operation() {
@@ -627,12 +627,12 @@ mod tests {
                 if let Command::Result(LValue::Const(u)) = c {
                     assert_eq!(u, 456, "A wrong signal was parsed");
                 } else {
-                    assert!(false, "It wasn't parsed correctly");
+                    panic!("It wasn't parsed correctly");
                 }
                 let RValue::Var(s) = v;
                 assert_eq!(s, "y", "A wrong wire was parsed");
             }
-            _ => assert!(false, "Shouldn't happen"),
+            _ => panic!("Shouldn't happen"),
         };
 
         match parser.next_operation() {
@@ -641,12 +641,12 @@ mod tests {
                     assert_eq!(x, "x", "A wrong wire was parsed");
                     assert_eq!(y, "y", "A wrong wire was parsed");
                 } else {
-                    assert!(false, "It wasn't parsed correctly");
+                    panic!("It wasn't parsed correctly");
                 }
                 let RValue::Var(s) = v;
                 assert_eq!(s, "d", "A wrong wire was parsed");
             }
-            _ => assert!(false, "Shouldn't happen"),
+            _ => panic!("Shouldn't happen"),
         };
 
         match parser.next_operation() {
@@ -655,12 +655,12 @@ mod tests {
                     assert_eq!(x, "x", "A wrong wire was parsed");
                     assert_eq!(y, "y", "A wrong wire was parsed");
                 } else {
-                    assert!(false, "It wasn't parsed correctly");
+                    panic!("It wasn't parsed correctly");
                 }
                 let RValue::Var(s) = v;
                 assert_eq!(s, "e", "A wrong wire was parsed");
             }
-            _ => assert!(false, "Shouldn't happen"),
+            _ => panic!("Shouldn't happen"),
         };
     }
 
@@ -716,12 +716,12 @@ mod tests {
                     assert_eq!(x, "jp", "A wrong wire was parsed");
                     assert_eq!(y, 5, "A wrong wire was parsed");
                 } else {
-                    assert!(false, "It wasn't parsed correctly");
+                    panic!("It wasn't parsed correctly");
                 }
                 let RValue::Var(s) = v;
                 assert_eq!(s, "js", "A wrong wire was parsed");
             }
-            _ => assert!(false, "Shouldn't happen"),
+            _ => panic!("Shouldn't happen"),
         };
 
         match parser.next_operation() {
@@ -730,12 +730,12 @@ mod tests {
                     assert_eq!(x, 1, "A wrong wire was parsed");
                     assert_eq!(y, "io", "A wrong wire was parsed");
                 } else {
-                    assert!(false, "It wasn't parsed correctly");
+                    panic!("It wasn't parsed correctly");
                 }
                 let RValue::Var(s) = v;
                 assert_eq!(s, "ip", "A wrong wire was parsed");
             }
-            _ => assert!(false, "Shouldn't happen"),
+            _ => panic!("Shouldn't happen"),
         };
 
         match parser.next_operation() {
@@ -744,12 +744,12 @@ mod tests {
                     assert_eq!(x, "eo", "A wrong wire was parsed");
                     assert_eq!(y, 15, "A wrong wire was parsed");
                 } else {
-                    assert!(false, "It wasn't parsed correctly");
+                    panic!("It wasn't parsed correctly");
                 }
                 let RValue::Var(s) = v;
                 assert_eq!(s, "es", "A wrong wire was parsed");
             }
-            _ => assert!(false, "Shouldn't happen"),
+            _ => panic!("Shouldn't happen"),
         };
     }
 
