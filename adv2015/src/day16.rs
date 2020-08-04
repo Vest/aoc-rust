@@ -12,6 +12,14 @@ pub fn get_answer(input: &str) -> usize {
         .unwrap_or(0)
 }
 
+pub fn get_answer_from_retroencabulator(input: &str) -> usize {
+    let aunts = parse_aunts(input);
+    let ideal_aunt = Aunt::from_str(IDEAL_AUNT).unwrap();
+
+    find_ideal_retro_aunt(&aunts, &ideal_aunt)
+        .unwrap_or(0)
+}
+
 #[derive(Debug)]
 struct ParseThingsError(String);
 
@@ -137,25 +145,38 @@ fn parse_aunts(input: &str) -> Vec<Aunt> {
         .collect()
 }
 
-fn find_ideal_aunt(aunts: &Vec<Aunt>, aunt: &Aunt) -> Option<usize> {
-    let opt_aunt = aunts.iter()
-        .find(|&sample| {
-            aunt.things.iter()
-                .filter(|aunt_thing| {
-                    if let Some(sample_value) = sample.get_thing(aunt_thing.0) {
-                        *aunt_thing.1 == sample_value
+fn find_ideal_aunt(input_aunts: &Vec<Aunt>, aunt_sample: &Aunt) -> Option<usize> {
+    input_aunts.iter()
+        .find(|&input_aunt| {
+            aunt_sample.things
+                .iter()
+                .filter(|sample_aunt_thing| {
+                    if let Some(input_aunt_thing_value) = input_aunt.get_thing(sample_aunt_thing.0) {
+                        *sample_aunt_thing.1 == input_aunt_thing_value
+                    } else {
+                        false
+                    }
+                }).count() == input_aunt.things.len()
+        }).map(|found_aunt| found_aunt.number)
+}
+
+fn find_ideal_retro_aunt(input_aunts: &Vec<Aunt>, aunt_sample: &Aunt) -> Option<usize> {
+    input_aunts.iter()
+        .find(|&input_aunt| {
+            aunt_sample.things.iter()
+                .filter(|sample_aunt_thing| {
+                    if let Some(input_aunt_thing_value) = input_aunt.get_thing(sample_aunt_thing.0) {
+                        match sample_aunt_thing.0 {
+                            Things::Cats | Things::Trees => *sample_aunt_thing.1 < input_aunt_thing_value,
+                            Things::Pomeranians | Things::Goldfish => *sample_aunt_thing.1 > input_aunt_thing_value,
+                            _ => *sample_aunt_thing.1 == input_aunt_thing_value,
+                        }
                     } else {
                         false
                     }
                 })
-                .count() == sample.things.len()
-        });
-
-    if let Some(aunt) = opt_aunt {
-        Some(aunt.number)
-    } else {
-        None
-    }
+                .count() == input_aunt.things.len()
+        }).map(|found_aunt| found_aunt.number)
 }
 
 #[cfg(test)]
@@ -267,5 +288,19 @@ mod tests {
         let answer = get_answer(r#"Sue 1: cars: 9, akitas: 3, goldfish: 0
         Sue 2: children: 4, cats: 7, pomeranians: 3"#); // this aunt doesn't exist
         assert_eq!(answer, 0);
+    }
+
+    #[test]
+    fn test_cannot_get_answer_from_retroencabulator() {
+        let answer = get_answer_from_retroencabulator(r#"Sue 1: cars: 9, akitas: 3, goldfish: 0
+        Sue 2: children: 3, cats: 7, pomeranians: 3"#);
+        assert_eq!(answer, 0);
+    }
+
+    #[test]
+    fn test_get_answer_from_retroencabulator() {
+        let answer = get_answer_from_retroencabulator(r#"Sue 1: cats: 9, akitas: 0, goldfish: 4
+        Sue 2: children: 4, cats: 7, pomeranians: 3"#);
+        assert_eq!(answer, 1);
     }
 }
