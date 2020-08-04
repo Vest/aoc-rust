@@ -283,20 +283,27 @@ fn lvalue_from_three(commands: &Vec<Token>) -> Option<Command> {
                 Some(Command::Binary(LValue::Var(s1.clone()), Operation::And, LValue::Var(s2.clone())))
             } else if let (Token::Signal(u1), Token::Wire(s2)) = (lvalue1, lvalue2) {
                 Some(Command::Binary(LValue::Const(u1.clone()), Operation::And, LValue::Var(s2.clone())))
-            } else { None },
+            } else {
+                None
+            },
         Token::Or =>
             if let (Token::Wire(s1), Token::Wire(s2)) = (lvalue1, lvalue2) {
                 Some(Command::Binary(LValue::Var(s1.clone()), Operation::Or, LValue::Var(s2.clone())))
-            } else { None },
+            } else {
+                None
+            },
         Token::LeftShift =>
             if let (Token::Wire(s1), Token::Signal(u1)) = (lvalue1, lvalue2) {
                 Some(Command::Binary(LValue::Var(s1.clone()), Operation::LShift, LValue::Const(u1.clone())))
-            } else { None },
+            } else {
+                None
+            },
         Token::RightShift =>
             if let (Token::Wire(s1), Token::Signal(u1)) = (lvalue1, lvalue2) {
                 Some(Command::Binary(LValue::Var(s1.clone()), Operation::RShift, LValue::Const(u1.clone())))
-            } else { None },
-
+            } else {
+                None
+            },
         _ => None
     }
 }
@@ -306,6 +313,14 @@ impl fmt::Display for Expression {
         match self {
             Expression::NOP => { f.write_str("NOP") }
             Expression::Assign(_, _) => { f.write_str("Assign") }
+        }
+    }
+}
+
+impl fmt::Display for RValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RValue::Var(name) => f.write_str(name),
         }
     }
 }
@@ -378,7 +393,7 @@ impl BobbyInterpreter {
     }
 
     fn evaluate(&mut self, wire: &String) -> Option<u16> {
-        // Read from cache, if the value exists there
+// Read from cache, if the value exists there
         if let Some(&cached_value) = self.cache.get(wire) {
             return Some(cached_value);
         }
@@ -445,8 +460,6 @@ impl BobbyInterpreter {
         };
 
         if let Some(u) = result {
-            // Store to cache, if we can
-            // println!("Store to cache: {}={}", wire, u);
             self.cache.insert(wire.clone(), u);
         }
 
@@ -485,6 +498,15 @@ mod tests {
         }
     }
 
+    impl fmt::Debug for Expression {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            match self {
+                Expression::NOP => { f.write_str("NOP") }
+                Expression::Assign(command, rvalue) => { f.write_fmt(format_args!("{} = {}", rvalue, command)) }
+            }
+        }
+    }
+
     impl cmp::PartialEq for LValue {
         fn eq(&self, other: &Self) -> bool {
             match (self, other) {
@@ -495,9 +517,52 @@ mod tests {
         }
     }
 
+    impl cmp::PartialEq for Expression {
+        fn eq(&self, other: &Self) -> bool {
+            match (self, other) {
+                (Expression::NOP, Expression::NOP) => true,
+                (Expression::Assign(c1, r1), Expression::Assign(c2, r2)) if c1 == c2 && r1 == r2 => true,
+                _ => false,
+            }
+        }
+    }
+
+    impl cmp::PartialEq for Command {
+        fn eq(&self, other: &Self) -> bool {
+            match (self, other) {
+                (Command::Result(l1), Command::Result(l2)) if l1 == l2 => true,
+                (Command::Binary(l11, op1, l12), Command::Binary(l21, op2, l22)) if l11 == l21 && op1 == op2 && l12 == l22 => true,
+                (Command::Unary(op1, l1), Command::Unary(op2, l2)) if op1 == op2 && l1 == l2 => true,
+                _ => false,
+            }
+        }
+    }
+
     impl cmp::PartialEq for NextToken {
         fn eq(&self, other: &Self) -> bool {
             self.0 == other.0 && self.1 == other.1
+        }
+    }
+
+    impl cmp::PartialEq for RValue {
+        fn eq(&self, other: &Self) -> bool {
+            match (self, other) {
+                (RValue::Var(r1), RValue::Var(r2)) if r1 == r2 => true,
+                _ => false,
+            }
+        }
+    }
+
+    impl cmp::PartialEq for Operation {
+        fn eq(&self, other: &Self) -> bool {
+            match (self, other) {
+                (Operation::And, Operation::And) => true,
+                (Operation::Or, Operation::Or) => true,
+                (Operation::LShift, Operation::LShift) => true,
+                (Operation::RShift, Operation::RShift) => true,
+                (Operation::Not, Operation::Not) => true,
+                _ => false,
+            }
         }
     }
 
@@ -779,5 +844,40 @@ mod tests {
 
         assert_eq!(Expression::Assign(Command::Result(LValue::Const(23)), RValue::Var(String::from("abc"))).to_string(), "Assign");
         assert_eq!(Expression::NOP.to_string(), "NOP");
+    }
+
+    #[test]
+    fn test_parser_errors() {
+        let mut parser = Parser::new(String::from(r#"2 -> x
+        x RSHIFT 2 -> y
+        2 LSHIFT 1 -> z
+        3 AND 1 -> w
+        3 OR 1 -> v
+        4 RSHIFT 2 -> u
+        x -> t"#));
+        let assign = parser.next_operation();
+        let rshift_good = parser.next_operation();
+        let lshift = parser.next_operation();
+        let and = parser.next_operation();
+        let or = parser.next_operation();
+        let rshift_bad = parser.next_operation();
+        let assign_bad = parser.next_operation();
+
+        assert_eq!(assign, Expression::Assign(Command::Result(LValue::Const(2)), RValue::Var(String::from("x"))));
+        assert_eq!(rshift_good, Expression::Assign(
+            Command::Binary(
+                LValue::Var(String::from("x")),
+                Operation::RShift,
+                LValue::Const(2)),
+            RValue::Var(String::from("y"))));
+        assert_eq!(lshift, Expression::NOP); // constants are not supported
+        assert_eq!(and, Expression::NOP); // constants are not supported
+        assert_eq!(or, Expression::NOP); // constants are not supported
+        assert_eq!(rshift_bad, Expression::NOP); // constants are not supported
+        assert_eq!(assign_bad, Expression::NOP); // constants are not supported
+
+        let nop = parser.next_operation();
+        assert_eq!(nop, Expression::NOP);
+        assert!(!parser.parsing, "Parsing is not stopped");
     }
 }
