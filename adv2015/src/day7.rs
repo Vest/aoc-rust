@@ -44,32 +44,32 @@ enum Operation {
 }
 
 #[derive(Clone)]
-enum LValue {
+enum RValue {
     Const(u16),
     Var(String),
 }
 
 #[derive(Clone)]
-enum RValue {
+enum LValue {
     Var(String),
 }
 
 #[derive(Clone)]
 enum Command {
-    Result(LValue),
+    Result(RValue),
 
     // A op B
-    Binary(LValue, Operation, LValue),
+    Binary(RValue, Operation, RValue),
 
     // x A
-    Unary(Operation, LValue),
+    Unary(Operation, RValue),
 }
 
 #[derive(Clone)]
 enum Expression {
     NOP,
     // From - To
-    Assign(Command, RValue),
+    Assign(Command, LValue),
 }
 
 struct Lexer {
@@ -203,15 +203,15 @@ impl Parser {
                         if let Token::Wire(target) = token {
                             if commands.len() == 1 {
                                 if let Some(lvalue) = lvalue_from_one(&commands) {
-                                    return Expression::Assign(Command::Result(lvalue), RValue::Var(target));
+                                    return Expression::Assign(Command::Result(lvalue), LValue::Var(target));
                                 }
                             } else if commands.len() == 2 {
                                 if let Some(lvalue) = lvalue_from_two(&commands) {
-                                    return Expression::Assign(lvalue, RValue::Var(target));
+                                    return Expression::Assign(lvalue, LValue::Var(target));
                                 }
                             } else if commands.len() == 3 {
                                 if let Some(lvalue) = lvalue_from_three(&commands) {
-                                    return Expression::Assign(lvalue, RValue::Var(target));
+                                    return Expression::Assign(lvalue, LValue::Var(target));
                                 }
                             } else {
                                 println!("Cannot parse tokens to a command. The size of the vector is {}:", commands.len());
@@ -246,13 +246,13 @@ impl Iterator for Parser {
     }
 }
 
-fn lvalue_from_one(commands: &Vec<Token>) -> Option<LValue> {
+fn lvalue_from_one(commands: &Vec<Token>) -> Option<RValue> {
     assert_eq!(commands.len(), 1);
     let lvalue = &commands[0];
     if let Token::Wire(s) = lvalue {
-        Some(LValue::Var(s.clone()))
+        Some(RValue::Var(s.clone()))
     } else if let Token::Signal(v) = lvalue {
-        Some(LValue::Const(v.clone()))
+        Some(RValue::Const(v.clone()))
     } else {
         None
     }
@@ -265,7 +265,7 @@ fn lvalue_from_two(commands: &Vec<Token>) -> Option<Command> {
     let lvalue = &commands[1];
 
     if let (Token::Not, Token::Wire(s)) = (op, lvalue) {
-        return Some(Command::Unary(Operation::Not, LValue::Var(s.clone())));
+        return Some(Command::Unary(Operation::Not, RValue::Var(s.clone())));
     }
     None
 }
@@ -280,27 +280,27 @@ fn lvalue_from_three(commands: &Vec<Token>) -> Option<Command> {
     match op {
         Token::And =>
             if let (Token::Wire(s1), Token::Wire(s2)) = (lvalue1, lvalue2) {
-                Some(Command::Binary(LValue::Var(s1.clone()), Operation::And, LValue::Var(s2.clone())))
+                Some(Command::Binary(RValue::Var(s1.clone()), Operation::And, RValue::Var(s2.clone())))
             } else if let (Token::Signal(u1), Token::Wire(s2)) = (lvalue1, lvalue2) {
-                Some(Command::Binary(LValue::Const(u1.clone()), Operation::And, LValue::Var(s2.clone())))
+                Some(Command::Binary(RValue::Const(u1.clone()), Operation::And, RValue::Var(s2.clone())))
             } else {
                 None
             },
         Token::Or =>
             if let (Token::Wire(s1), Token::Wire(s2)) = (lvalue1, lvalue2) {
-                Some(Command::Binary(LValue::Var(s1.clone()), Operation::Or, LValue::Var(s2.clone())))
+                Some(Command::Binary(RValue::Var(s1.clone()), Operation::Or, RValue::Var(s2.clone())))
             } else {
                 None
             },
         Token::LeftShift =>
-            if let (Token::Wire(s1), Token::Signal(u1)) = (lvalue1, lvalue2) {
-                Some(Command::Binary(LValue::Var(s1.clone()), Operation::LShift, LValue::Const(u1.clone())))
+            if let (Token::Wire(ls1), Token::Signal(u1)) = (lvalue1, lvalue2) {
+                Some(Command::Binary(RValue::Var(ls1.clone()), Operation::LShift, RValue::Const(u1.clone())))
             } else {
                 None
             },
         Token::RightShift =>
-            if let (Token::Wire(s1), Token::Signal(u1)) = (lvalue1, lvalue2) {
-                Some(Command::Binary(LValue::Var(s1.clone()), Operation::RShift, LValue::Const(u1.clone())))
+            if let (Token::Wire(rs1), Token::Signal(u1)) = (lvalue1, lvalue2) {
+                Some(Command::Binary(RValue::Var(rs1.clone()), Operation::RShift, RValue::Const(u1.clone())))
             } else {
                 None
             },
@@ -317,19 +317,19 @@ impl fmt::Display for Expression {
     }
 }
 
-impl fmt::Display for RValue {
+impl fmt::Display for LValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            RValue::Var(name) => f.write_str(name),
+            LValue::Var(name) => f.write_str(name),
         }
     }
 }
 
-impl fmt::Display for LValue {
+impl fmt::Display for RValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            LValue::Const(c) => f.write_fmt(format_args!("{}", c)),
-            LValue::Var(v) => f.write_fmt(format_args!("{}", v)),
+            RValue::Const(c) => f.write_fmt(format_args!("{}", c)),
+            RValue::Var(v) => f.write_fmt(format_args!("{}", v)),
         }
     }
 }
@@ -376,7 +376,7 @@ impl BobbyInterpreter {
         while let Some(e) = self.parser.next() {
             match e {
                 Expression::Assign(c, r) => {
-                    let RValue::Var(var_name) = r;
+                    let LValue::Var(var_name) = r;
                     self.tree.insert(var_name, c);
                 }
                 Expression::NOP => {}
@@ -393,7 +393,7 @@ impl BobbyInterpreter {
     }
 
     fn evaluate(&mut self, wire: &String) -> Option<u16> {
-// Read from cache, if the value exists there
+        // Read from cache, if the value exists there
         if let Some(&cached_value) = self.cache.get(wire) {
             return Some(cached_value);
         }
@@ -407,18 +407,16 @@ impl BobbyInterpreter {
         let result = match next_command.unwrap().clone() {
             Command::Result(lvalue) => {
                 match lvalue {
-                    LValue::Const(c) => {
-                        Some(c.clone())
-                    }
-                    LValue::Var(w) => self.evaluate(&w),
+                    RValue::Const(c) => Some(c.clone()),
+                    RValue::Var(w) => self.evaluate(&w),
                 }
             }
             Command::Unary(op, lvalue) => {
                 // There is only one Unary operation, for more you can add "match"
                 if let Operation::Not = op {
                     match lvalue {
-                        LValue::Const(c) => Some(!c.clone()),
-                        LValue::Var(w) => {
+                        RValue::Const(c) => Some(!c.clone()),
+                        RValue::Var(w) => {
                             if let Some(value) = self.evaluate(&w) {
                                 Some(!value)
                             } else {
@@ -432,15 +430,15 @@ impl BobbyInterpreter {
             }
             Command::Binary(l1, op, l2) => {
                 let lvalue1 = match l1 {
-                    LValue::Const(c) => c.clone(),
-                    LValue::Var(w) => {
+                    RValue::Const(c) => c.clone(),
+                    RValue::Var(w) => {
                         self.evaluate(&w).unwrap()
                     }
                 };
 
                 let lvalue2 = match l2 {
-                    LValue::Const(c) => c.clone(),
-                    LValue::Var(w) => {
+                    RValue::Const(c) => c.clone(),
+                    RValue::Var(w) => {
                         if let Some(value) = self.evaluate(&w) {
                             value
                         } else {
@@ -468,7 +466,7 @@ impl BobbyInterpreter {
 
     fn evaluate_override_signal(&mut self, wire: &String, new_wire: &String, new_value: u16) -> Option<u16> {
         self.cache.clear();
-        self.tree.insert((*new_wire).clone(), Command::Result(LValue::Const(new_value)));
+        self.tree.insert((*new_wire).clone(), Command::Result(RValue::Const(new_value)));
 
         self.evaluate(wire)
     }
@@ -489,11 +487,11 @@ mod tests {
         }
     }
 
-    impl fmt::Debug for LValue {
+    impl fmt::Debug for RValue {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             match self {
-                LValue::Const(c) => f.write_fmt(format_args!("{}", c)),
-                LValue::Var(v) => f.write_fmt(format_args!("{}", v)),
+                RValue::Const(c) => f.write_fmt(format_args!("{}", c)),
+                RValue::Var(v) => f.write_fmt(format_args!("{}", v)),
             }
         }
     }
@@ -507,11 +505,11 @@ mod tests {
         }
     }
 
-    impl cmp::PartialEq for LValue {
+    impl cmp::PartialEq for RValue {
         fn eq(&self, other: &Self) -> bool {
             match (self, other) {
-                (LValue::Const(c1), LValue::Const(c2)) if c1 == c2 => true,
-                (LValue::Var(w1), LValue::Var(w2)) if w1 == w2 => true,
+                (RValue::Const(c1), RValue::Const(c2)) if c1 == c2 => true,
+                (RValue::Var(w1), RValue::Var(w2)) if w1 == w2 => true,
                 _ => false,
             }
         }
@@ -544,10 +542,10 @@ mod tests {
         }
     }
 
-    impl cmp::PartialEq for RValue {
+    impl cmp::PartialEq for LValue {
         fn eq(&self, other: &Self) -> bool {
             match (self, other) {
-                (RValue::Var(r1), RValue::Var(r2)) if r1 == r2 => true,
+                (LValue::Var(r1), LValue::Var(r2)) if r1 == r2 => true,
                 _ => false,
             }
         }
@@ -676,12 +674,12 @@ mod tests {
                                            NOT y -> i"));
         match parser.next_operation() {
             Expression::Assign(c, v) => {
-                if let Command::Result(LValue::Const(u)) = c {
+                if let Command::Result(RValue::Const(u)) = c {
                     assert_eq!(u, 123, "A wrong signal was parsed");
                 } else {
                     panic!("It wasn't parsed correctly");
                 }
-                let RValue::Var(s) = v;
+                let LValue::Var(s) = v;
                 assert_eq!(s, "x", "A wrong wire was parsed");
             }
             _ => panic!("Shouldn't happen"),
@@ -689,12 +687,12 @@ mod tests {
 
         match parser.next_operation() {
             Expression::Assign(c, v) => {
-                if let Command::Result(LValue::Const(u)) = c {
+                if let Command::Result(RValue::Const(u)) = c {
                     assert_eq!(u, 456, "A wrong signal was parsed");
                 } else {
                     panic!("It wasn't parsed correctly");
                 }
-                let RValue::Var(s) = v;
+                let LValue::Var(s) = v;
                 assert_eq!(s, "y", "A wrong wire was parsed");
             }
             _ => panic!("Shouldn't happen"),
@@ -702,13 +700,13 @@ mod tests {
 
         match parser.next_operation() {
             Expression::Assign(c, v) => {
-                if let Command::Binary(LValue::Var(x), Operation::And, LValue::Var(y)) = c {
+                if let Command::Binary(RValue::Var(x), Operation::And, RValue::Var(y)) = c {
                     assert_eq!(x, "x", "A wrong wire was parsed");
                     assert_eq!(y, "y", "A wrong wire was parsed");
                 } else {
                     panic!("It wasn't parsed correctly");
                 }
-                let RValue::Var(s) = v;
+                let LValue::Var(s) = v;
                 assert_eq!(s, "d", "A wrong wire was parsed");
             }
             _ => panic!("Shouldn't happen"),
@@ -716,13 +714,13 @@ mod tests {
 
         match parser.next_operation() {
             Expression::Assign(c, v) => {
-                if let Command::Binary(LValue::Var(x), Operation::Or, LValue::Var(y)) = c {
+                if let Command::Binary(RValue::Var(x), Operation::Or, RValue::Var(y)) = c {
                     assert_eq!(x, "x", "A wrong wire was parsed");
                     assert_eq!(y, "y", "A wrong wire was parsed");
                 } else {
                     panic!("It wasn't parsed correctly");
                 }
-                let RValue::Var(s) = v;
+                let LValue::Var(s) = v;
                 assert_eq!(s, "e", "A wrong wire was parsed");
             }
             _ => panic!("Shouldn't happen"),
@@ -777,13 +775,13 @@ mod tests {
 
         match parser.next_operation() {
             Expression::Assign(c, v) => {
-                if let Command::Binary(LValue::Var(x), Operation::RShift, LValue::Const(y)) = c {
+                if let Command::Binary(RValue::Var(x), Operation::RShift, RValue::Const(y)) = c {
                     assert_eq!(x, "jp", "A wrong wire was parsed");
                     assert_eq!(y, 5, "A wrong wire was parsed");
                 } else {
                     panic!("It wasn't parsed correctly");
                 }
-                let RValue::Var(s) = v;
+                let LValue::Var(s) = v;
                 assert_eq!(s, "js", "A wrong wire was parsed");
             }
             _ => panic!("Shouldn't happen"),
@@ -791,13 +789,13 @@ mod tests {
 
         match parser.next_operation() {
             Expression::Assign(c, v) => {
-                if let Command::Binary(LValue::Const(x), Operation::And, LValue::Var(y)) = c {
+                if let Command::Binary(RValue::Const(x), Operation::And, RValue::Var(y)) = c {
                     assert_eq!(x, 1, "A wrong wire was parsed");
                     assert_eq!(y, "io", "A wrong wire was parsed");
                 } else {
                     panic!("It wasn't parsed correctly");
                 }
-                let RValue::Var(s) = v;
+                let LValue::Var(s) = v;
                 assert_eq!(s, "ip", "A wrong wire was parsed");
             }
             _ => panic!("Shouldn't happen"),
@@ -805,13 +803,13 @@ mod tests {
 
         match parser.next_operation() {
             Expression::Assign(c, v) => {
-                if let Command::Binary(LValue::Var(x), Operation::LShift, LValue::Const(y)) = c {
+                if let Command::Binary(RValue::Var(x), Operation::LShift, RValue::Const(y)) = c {
                     assert_eq!(x, "eo", "A wrong wire was parsed");
                     assert_eq!(y, 15, "A wrong wire was parsed");
                 } else {
                     panic!("It wasn't parsed correctly");
                 }
-                let RValue::Var(s) = v;
+                let LValue::Var(s) = v;
                 assert_eq!(s, "es", "A wrong wire was parsed");
             }
             _ => panic!("Shouldn't happen"),
@@ -842,7 +840,7 @@ mod tests {
         assert_eq!(Token::Assign.to_string(), "->");
         assert_eq!(Token::EOF.to_string(), "eof");
 
-        assert_eq!(Expression::Assign(Command::Result(LValue::Const(23)), RValue::Var(String::from("abc"))).to_string(), "Assign");
+        assert_eq!(Expression::Assign(Command::Result(RValue::Const(23)), LValue::Var(String::from("abc"))).to_string(), "Assign");
         assert_eq!(Expression::NOP.to_string(), "NOP");
     }
 
@@ -850,16 +848,51 @@ mod tests {
     fn test_parser_errors() {
         let mut parser = Parser::new(String::from("2 -> x"));
         let assign = parser.next_operation();
-        assert_eq!(assign, Expression::Assign(Command::Result(LValue::Const(2)), RValue::Var(String::from("x"))));
+        assert_eq!(assign, Expression::Assign(Command::Result(RValue::Const(2)), LValue::Var(String::from("x"))));
 
         let mut parser = Parser::new(String::from("x RSHIFT 2 -> y"));
         let rshift_good = parser.next_operation();
         assert_eq!(rshift_good, Expression::Assign(
             Command::Binary(
-                LValue::Var(String::from("x")),
+                RValue::Var(String::from("x")),
                 Operation::RShift,
-                LValue::Const(2)),
-            RValue::Var(String::from("y"))));
+                RValue::Const(2)),
+            LValue::Var(String::from("y"))));
+
+        let mut parser = Parser::new(String::from("x LSHIFT 3 -> ly"));
+        let lshift_good = parser.next_operation();
+        assert_eq!(lshift_good, Expression::Assign(
+            Command::Binary(
+                RValue::Var(String::from("x")),
+                Operation::LShift,
+                RValue::Const(3)),
+            LValue::Var(String::from("ly"))));
+
+        let mut parser = Parser::new(String::from("x AND y -> ay"));
+        let and_good = parser.next_operation();
+        assert_eq!(and_good, Expression::Assign(
+            Command::Binary(
+                RValue::Var(String::from("x")),
+                Operation::And,
+                RValue::Var(String::from("y"))),
+            LValue::Var(String::from("ay"))));
+
+        let mut parser = Parser::new(String::from("y OR x -> oy"));
+        let or_good = parser.next_operation();
+        assert_eq!(or_good, Expression::Assign(
+            Command::Binary(
+                RValue::Var(String::from("y")),
+                Operation::Or,
+                RValue::Var(String::from("x"))),
+            LValue::Var(String::from("oy"))));
+
+        let mut parser = Parser::new(String::from("NOT y -> ny"));
+        let not_good = parser.next_operation();
+        assert_eq!(not_good, Expression::Assign(
+            Command::Unary(
+                Operation::Not,
+                RValue::Var(String::from("y"))),
+            LValue::Var(String::from("ny"))));
 
         let mut parser = Parser::new(String::from("2 LSHIFT 1 -> z"));
         let lshift = parser.next_operation();
@@ -880,12 +913,36 @@ mod tests {
         let mut parser = Parser::new(String::from("x -> t"));
         let assign_bad = parser.next_operation();
         assert_eq!(assign_bad, Expression::Assign(
-            Command::Result(LValue::Var(String::from("x"))),
-            RValue::Var(String::from("t"))));
+            Command::Result(RValue::Var(String::from("x"))),
+            LValue::Var(String::from("t"))));
 
         let mut parser = Parser::new(String::from("8 RSHIFT x -> t"));
         let rshift_x = parser.next_operation();
         assert_eq!(rshift_x, Expression::NOP); // constants are not supported
+
+        let mut parser = Parser::new(String::from("2 RSHIFT -> s"));
+        let rshift_s = parser.next_operation();
+        assert_eq!(rshift_s, Expression::NOP);
+
+        let mut parser = Parser::new(String::from("RSHIFT -> r"));
+        let rshift_empty = parser.next_operation();
+        assert_eq!(rshift_empty, Expression::NOP);
+
+        let mut parser = Parser::new(String::from("RSHIFT AND OR LSHIFT -> q"));
+        let token_mess = parser.next_operation();
+        assert_eq!(token_mess, Expression::NOP);
+
+        let mut parser = Parser::new(String::from("2 NOT -> p"));
+        let not = parser.next_operation();
+        assert_eq!(not, Expression::NOP);
+
+        let mut parser = Parser::new(String::from("2 -> 2"));
+        let lvalue = parser.next_operation();
+        assert_eq!(lvalue, Expression::NOP);
+
+        let mut parser = Parser::new(String::from("-> x"));
+        let empty = parser.next_operation();
+        assert_eq!(empty, Expression::NOP);
 
         let nop = parser.next_operation();
         assert_eq!(nop, Expression::NOP);
