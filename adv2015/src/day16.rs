@@ -4,8 +4,12 @@ use std::fmt;
 
 const IDEAL_AUNT: &str = r#"Sue 0: children: 3, cats: 7, samoyeds: 2, pomeranians: 3, akitas: 0, vizslas: 0, goldfish: 5, trees: 3, cars: 2, perfumes: 1"#;
 
-pub fn get_answer(_input: &str) -> usize {
-    0
+pub fn get_answer(input: &str) -> usize {
+    let aunts = parse_aunts(input);
+    let ideal_aunt = Aunt::from_str(IDEAL_AUNT).unwrap();
+
+    find_ideal_aunt(&aunts, &ideal_aunt)
+        .unwrap_or(0)
 }
 
 #[derive(Debug)]
@@ -133,6 +137,27 @@ fn parse_aunts(input: &str) -> Vec<Aunt> {
         .collect()
 }
 
+fn find_ideal_aunt(aunts: &Vec<Aunt>, aunt: &Aunt) -> Option<usize> {
+    let opt_aunt = aunts.iter()
+        .find(|&sample| {
+            aunt.things.iter()
+                .filter(|aunt_thing| {
+                    if let Some(sample_value) = sample.get_thing(aunt_thing.0) {
+                        *aunt_thing.1 == sample_value
+                    } else {
+                        false
+                    }
+                })
+                .count() == sample.things.len()
+        });
+
+    if let Some(aunt) = opt_aunt {
+        Some(aunt.number)
+    } else {
+        None
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -203,5 +228,44 @@ mod tests {
     fn test_parse_ideal_aunt() {
         let aunt = Aunt::from_str(IDEAL_AUNT);
         assert!(aunt.is_ok());
+    }
+
+    #[test]
+    fn test_find_ideal_aunt() {
+        let aunts = parse_aunts(r#"Sue 1: cars: 9, akitas: 3, goldfish: 0
+        Sue 2: children: 3, cats: 7, pomeranians: 3"#);
+        let ideal_aunt = Aunt::from_str(IDEAL_AUNT).unwrap();
+        let aunt = find_ideal_aunt(&aunts, &ideal_aunt);
+        assert!(aunt.is_some());
+        assert_eq!(aunt.unwrap(), 2);
+    }
+
+    #[test]
+    fn test_cannot_find_ideal_aunt() {
+        let aunts = parse_aunts(r#"Sue 1: cars: 9, akitas: 3, goldfish: 0
+        Sue 2: children: 4, cats: 7, pomeranians: 3"#); // this aunt doesn't exist
+        let ideal_aunt = Aunt::from_str(IDEAL_AUNT).unwrap();
+        let aunt = find_ideal_aunt(&aunts, &ideal_aunt);
+        assert!(aunt.is_none());
+    }
+
+    #[test]
+    fn test_get_answer() {
+        let answer = get_answer(r#"Sue 1: cars: 9, akitas: 3, goldfish: 0
+        Sue 2: children: 3, cats: 7, pomeranians: 3"#);
+        assert_eq!(answer, 2);
+    }
+
+    #[test]
+    fn test_get_empty_answer() {
+        let answer = get_answer("");
+        assert_eq!(answer, 0);
+    }
+
+    #[test]
+    fn test_cannot_get_answer() {
+        let answer = get_answer(r#"Sue 1: cars: 9, akitas: 3, goldfish: 0
+        Sue 2: children: 4, cats: 7, pomeranians: 3"#); // this aunt doesn't exist
+        assert_eq!(answer, 0);
     }
 }
