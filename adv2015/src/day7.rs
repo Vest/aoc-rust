@@ -848,33 +848,44 @@ mod tests {
 
     #[test]
     fn test_parser_errors() {
-        let mut parser = Parser::new(String::from(r#"2 -> x
-        x RSHIFT 2 -> y
-        2 LSHIFT 1 -> z
-        3 AND 1 -> w
-        3 OR 1 -> v
-        4 RSHIFT 2 -> u
-        x -> t"#));
+        let mut parser = Parser::new(String::from("2 -> x"));
         let assign = parser.next_operation();
-        let rshift_good = parser.next_operation();
-        let lshift = parser.next_operation();
-        let and = parser.next_operation();
-        let or = parser.next_operation();
-        let rshift_bad = parser.next_operation();
-        let assign_bad = parser.next_operation();
-
         assert_eq!(assign, Expression::Assign(Command::Result(LValue::Const(2)), RValue::Var(String::from("x"))));
+
+        let mut parser = Parser::new(String::from("x RSHIFT 2 -> y"));
+        let rshift_good = parser.next_operation();
         assert_eq!(rshift_good, Expression::Assign(
             Command::Binary(
                 LValue::Var(String::from("x")),
                 Operation::RShift,
                 LValue::Const(2)),
             RValue::Var(String::from("y"))));
+
+        let mut parser = Parser::new(String::from("2 LSHIFT 1 -> z"));
+        let lshift = parser.next_operation();
         assert_eq!(lshift, Expression::NOP); // constants are not supported
+
+        let mut parser = Parser::new(String::from("3 AND 1 -> w"));
+        let and = parser.next_operation();
         assert_eq!(and, Expression::NOP); // constants are not supported
+
+        let mut parser = Parser::new(String::from("3 OR 1 -> v"));
+        let or = parser.next_operation();
         assert_eq!(or, Expression::NOP); // constants are not supported
+
+        let mut parser = Parser::new(String::from("4 RSHIFT 2 -> u"));
+        let rshift_bad = parser.next_operation();
         assert_eq!(rshift_bad, Expression::NOP); // constants are not supported
-        assert_eq!(assign_bad, Expression::NOP); // constants are not supported
+
+        let mut parser = Parser::new(String::from("x -> t"));
+        let assign_bad = parser.next_operation();
+        assert_eq!(assign_bad, Expression::Assign(
+            Command::Result(LValue::Var(String::from("x"))),
+            RValue::Var(String::from("t"))));
+
+        let mut parser = Parser::new(String::from("8 RSHIFT x -> t"));
+        let rshift_x = parser.next_operation();
+        assert_eq!(rshift_x, Expression::NOP); // constants are not supported
 
         let nop = parser.next_operation();
         assert_eq!(nop, Expression::NOP);
