@@ -936,6 +936,10 @@ mod tests {
         let not = parser.next_operation();
         assert_eq!(not, Expression::NOP);
 
+        let mut parser = Parser::new(String::from("2 NOT NOT -> p"));
+        let double_not = parser.next_operation();
+        assert_eq!(double_not, Expression::NOP);
+
         let mut parser = Parser::new(String::from("2 -> 2"));
         let lvalue = parser.next_operation();
         assert_eq!(lvalue, Expression::NOP);
