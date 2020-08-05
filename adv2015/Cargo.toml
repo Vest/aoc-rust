@@ -1,6 +1,6 @@
 [package]
 name = "adv2015"
-version = "0.15.0"
+version = "0.16.0"
 authors = ["Vest <Vest@users.noreply.github.com>"]
 edition = "2018"
 
