@@ -65,7 +65,7 @@ impl Santa {
                     continue;
                 }
 
-                let path =  *self.distances.get(&(prev_city.clone(), (*city).clone())).unwrap();
+                let path = *self.distances.get(&(prev_city.clone(), (*city).clone())).unwrap();
                 prev_city = (*city).clone();
 
                 current_distance += path;
@@ -117,5 +117,14 @@ mod tests {
         for i in santa.distances {
             println!("{} {} = {}", (i.0).0, (i.0).1, i.1)
         }
+    }
+
+    #[test]
+    fn test_routes() {
+        const INPUT: &str = "London to Dublin = 464
+         London to Belfast = 518
+         Dublin to Belfast = 141";
+        assert_eq!(calc_shortest(INPUT), 605);
+        assert_eq!(calc_longest(INPUT), 982);
     }
 }
