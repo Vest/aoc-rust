@@ -416,13 +416,7 @@ impl BobbyInterpreter {
                 if let Operation::Not = op {
                     match lvalue {
                         RValue::Const(c) => Some(!c.clone()),
-                        RValue::Var(w) => {
-                            if let Some(value) = self.evaluate(&w) {
-                                Some(!value)
-                            } else {
-                                None
-                            }
-                        }
+                        RValue::Var(w) => Some(!self.evaluate(&w).unwrap())
                     }
                 } else {
                     None
@@ -431,20 +425,12 @@ impl BobbyInterpreter {
             Command::Binary(l1, op, l2) => {
                 let lvalue1 = match l1 {
                     RValue::Const(c) => c.clone(),
-                    RValue::Var(w) => {
-                        self.evaluate(&w).unwrap()
-                    }
+                    RValue::Var(w) => self.evaluate(&w).unwrap(),
                 };
 
                 let lvalue2 = match l2 {
                     RValue::Const(c) => c.clone(),
-                    RValue::Var(w) => {
-                        if let Some(value) = self.evaluate(&w) {
-                            value
-                        } else {
-                            return None;
-                        }
-                    }
+                    RValue::Var(w) => self.evaluate(&w).unwrap(),
                 };
 
                 match op {
@@ -951,5 +937,26 @@ mod tests {
         let nop = parser.next_operation();
         assert_eq!(nop, Expression::NOP);
         assert!(!parser.parsing, "Parsing is not stopped");
+    }
+
+    #[test]
+    fn test_interpreter() {
+        let mut bobby = BobbyInterpreter::new();
+        bobby.interpret(String::from(r#"NOT a -> b
+        b AND d -> e
+        1 -> a
+        a -> d"#));
+        let answer = bobby.evaluate(&String::from("e"));
+        assert_eq!(answer.unwrap(), 0);
+    }
+
+    #[test]
+    fn test_answers() {
+        const INPUT: &str = r#"1 -> b
+        b AND d -> e
+        NOT e -> a
+        3 -> d"#;
+        assert_eq!(count_input_a(INPUT), 65534);
+        assert_eq!(count_input_a_override(INPUT), 65533);
     }
 }
