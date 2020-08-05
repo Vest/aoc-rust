@@ -831,6 +831,22 @@ mod tests {
     }
 
     #[test]
+    fn test_debug() {
+        assert_eq!(format!("{:?}", NextToken(Token::Signal(23), 12)), "NextToken(Signal(23), 12)");
+
+        assert_eq!(format!("{:?}", RValue::Var(String::from("a"))), "a");
+        assert_eq!(format!("{:?}", RValue::Const(23)), "23");
+
+        assert_eq!(format!("{:?}", Expression::Assign(Command::Result(RValue::Const(23)), LValue::Var(String::from("abc")))), "abc = 23");
+        assert_eq!(format!("{:?}", Expression::Assign(
+            Command::Result(RValue::Var(String::from("a"))),
+            LValue::Var(String::from("abc")))
+        ), "abc = a");
+
+        assert_eq!(format!("{:?}", Expression::NOP), "NOP");
+    }
+
+    #[test]
     fn test_parser_errors() {
         let mut parser = Parser::new(String::from("2 -> x"));
         let assign = parser.next_operation();
