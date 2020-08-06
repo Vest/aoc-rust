@@ -139,6 +139,7 @@ impl Parser {
                     Token::Coord(x, y) => Coord(x, y),
                     t => {
                         println!("Unexpected token {} after token {}", t, token);
+                        self.parsing = false;
                         return Call::EOF;
                     }
                 };
@@ -146,6 +147,7 @@ impl Parser {
                     t @ Token::Through => t,
                     t => {
                         println!("Unexpected token {} after token {}", t, c1);
+                        self.parsing = false;
                         return Call::EOF;
                     }
                 };
@@ -153,6 +155,7 @@ impl Parser {
                     Token::Coord(x, y) => Coord(x, y),
                     t => {
                         println!("Unexpected token {} after token {}", t, th);
+                        self.parsing = false;
                         return Call::EOF;
                     }
                 };
@@ -354,6 +357,25 @@ mod tests {
     use super::*;
     use std::{cmp, fmt};
 
+    impl fmt::Debug for Call {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            match self {
+                Call::EOF => f.write_str("EOF"),
+                Call::Call(op, c1, c2) => f.write_fmt(format_args!("{}: {} and {}", op, c1, c2)),
+            }
+        }
+    }
+
+    impl cmp::PartialEq for Call {
+        fn eq(&self, other: &Self) -> bool {
+            match (self, other) {
+                (Call::EOF, Call::EOF) => true,
+                (Call::Call(op1, c11, c12), Call::Call(op2, c21, c22)) => op1 == op2 && c11 == c21 && c12 == c22,
+                _ => false,
+            }
+        }
+    }
+
     impl fmt::Debug for NextToken {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             f.debug_tuple("NextToken")
@@ -432,6 +454,11 @@ mod tests {
     fn test_partial_eq() {
         assert_ne!(Token::TurnOn, Token::TurnOff);
 
+        assert_eq!(Call::EOF, Call::EOF);
+        assert_eq!(Call::Call(Operation::TurnOff, Coord(1, 2), Coord(3, 4)), Call::Call(Operation::TurnOff, Coord(1, 2), Coord(3, 4)));
+        assert_ne!(Call::Call(Operation::TurnOff, Coord(1, 2), Coord(3, 4)), Call::Call(Operation::TurnOff, Coord(3, 4), Coord(1, 2)));
+        assert_ne!(Call::Call(Operation::TurnOff, Coord(1, 2), Coord(3, 4)), Call::EOF);
+
         assert_ne!(Operation::TurnOn, Operation::TurnOff);
     }
 
@@ -475,26 +502,51 @@ mod tests {
     #[test]
     fn test_parser() {
         let mut parser = Parser::new(String::from("turn on 499,989 through 806,992"));
-        if let Call::Call(op, c1, c2) = parser.next_operation() {
-            assert_eq!(op, Operation::TurnOn);
-            assert_eq!(c1, Coord(499, 989));
-            assert_eq!(c2, Coord(806, 992));
-        } else { panic!("Shouldn't happen"); }
+        assert_eq!(parser.next_operation(), Call::Call(
+            Operation::TurnOn,
+            Coord(499, 989),
+            Coord(806, 992),
+        ));
+        assert!(parser.parsing);
+
+        assert_eq!(parser.next_operation(), Call::EOF);
+        assert!(!parser.parsing);
+
+        assert_eq!(parser.next_operation(), Call::EOF);
+    }
+
+    #[test]
+    fn test_invalid_parser() {
+        let mut parser = Parser::new(String::from("turn on on 499,989 through 806,992"));
+        assert_eq!(parser.next_operation(), Call::EOF);
+        assert!(!parser.parsing);
+
+        let mut parser = Parser::new(String::from("turn on 499,989 on 806,992"));
+        assert_eq!(parser.next_operation(), Call::EOF);
+        assert!(!parser.parsing);
+
+        let mut parser = Parser::new(String::from("turn on 499,989 through on 806,992"));
+        assert_eq!(parser.next_operation(), Call::EOF);
+        assert!(!parser.parsing);
+
+        let mut parser = Parser::new(String::from("through turn on 499,989 through on 806,992"));
+        assert_eq!(parser.next_operation(), Call::EOF);
+        assert!(!parser.parsing);
     }
 
     #[test]
     fn test_multiline_parser() {
         let mut parser = Parser::new(String::from("turn on 59,99 through 806,99\r\nturn off 812,389 through 865,874"));
-        if let Call::Call(op, c1, c2) = parser.next_operation() {
-            assert_eq!(op, Operation::TurnOn);
-            assert_eq!(c1, Coord(59, 99));
-            assert_eq!(c2, Coord(806, 99));
-        } else { panic!("Shouldn't happen"); }
-        if let Call::Call(op, c1, c2) = parser.next_operation() {
-            assert_eq!(op, Operation::TurnOff);
-            assert_eq!(c1, Coord(812, 389));
-            assert_eq!(c2, Coord(865, 874));
-        } else { panic!("Shouldn't happen"); }
+        assert_eq!(parser.next_operation(), Call::Call(
+            Operation::TurnOn,
+            Coord(59, 99),
+            Coord(806, 99),
+        ));
+        assert_eq!(parser.next_operation(), Call::Call(
+            Operation::TurnOff,
+            Coord(812, 389),
+            Coord(865, 874),
+        ));
     }
 
     #[test]
@@ -639,6 +691,9 @@ mod tests {
     #[test]
     fn test_debug() {
         assert_eq!(format!("{:?}", Operation::Toggle), format!("{}", Operation::Toggle));
+
+        assert_eq!(format!("{:?}", Call::EOF), "EOF");
+        assert_eq!(format!("{:?}", Call::Call(Operation::TurnOff, Coord(1, 2), Coord(3, 4))), "off: (1,2) and (3,4)");
 
         assert_eq!(format!("{:?}", Coord(1, 2)), "(1,2)");
         assert_eq!(format!("{:?}", NextToken(Token::Toggle, 13)), "NextToken(Toggle, 13)");
