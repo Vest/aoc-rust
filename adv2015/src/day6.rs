@@ -129,17 +129,11 @@ impl Parser {
                 self.parsing = false;
                 Call::EOF
             }
-            token @ Token::TurnOn
-            | token @ Token::TurnOff
-            | token @ Token::Toggle => {
+            token @ Token::TurnOn | token @ Token::TurnOff | token @ Token::Toggle => {
                 let op = match token {
                     Token::Toggle => Operation::Toggle,
                     Token::TurnOn => Operation::TurnOn,
-                    Token::TurnOff => Operation::TurnOff,
-                    _ => {
-                        println!("Unexpected token in the line: {}", token);
-                        return Call::EOF;
-                    }
+                    _ => Operation::TurnOff, // eventually TurnOff
                 };
                 let c1 = match self.lexer.next_token() {
                     Token::Coord(x, y) => Coord(x, y),
