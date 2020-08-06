@@ -175,10 +175,7 @@ impl Iterator for Parser {
     type Item = Call;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.next_operation() {
-            Call::EOF => None,
-            result => Some(result),
-        }
+        Some(self.next_operation())
     }
 }
 
@@ -709,9 +706,9 @@ mod tests {
     #[test]
     fn test_wrong_syntax() {
         let mut basic = SantaInterpreter::new();
-        basic.interpret(String::from("turn on through"));
+        basic.interpret(String::from("turn on through\nturn on"));
 
         let mut basic = SantaBetterInterpreter::new();
-        basic.interpret(String::from("turn off through"));
+        basic.interpret(String::from("turn off through\nturn on"));
     }
 }
