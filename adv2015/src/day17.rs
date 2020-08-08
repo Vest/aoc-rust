@@ -69,8 +69,7 @@ fn find_cans_combination_minimal_count(vec: &Vec<usize>, required_volume: usize)
             let computed = Combinations::new(cloned_vec, k);
 
             let answer = computed.map(|c| {
-                c.iter()
-                    .map(|can| can.1)
+                c.iter().map(|can| can.1)
                     .sum()
             })
                 .filter(|&volume: &usize| volume == required_volume)
