@@ -26,6 +26,10 @@ fn parse_to_available_cans(input: &str) -> Vec<usize> {
 }
 
 fn find_cans_combination_total_count(vec: &Vec<usize>, required_volume: usize) -> usize {
+    if vec.is_empty() {
+        return 0;
+    }
+
     let k_tuple = find_k(vec, required_volume);
 
     let mut answer = 0;
@@ -50,6 +54,10 @@ fn find_cans_combination_total_count(vec: &Vec<usize>, required_volume: usize) -
 }
 
 fn find_cans_combination_minimal_count(vec: &Vec<usize>, required_volume: usize) -> usize {
+    if vec.is_empty() {
+        return 0;
+    }
+
     let k_tuple = find_k(vec, required_volume);
 
     for k in k_tuple.0..=k_tuple.1 {
@@ -158,5 +166,11 @@ mod tests {
         let cans3 = find_k(&vec![50, 50, 100], REQUIRED_VOLUME);
         assert_eq!(cans3.0, 2usize);
         assert_eq!(cans3.1, 2usize);
+    }
+
+    #[test]
+    fn test_zeroes() {
+        assert_eq!(get_total_count_of_combinations(r#""#), 0);
+        assert_eq!(get_minimal_count_of_cans(r#""#), 0);
     }
 }
