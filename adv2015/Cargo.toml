@@ -1,6 +1,6 @@
 [package]
 name = "adv2015"
-version = "0.16.0"
+version = "0.17.0"
 authors = ["Vest <Vest@users.noreply.github.com>"]
 edition = "2018"
 
@@ -14,3 +14,4 @@ doc = false
 [dependencies]
 md5 = "0.7.0"
 permute = "0.1.0"
+combinations = "0.1.0"
