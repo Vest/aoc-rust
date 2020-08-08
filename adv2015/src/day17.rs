@@ -1,71 +1,76 @@
-use permute::*;
-use std::iter::FromIterator;
-use std::collections::HashSet;
+use combinations::Combinations;
 
 const REQUIRED_VOLUME: usize = 150;
 
 pub fn get_answer(input: &str) -> usize {
     let available_cans = parse_to_available_cans(input);
-    let found_cans = find_cans(&available_cans, REQUIRED_VOLUME);
+    let found_cans = find_cans_combination_count(&available_cans, REQUIRED_VOLUME);
 
-    found_cans.len()
+    found_cans
 }
 
-fn parse_to_available_cans(input: &str) -> Vec<(usize, usize)> {
-    input.lines().enumerate()
-        .map(|l| (l.0, l.1.trim()))
-        .map(|l| (l.0, l.1.parse::<usize>()))
-        .filter(|c| c.1.is_ok())
-        .map(|c| (c.0, c.1.unwrap()))
+fn parse_to_available_cans(input: &str) -> Vec<usize> {
+    input.lines()
+        .map(|l| l.trim())
+        .map(|l| l.parse::<usize>())
+        .filter(|c| c.is_ok())
+        .map(|c| c.unwrap())
         .collect()
 }
 
-fn find_cans(vec: &Vec<(usize, usize)>, required_volume: usize) -> HashSet<Vec<(usize, usize)>> {
-    let size = vec.len();
-    let mut hash_set: HashSet<Vec<(usize, usize)>> = HashSet::new();
+fn find_cans_combination_count(vec: &Vec<usize>, required_volume: usize) -> usize {
+    let k_tuple = find_k(vec, required_volume);
 
-    for permutation in permutations_of(vec) {
-        let permutation_vector: Vec<(usize, usize)> = permutation.cloned().collect();
+    let mut answer = 0;
 
-        for c in 1..size {
-            let mut candidate: Vec<(usize, usize)> = Vec::from_iter(permutation_vector[0..c].iter().cloned());
-            candidate.sort_by(|c1, c2| c1.0.cmp(&(c2.0)));
+    for k in k_tuple.0..=k_tuple.1 {
+        let cloned_vec: Vec<(usize, usize)> = vec.iter()
+            .enumerate()
+            .map(|e| (e.0, *e.1))
+            .collect();
+        let computed = Combinations::new(cloned_vec, k);
 
-            if hash_set.contains(&candidate) {
-                continue;
-            }
-
-            let slice: Vec<usize> = candidate.iter()
-                .map(|c| c.1)
-                .collect();
-            let volume = calc_volume_vec(&slice);
-
-            if volume == required_volume {
-                println!("{:?}", candidate);
-                hash_set.insert(candidate);
-            }
-        }
+        answer += computed.map(|c| {
+            c.iter()
+                .map(|can| can.1)
+                .sum()
+        })
+            .filter(|&volume: &usize| volume == required_volume)
+            .count();
     }
 
-    hash_set
+    answer
 }
 
-fn calc_volume_vec(cans: &Vec<usize>) -> usize {
-    cans.into_iter().sum()
-}
+fn find_k(vec: &Vec<usize>, required_volume: usize) -> (usize, usize) {
+    let mut sorted_input_cans = vec.clone();
+    sorted_input_cans.sort();
+
+    let mut max_k = sorted_input_cans.len() - 1;
+    let mut min_k = 0;
+    let mut sum = 0;
+
+    for i in (0..sorted_input_cans.len()).rev() {
+        if sum >= required_volume {
+            min_k = sorted_input_cans.len() - i - 1;
+            break;
+        }
+
+        sum += sorted_input_cans[i];
+    }
+
+    let mut sum = 0;
+    for i in 0..sorted_input_cans.len() {
+        if sum >= required_volume {
+            max_k = i - 1;
+            break;
+        }
+
+        sum += sorted_input_cans[i];
+    }
 
 
-fn combinations<T: Clone>(vec: &Vec<T>, number: usize) -> Vec<Vec<T>> {
-    let vec_len = vec.len();
-    let mut vec = Vec::with_capacity(factorial(vec_len) / factorial(number) / factorial(vec_len - number));
-
-
-
-    vec
-}
-
-fn factorial(num: usize) -> usize {
-    if num == 2 { 2 } else { num * factorial(num - 1) }
+    (min_k, max_k)
 }
 
 #[cfg(test)]
@@ -73,25 +78,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_find_cans() {
-        let available_cans = vec![(0, 1), (1, 2), (2, 3), (3, 4), (4, 5)];
-        let found_cans = find_cans(&available_cans, 5);
-
-        assert_eq!(found_cans.len(), 3)
-    }
-
-    #[test]
-    fn test_find_cans_example() {
-        let available_cans = vec![(0, 20), (1, 15), (2, 10), (3, 5), (4, 5)];
-        let found_cans = find_cans(&available_cans, 25);
-
-        assert_eq!(found_cans.len(), 4);
-    }
-
-    #[test]
-    fn test_calc_volume_vec() {
-        assert_eq!(calc_volume_vec(&vec![1, 2, 3, 4, 5]), 15);
-        assert_eq!(calc_volume_vec(&vec![3, 4, 5]), 12);
+    fn test_get_answer() {
+        assert_eq!(get_answer(r#"50
+        50
+        100"#), 2);
     }
 
     #[test]
@@ -104,17 +94,28 @@ mod tests {
 
         assert_eq!(cans.len(), 5);
 
-        assert_eq!(cans[0].0, 0);
-        assert_eq!(cans[0].1, 20);
-
-        assert_eq!(cans[4].0, 4);
-        assert_eq!(cans[4].1, 5);
+        assert_eq!(cans[0], 20);
+        assert_eq!(cans[4], 5);
     }
 
     #[test]
-    fn test_factorial() {
-        assert_eq!(factorial(2), 2);
-        assert_eq!(factorial(3), 6);
-        assert_eq!(factorial(4), 24);
+    fn test_find_cans_combination_count() {
+        assert_eq!(find_cans_combination_count(&vec![1, 2, 3, 4, 5], 5), 3);
+        assert_eq!(find_cans_combination_count(&vec![20, 15, 10, 5, 5], 25), 4);
+    }
+
+    #[test]
+    fn test_find_k() {
+        let cans1 = find_k(&vec![1, 2, 3, 4, 5], 5);
+        assert_eq!(cans1.0, 1usize);
+        assert_eq!(cans1.1, 2usize);
+
+        let cans2 = find_k(&vec![20, 15, 10, 5, 5], 25);
+        assert_eq!(cans2.0, 2usize);
+        assert_eq!(cans2.1, 3usize);
+
+        let cans3 = find_k(&vec![50, 50, 100], REQUIRED_VOLUME);
+        assert_eq!(cans3.0, 2usize);
+        assert_eq!(cans3.1, 2usize);
     }
 }

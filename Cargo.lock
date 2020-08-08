@@ -4,6 +4,7 @@
 name = "adv2015"
 version = "0.17.0"
 dependencies = [
+ "combinations",
  "md5",
  "permute",
 ]
@@ -60,6 +61,12 @@ name = "cfg-if"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
+
+[[package]]
+name = "combinations"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "728b7ab3119b5167cc60a4aad16b6086b762278f5571cc650e7eed2e89a23a15"
 
 [[package]]
 name = "core-foundation"
