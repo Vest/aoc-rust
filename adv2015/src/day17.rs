@@ -2,9 +2,16 @@ use combinations::Combinations;
 
 const REQUIRED_VOLUME: usize = 150;
 
-pub fn get_answer(input: &str) -> usize {
+pub fn get_total_count_of_combinations(input: &str) -> usize {
     let available_cans = parse_to_available_cans(input);
-    let found_cans = find_cans_combination_count(&available_cans, REQUIRED_VOLUME);
+    let found_cans = find_cans_combination_total_count(&available_cans, REQUIRED_VOLUME);
+
+    found_cans
+}
+
+pub fn get_minimal_count_of_cans(input: &str) -> usize {
+    let available_cans = parse_to_available_cans(input);
+    let found_cans = find_cans_combination_minimal_count(&available_cans, REQUIRED_VOLUME);
 
     found_cans
 }
@@ -18,7 +25,7 @@ fn parse_to_available_cans(input: &str) -> Vec<usize> {
         .collect()
 }
 
-fn find_cans_combination_count(vec: &Vec<usize>, required_volume: usize) -> usize {
+fn find_cans_combination_total_count(vec: &Vec<usize>, required_volume: usize) -> usize {
     let k_tuple = find_k(vec, required_volume);
 
     let mut answer = 0;
@@ -40,6 +47,31 @@ fn find_cans_combination_count(vec: &Vec<usize>, required_volume: usize) -> usiz
     }
 
     answer
+}
+
+fn find_cans_combination_minimal_count(vec: &Vec<usize>, required_volume: usize) -> usize {
+    let k_tuple = find_k(vec, required_volume);
+
+    for k in k_tuple.0..=k_tuple.1 {
+        let cloned_vec: Vec<(usize, usize)> = vec.iter()
+            .enumerate()
+            .map(|e| (e.0, *e.1))
+            .collect();
+        let computed = Combinations::new(cloned_vec, k);
+
+        let answer = computed.map(|c| {
+            c.iter()
+                .map(|can| can.1)
+                .sum()
+        })
+            .filter(|&volume: &usize| volume == required_volume)
+            .count();
+        if answer > 0 {
+            return answer;
+        }
+    }
+
+    0
 }
 
 fn find_k(vec: &Vec<usize>, required_volume: usize) -> (usize, usize) {
@@ -78,10 +110,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_answer() {
-        assert_eq!(get_answer(r#"50
+    fn test_get_total_count_of_combinations() {
+        assert_eq!(get_total_count_of_combinations(r#"50
         50
         100"#), 2);
+    }
+
+    #[test]
+    fn test_get_minimal_count_of_cans() {
+        assert_eq!(get_minimal_count_of_cans(r#"10
+        140
+        50
+        50
+        50"#), 1);
     }
 
     #[test]
@@ -100,8 +141,8 @@ mod tests {
 
     #[test]
     fn test_find_cans_combination_count() {
-        assert_eq!(find_cans_combination_count(&vec![1, 2, 3, 4, 5], 5), 3);
-        assert_eq!(find_cans_combination_count(&vec![20, 15, 10, 5, 5], 25), 4);
+        assert_eq!(find_cans_combination_total_count(&vec![1, 2, 3, 4, 5], 5), 3);
+        assert_eq!(find_cans_combination_total_count(&vec![20, 15, 10, 5, 5], 25), 4);
     }
 
     #[test]
