@@ -34,20 +34,21 @@ fn find_cans_combination_total_count(vec: &Vec<usize>, required_volume: usize) -
 
     let mut answer = 0;
 
-    for k in k_tuple.0..=k_tuple.1 {
-        let cloned_vec: Vec<(usize, usize)> = vec.iter()
-            .enumerate()
-            .map(|e| (e.0, *e.1))
-            .collect();
-        let computed = Combinations::new(cloned_vec, k);
+    if k_tuple.0 > 0 {
+        for k in k_tuple.0..=k_tuple.1 {
+            let cloned_vec: Vec<(usize, usize)> = vec.iter()
+                .enumerate()
+                .map(|e| (e.0, *e.1))
+                .collect();
+            let computed = Combinations::new(cloned_vec, k);
 
-        answer += computed.map(|c| {
-            c.iter()
-                .map(|can| can.1)
-                .sum()
-        })
-            .filter(|&volume: &usize| volume == required_volume)
-            .count();
+            answer += computed.map(|c| {
+                c.iter().map(|can| can.1)
+                    .sum()
+            })
+                .filter(|&volume: &usize| volume == required_volume)
+                .count();
+        }
     }
 
     answer
@@ -60,22 +61,23 @@ fn find_cans_combination_minimal_count(vec: &Vec<usize>, required_volume: usize)
 
     let k_tuple = find_k(vec, required_volume);
 
-    for k in k_tuple.0..=k_tuple.1 {
-        let cloned_vec: Vec<(usize, usize)> = vec.iter()
-            .enumerate()
-            .map(|e| (e.0, *e.1))
-            .collect();
-        let computed = Combinations::new(cloned_vec, k);
+    if k_tuple.0 > 0 {
+        for k in k_tuple.0..=k_tuple.1 {
+            let cloned_vec: Vec<(usize, usize)> = vec.iter().enumerate()
+                .map(|e| (e.0, *e.1))
+                .collect();
+            let computed = Combinations::new(cloned_vec, k);
 
-        let answer = computed.map(|c| {
-            c.iter()
-                .map(|can| can.1)
-                .sum()
-        })
-            .filter(|&volume: &usize| volume == required_volume)
-            .count();
-        if answer > 0 {
-            return answer;
+            let answer = computed.map(|c| {
+                c.iter()
+                    .map(|can| can.1)
+                    .sum()
+            })
+                .filter(|&volume: &usize| volume == required_volume)
+                .count();
+            if answer > 0 {
+                return answer;
+            }
         }
     }
 
@@ -108,7 +110,6 @@ fn find_k(vec: &Vec<usize>, required_volume: usize) -> (usize, usize) {
 
         sum += sorted_input_cans[i];
     }
-
 
     (min_k, max_k)
 }
@@ -172,5 +173,14 @@ mod tests {
     fn test_zeroes() {
         assert_eq!(get_total_count_of_combinations(r#""#), 0);
         assert_eq!(get_minimal_count_of_cans(r#""#), 0);
+    }
+
+    #[test]
+    fn test_impossible() {
+        assert_eq!(get_total_count_of_combinations(r#"5"#), 0);
+        assert_eq!(get_minimal_count_of_cans(r#"5"#), 0);
+
+        assert_eq!(get_total_count_of_combinations(r#"5 155"#), 0);
+        assert_eq!(get_minimal_count_of_cans(r#"5 155"#), 0);
     }
 }
