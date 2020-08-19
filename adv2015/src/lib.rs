@@ -41,7 +41,7 @@ pub fn print_answers(day: u8, input: String) {
         15 => println!("{} {} and {}", prefix, day15::get_answer(input), day15::get_answer_with_calories(input)),
         16 => println!("{} {} and {}", prefix, day16::get_answer(input), day16::get_answer_from_retroencabulator(input)),
         17 => println!("{} {} and {}", prefix, day17::get_total_count_of_combinations(input), day17::get_minimal_count_of_cans(input)),
-        18 => println!("{} {} and {}", prefix, day18::get_answer(input), day18::get_answer(input)),
+        18 => println!("{} {} and {}", prefix, day18::get_answer_normal(input), day18::get_answer_broken(input)),
         _ => { eprintln!("2015: I don't know the answer for day {} :(", day) }
     }
 }
