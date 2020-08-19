@@ -191,20 +191,17 @@ impl SantaInterpreter {
         self.parser = Parser::new(input);
 
         while let Some(c) = self.parser.next() {
-            match c {
-                Call::Call(op, c1, c2) => {
-                    for x in c1.0..=c2.0 {
-                        for y in c1.1..=c2.1 {
-                            self.state[x][y] = match op {
-                                Operation::TurnOn => true,
-                                Operation::TurnOff => false,
-                                Operation::Toggle => !self.state[x][y],
-                            };
-                        }
+            if let Call::Call(op, c1, c2) = c {
+                for x in c1.0..=c2.0 {
+                    for y in c1.1..=c2.1 {
+                        self.state[x][y] = match op {
+                            Operation::TurnOn => true,
+                            Operation::TurnOff => false,
+                            Operation::Toggle => !self.state[x][y],
+                        };
                     }
                 }
-                Call::EOF => break,
-            };
+            } else { break; }
         }
     }
 
@@ -240,20 +237,17 @@ impl SantaBetterInterpreter {
         self.parser = Parser::new(input);
 
         while let Some(c) = self.parser.next() {
-            match c {
-                Call::Call(op, c1, c2) => {
-                    for x in c1.0..=c2.0 {
-                        for y in c1.1..=c2.1 {
-                            self.state[x][y] = match op {
-                                Operation::TurnOn => self.state[x][y].saturating_add(1),
-                                Operation::TurnOff => self.state[x][y].saturating_sub(1),
-                                Operation::Toggle => self.state[x][y].saturating_add(2),
-                            };
-                        }
+            if let Call::Call(op, c1, c2) = c {
+                for x in c1.0..=c2.0 {
+                    for y in c1.1..=c2.1 {
+                        self.state[x][y] = match op {
+                            Operation::TurnOn => self.state[x][y].saturating_add(1),
+                            Operation::TurnOff => self.state[x][y].saturating_sub(1),
+                            Operation::Toggle => self.state[x][y].saturating_add(2),
+                        };
                     }
                 }
-                Call::EOF => break,
-            };
+            } else { break; }
         }
     }
 
@@ -450,6 +444,13 @@ mod tests {
     #[test]
     fn test_partial_eq() {
         assert_ne!(Token::TurnOn, Token::TurnOff);
+        assert_ne!(Token::TurnOff, Token::TurnOn);
+        assert_eq!(Token::TurnOff, Token::TurnOff);
+        assert_eq!(Token::TurnOn, Token::TurnOn);
+        assert_eq!(Token::EOF, Token::EOF);
+        assert_eq!(Token::Through, Token::Through);
+        assert_eq!(Token::Coord(1, 2), Token::Coord(1, 2));
+        assert_ne!(Token::Coord(1, 2), Token::Coord(2, 1));
 
         assert_eq!(Call::EOF, Call::EOF);
         assert_eq!(Call::Call(Operation::TurnOff, Coord(1, 2), Coord(3, 4)), Call::Call(Operation::TurnOff, Coord(1, 2), Coord(3, 4)));
