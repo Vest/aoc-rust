@@ -1,12 +1,27 @@
-pub fn get_answer(input: &str) -> usize {
-    const SIZE: usize = 100;
-    const COUNT: usize = 100;
+const SIZE: usize = 100;
+const COUNT: usize = 100;
+
+pub fn get_answer_normal(input: &str) -> usize {
     let mut grid = Grid::new(SIZE);
 
     grid.parse_grid(input);
 
     for _ in 0..COUNT {
         grid.evolve();
+    }
+
+    grid.count_lights()
+}
+
+pub fn get_answer_broken(input: &str) -> usize {
+    let mut grid = Grid::new(SIZE);
+
+    grid.parse_grid(input);
+    grid.break_circuit();
+
+    for _ in 0..COUNT {
+        grid.evolve();
+        grid.break_circuit();
     }
 
     grid.count_lights()
@@ -118,6 +133,13 @@ impl Grid {
             )
             .sum()
     }
+
+    fn break_circuit(&mut self) {
+        self.grid[0][0] = true;
+        self.grid[0][self.size - 1] = true;
+        self.grid[self.size - 1][0] = true;
+        self.grid[self.size - 1][self.size - 1] = true;
+    }
 }
 
 #[cfg(test)]
@@ -216,7 +238,21 @@ mod tests {
     }
 
     #[test]
-    fn test_empty_get_answer() {
-        assert_eq!(get_answer(""), 0);
+    fn test_empty_get_answer_normal() {
+        assert_eq!(get_answer_normal(""), 0);
+    }
+
+    #[test]
+    fn test_empty_get_answer_broken() {
+        assert_eq!(get_answer_broken(""), 4);
+    }
+
+    #[test]
+    fn test_break_circuit() {
+        let mut grid = Grid::new(6);
+        assert_eq!(grid.count_lights(), 0);
+
+        grid.break_circuit();
+        assert_eq!(grid.count_lights(), 4);
     }
 }
