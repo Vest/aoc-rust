@@ -412,9 +412,9 @@ mod tests {
     impl cmp::PartialEq for Operation {
         fn eq(&self, other: &Self) -> bool {
             match (self, other) {
-                (Operation::TurnOn, Operation::TurnOn)
-                | (Operation::TurnOff, Operation::TurnOff)
-                | (Operation::Toggle, Operation::Toggle) => true,
+                (Operation::TurnOn, Operation::TurnOn) => true,
+                (Operation::TurnOff, Operation::TurnOff) => true,
+                (Operation::Toggle, Operation::Toggle) => true,
                 _ => false,
             }
         }
