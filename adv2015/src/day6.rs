@@ -458,6 +458,11 @@ mod tests {
         assert_ne!(Call::Call(Operation::TurnOff, Coord(1, 2), Coord(3, 4)), Call::EOF);
 
         assert_ne!(Operation::TurnOn, Operation::TurnOff);
+        assert_eq!(Operation::TurnOn, Operation::TurnOn);
+        assert_ne!(Operation::TurnOff, Operation::TurnOn);
+        assert_eq!(Operation::TurnOff, Operation::TurnOff);
+        assert_eq!(Operation::Toggle, Operation::Toggle);
+        assert_ne!(Operation::Toggle, Operation::TurnOn);
     }
 
     #[test]
