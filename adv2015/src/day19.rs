@@ -1,7 +1,11 @@
 use regex::Regex;
+use std::collections::HashSet;
 
-pub fn get_answer(input: &str) -> usize {
-    0
+pub fn count_unique_molecules(input: &str) -> usize {
+    let (replacements, sample_molecule) = parse_all(input);
+    let molecules = build_molecules(sample_molecule, replacements);
+
+    molecules.len()
 }
 
 struct Replace<'a> {
@@ -50,18 +54,48 @@ fn split_molecule(input: &str) -> Vec<&str> {
         .collect()
 }
 
+fn build_molecules(molecule: &str, replacements: Vec<Replace>) -> HashSet<String> {
+    let mut molecules = HashSet::with_capacity(replacements.capacity());
+    let atoms = split_molecule(molecule);
+
+    replacements.iter()
+        .for_each(|replace| {
+            for top in 0..atoms.len() {
+                let mut molecule: Vec<&str> = Vec::with_capacity(atoms.len());
+                if atoms[top] == replace.from {
+                    if top > 0 {
+                        &atoms[0..top].iter()
+                            .for_each(|a| molecule.push(a));
+                    }
+                    molecule.push(replace.to);
+                    if top < atoms.len() - 1 {
+                        &atoms[top + 1..].iter()
+                            .for_each(|a| molecule.push(a));
+                    }
+
+                    let result_molecule = String::from(molecule.concat());
+                    molecules.insert(result_molecule);
+
+                    continue;
+                }
+            }
+        });
+
+    molecules
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_split_molecule() {
-        let molecules = split_molecule("CRnSiRnO");
-        assert_eq!(molecules[0], "C");
-        assert_eq!(molecules[1], "Rn");
-        assert_eq!(molecules[2], "Si");
-        assert_eq!(molecules[3], "Rn");
-        assert_eq!(molecules[4], "O");
+        let atoms = split_molecule("CRnSiRnO");
+        assert_eq!(atoms[0], "C");
+        assert_eq!(atoms[1], "Rn");
+        assert_eq!(atoms[2], "Si");
+        assert_eq!(atoms[3], "Rn");
+        assert_eq!(atoms[4], "O");
     }
 
     #[test]
@@ -92,5 +126,56 @@ mod tests {
         assert_eq!(replacements[2].to, "HH");
 
         assert_eq!(molecule, "HOH");
+    }
+
+    #[test]
+    fn test_build_molecules() {
+        let (replacements, sample_molecule) = parse_all(
+            r#"H => HO
+            H => OH
+            O => HH
+
+            HOH"#);
+
+
+        let molecules = build_molecules(sample_molecule, replacements);
+
+        assert_eq!(molecules.len(), 4);
+        assert!(molecules.contains("HOOH"));
+        assert!(molecules.contains("HOHO"));
+        assert!(molecules.contains("OHOH"));
+        assert!(molecules.contains("HHHH"));
+    }
+
+    #[test]
+    fn test_build_molecules_santa() {
+        let (replacements, sample_molecule) = parse_all(
+            r#"H => HO
+            H => OH
+            O => HH
+
+            HOHOHO"#);
+
+        let molecules = build_molecules(sample_molecule, replacements);
+        println!("{:?}", molecules);
+        assert_eq!(molecules.len(), 7);
+    }
+
+    #[test]
+    fn test_count_unique_molecules() {
+        let answer = count_unique_molecules(r#"H => HO
+            H => OH
+            O => HH
+
+            HOHOHO"#);
+
+        assert_eq!(answer, 7);
+    }
+
+    #[test]
+    fn test_count_unique_molecules_empty() {
+        let answer = count_unique_molecules("");
+
+        assert_eq!(answer, 0);
     }
 }
