@@ -1,6 +1,6 @@
 [package]
 name = "adventofcode"
-version = "0.1.17"
+version = "0.1.19"
 authors = ["Vest <Vest@users.noreply.github.com>"]
 edition = "2018"
 
