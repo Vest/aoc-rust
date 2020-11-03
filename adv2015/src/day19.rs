@@ -105,20 +105,20 @@ fn build_molecule_from_e(molecule: &str, replacements: &Vec<Replace>) -> usize {
         let mut potential_e = String::from(molecule);
 
         while potential_e != "e" {
-            let replacement = replacements
-                .choose(&mut thread_rng)
-                .unwrap();
+            if let Some(replacement) = replacements.choose(&mut thread_rng) {
+                if potential_e.find(replacement.to).is_some() {
+                    potential_e = potential_e.replacen(replacement.to, replacement.from, 1);
+                    iter += 1;
+                }
 
-            if potential_e.find(replacement.to).is_some() {
-                potential_e = potential_e.replacen(replacement.to, replacement.from, 1);
-                iter += 1;
-            }
-
-            // couldn't find the solution
-            if potential_e.chars()
-                .filter(|c| *c == 'e')
-                .count() > 1 {
-                break;
+                // couldn't find the solution
+                if potential_e.chars()
+                    .filter(|c| *c == 'e')
+                    .count() > 1 {
+                    break;
+                }
+            } else {
+                return iter;
             }
         }
 
