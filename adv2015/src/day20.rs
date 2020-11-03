@@ -14,13 +14,16 @@ fn find_house(desired_number: usize) -> usize {
 }
 
 fn count_presents(house: usize) -> usize {
-    let res: usize = RangeFrom {
-        start: 1usize
-    }.take(house)
-        .filter(|elf| house % *elf == 0)
-        .sum::<usize>() * 10usize;
+    if house == 0 {
+        return 0;
+    }
 
-    return res;
+    (divisors::get_divisors(house)
+        .iter()
+        .sum::<usize>()
+        + 1
+        + if house > 2 { house } else { 0 }
+    ) * 10
 }
 
 #[cfg(test)]
