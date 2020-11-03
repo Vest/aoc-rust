@@ -1,5 +1,6 @@
 use regex::Regex;
 use std::collections::{HashSet, HashMap};
+use rand::seq::SliceRandom;
 
 pub fn count_unique_molecules(input: &str) -> usize {
     let (replacements, sample_molecule) = parse_all(input);
@@ -92,78 +93,47 @@ fn build_molecules(molecule: &str, replacements: &Vec<Replace>) -> HashSet<Strin
 }
 
 fn build_molecule_from_e(molecule: &str, replacements: &Vec<Replace>) -> usize {
-    let mut mo = build_molecules("e", replacements);
-    let mut iter = 1usize;
-    let replacements_map = convert_replacements(replacements);
-    let molecule_length = molecule.len();
+    let mut thread_rng = rand::thread_rng();
+    let mut finished = false;
+    let mut iter = 0usize;
 
-    let mut nonreplaceable_atoms: HashSet<&str> = HashSet::new();
-    split_molecule(molecule).iter()
-        .filter(|atom| !replacements_map.contains_key(*atom))
-        .for_each(|atom| {
-            nonreplaceable_atoms.insert(*atom);
-        });
+    // brute force, if the answer is not obtained - repeat.
+    while !finished {
+        iter = 0usize;
 
-    let potential_to_optimize = !nonreplaceable_atoms.is_empty();
-    let mut start_optimization: bool = false;
+        // it is a potential 'e' result, but not always
+        let mut potential_e = String::from(molecule);
 
-    while !mo.contains(molecule) {
-        let mut new_mo: HashSet<String> = HashSet::new();
+        while potential_e != "e" {
+            let replacement = replacements
+                .choose(&mut thread_rng)
+                .unwrap();
 
-        mo.iter()
-            .for_each(|m| new_mo.extend(build_molecules(m, replacements)));
-
-        if potential_to_optimize {
-            if start_optimization {
-                mo.clear();
-                for new_item in new_mo.iter()
-                    .filter(|m| {
-                        let small_atoms = split_molecule(m);
-                        small_atoms.iter()
-                            .find(|p| nonreplaceable_atoms.contains(*p))
-                            .is_some()
-                    }).filter(|m| m.len() <= molecule_length) {
-                    mo.insert(new_item.clone());
-                }
-                println!("Optimized from {} to {}", new_mo.len(), mo.len());
-            } else {
-                new_mo.iter()
-                    .for_each(|m| {
-                        if !start_optimization {
-                            let small_atoms = split_molecule(m);
-                            for small_atom in small_atoms {
-                                if nonreplaceable_atoms.contains(small_atom) {
-                                    start_optimization = true;
-                                    println!("Start optimization");
-                                    break;
-                                }
-                            }
-                        }
-                    });
+            if potential_e.find(replacement.to).is_some() {
+                potential_e = potential_e.replacen(replacement.to, replacement.from, 1);
+                iter += 1;
             }
-        } else {
-            mo.clear();
-            mo.extend(new_mo);
+
+            // couldn't find the solution
+            if potential_e.chars()
+                .filter(|c| *c == 'e')
+                .count() > 1 {
+                break;
+            }
         }
 
-
-        iter += 1;
+        finished = potential_e == "e";
     }
 
     iter
 }
 
-fn convert_replacements<'a>(replacements: &'a Vec<Replace>) -> HashMap<&'a str, Vec<&'a str>> {
-    let mut map: HashMap<&str, Vec<&str>> = HashMap::new();
+fn convert_replacements<'a>(replacements: &'a Vec<Replace>) -> HashMap<&'a str, &'a str> {
+    let mut map: HashMap<&str, &str> = HashMap::new();
 
     replacements.iter()
         .for_each(|replace| {
-            if let Some(to) = map.get_mut(replace.from) {
-                to.push(replace.to);
-            } else {
-                let to = vec![replace.to];
-                map.insert(replace.from, to);
-            }
+            map.insert(replace.to, replace.from);
         });
 
     map
@@ -279,10 +249,12 @@ mod tests {
         let (replacements, _) = parse_all(E_SAMPLE);
         let convert = convert_replacements(&replacements);
 
-        assert_eq!(convert.len(), 3);
-        assert_eq!(convert.get("e").unwrap().len(), 2);
-        assert_eq!(convert.get("H").unwrap().len(), 2);
-        assert_eq!(convert.get("O").unwrap().len(), 1);
+        assert_eq!(convert.len(), 5);
+        assert_eq!(*convert.get("H").unwrap(), "e");
+        assert_eq!(*convert.get("O").unwrap(), "e");
+        assert_eq!(*convert.get("HO").unwrap(), "H");
+        assert_eq!(*convert.get("OH").unwrap(), "H");
+        assert_eq!(*convert.get("HH").unwrap(), "O");
     }
 
     #[test]
