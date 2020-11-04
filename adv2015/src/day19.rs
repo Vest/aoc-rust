@@ -1,5 +1,5 @@
 use regex::Regex;
-use std::collections::{HashSet, HashMap};
+use std::collections::{HashSet};
 use rand::seq::SliceRandom;
 
 pub fn count_unique_molecules(input: &str) -> usize {
@@ -128,17 +128,6 @@ fn build_molecule_from_e(molecule: &str, replacements: &Vec<Replace>) -> usize {
     iter
 }
 
-fn convert_replacements<'a>(replacements: &'a Vec<Replace>) -> HashMap<&'a str, &'a str> {
-    let mut map: HashMap<&str, &str> = HashMap::new();
-
-    replacements.iter()
-        .for_each(|replace| {
-            map.insert(replace.to, replace.from);
-        });
-
-    map
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -242,19 +231,6 @@ mod tests {
         let answer = count_unique_molecules("");
 
         assert_eq!(answer, 0);
-    }
-
-    #[test]
-    fn test_convert_replacements() {
-        let (replacements, _) = parse_all(E_SAMPLE);
-        let convert = convert_replacements(&replacements);
-
-        assert_eq!(convert.len(), 5);
-        assert_eq!(*convert.get("H").unwrap(), "e");
-        assert_eq!(*convert.get("O").unwrap(), "e");
-        assert_eq!(*convert.get("HO").unwrap(), "H");
-        assert_eq!(*convert.get("OH").unwrap(), "H");
-        assert_eq!(*convert.get("HH").unwrap(), "O");
     }
 
     #[test]
