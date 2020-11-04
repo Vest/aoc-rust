@@ -112,8 +112,7 @@ fn build_molecule_from_e(molecule: &str, replacements: &Vec<Replace>) -> usize {
                 }
 
                 // couldn't find the solution
-                if potential_e.chars()
-                    .filter(|c| *c == 'e')
+                if potential_e.chars().filter(|c| *c == 'e')
                     .count() > 1 {
                     break;
                 }
