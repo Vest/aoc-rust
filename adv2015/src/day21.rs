@@ -1,3 +1,10 @@
+#[derive(Debug)]
+enum Battle {
+    Lost,
+    Won,
+}
+
+#[derive(Clone)]
 struct Human {
     health: usize,
     damage: usize,
@@ -71,6 +78,12 @@ impl Default for Human {
     }
 }
 
+impl Human {
+    fn dead(&self) -> bool {
+        self.health == 0
+    }
+}
+
 impl Iterator for Generator {
     type Item = Human;
 
@@ -110,7 +123,7 @@ impl Iterator for Generator {
             wealth: WEAPONS[self.weapon_idx as usize].cost
                 + ARMORS[self.armor_idx as usize].cost
                 + RINGS[self.ring_left_idx as usize].cost
-                + RINGS[self.ring_right_idx as usize].cost
+                + RINGS[self.ring_right_idx as usize].cost,
         })
     }
 }
@@ -136,9 +149,47 @@ fn parse_enemy(input: &str) -> Human {
         })
 }
 
+fn fight_to_death(human_sample: Human, enemy_sample: Human) -> Battle {
+    let mut human = human_sample.clone();
+    let mut enemy = enemy_sample.clone();
+
+    while enemy.dead() || human.dead() {
+        attack(&human, &mut enemy);
+        if enemy.dead() {
+            break;
+        }
+        attack(&enemy, &mut human);
+    }
+
+    if human.dead() {
+        Battle::Lost
+    } else {
+        Battle::Won
+    }
+}
+
+fn attack(attacker: &Human, defender: &mut Human) {
+    let damage = attacker.damage.saturating_sub(defender.armor);
+    defender.health = if damage == 0 {
+        defender.health.saturating_sub(1)
+    } else {
+        defender.health.saturating_sub(damage)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    impl PartialEq for Battle {
+        fn eq(&self, other: &Self) -> bool {
+            match (self, other) {
+                (Battle::Lost, Battle::Lost) => true,
+                (Battle::Won, Battle::Won) => true,
+                _ => false,
+            }
+        }
+    }
 
     #[test]
     fn test_parse_enemy() {
@@ -155,7 +206,25 @@ mod tests {
 
     #[test]
     fn test_generator() {
-        let mut cnt = Generator::new();
-        assert_eq!(cnt.map(|human| human.health).sum::<usize>(), 1747800usize);
+        let cnt = Generator::new();
+        assert_eq!(cnt.map(|human| human.health).sum::<usize>(), 1747800usize); // magick number
+    }
+
+    #[test]
+    fn test_fight_to_death() {
+        let human = Human { health: 8, damage: 5, armor: 5, wealth: 0 };
+        let enemy = Human { health: 12, damage: 7, armor: 2, wealth: 0 };
+
+        let result = fight_to_death(human, enemy);
+        assert_eq!(result, Battle::Won, "The battle should be won");
+    }
+
+    #[test]
+    fn test_fight_with_uber_boss() {
+        let human = Human { health: 8, damage: 5, armor: 5, wealth: 0 };
+        let enemy = Human { health: 12, damage: 20, armor: 2, wealth: 0 };
+
+        let result = fight_to_death(human, enemy);
+        assert_eq!(result, Battle::Lost, "The battle should be lost");
     }
 }
