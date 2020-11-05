@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 [[package]]
 name = "adv2015"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "combinations",
  "divisors",
@@ -14,7 +14,7 @@ dependencies = [
 
 [[package]]
 name = "adventofcode"
-version = "0.1.21"
+version = "0.1.22"
 dependencies = [
  "adv2015",
  "reqwest",
