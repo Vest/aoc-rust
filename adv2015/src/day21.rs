@@ -267,4 +267,14 @@ mod tests {
 
         assert_eq!(wealth, 91);
     }
+
+    #[test]
+    fn test_human_death() {
+        let alive = Human::default();
+        assert!(alive.dead());
+
+        let mut dead = Human::default();
+        dead.health = 0;
+        assert!(!alive.dead());
+    }
 }
