@@ -1,3 +1,21 @@
+pub fn find_cheapest_warrior(input: &str) -> usize {
+    let mut humanity = Generator::new();
+    let mut wealth = usize::MAX;
+    let enemy = parse_enemy(input);
+
+    while let Some(human) = humanity.next() {
+        if wealth > human.wealth {
+            let battle = fight_to_death(&human, &enemy);
+
+            if let Battle::Won = battle {
+                wealth = human.wealth;
+            }
+        }
+    }
+
+    wealth
+}
+
 #[derive(Debug)]
 enum Battle {
     Lost,
@@ -49,7 +67,8 @@ const WEAPONS: [Item; 5] = [
     Item { cost: 74, damage: 8, armor: 0 },
 ];
 
-const ARMORS: [Item; 5] = [
+const ARMORS: [Item; 6] = [
+    Item { cost: 0, damage: 0, armor: 0 },
     Item { cost: 13, damage: 0, armor: 1 },
     Item { cost: 31, damage: 0, armor: 2 },
     Item { cost: 53, damage: 0, armor: 3 },
@@ -57,7 +76,8 @@ const ARMORS: [Item; 5] = [
     Item { cost: 102, damage: 0, armor: 5 },
 ];
 
-const RINGS: [Item; 6] = [
+const RINGS: [Item; 7] = [
+    Item { cost: 0, damage: 0, armor: 0 }, //no ring
     Item { cost: 20, damage: 0, armor: 1 }, // defense +1
     Item { cost: 25, damage: 1, armor: 0 }, // offense +1
     Item { cost: 40, damage: 0, armor: 2 }, // defense +2
@@ -149,11 +169,11 @@ fn parse_enemy(input: &str) -> Human {
         })
 }
 
-fn fight_to_death(human_sample: Human, enemy_sample: Human) -> Battle {
+fn fight_to_death(human_sample: &Human, enemy_sample: &Human) -> Battle {
     let mut human = human_sample.clone();
     let mut enemy = enemy_sample.clone();
 
-    while enemy.dead() || human.dead() {
+    while !enemy.dead() && !human.dead() {
         attack(&human, &mut enemy);
         if enemy.dead() {
             break;
@@ -170,11 +190,7 @@ fn fight_to_death(human_sample: Human, enemy_sample: Human) -> Battle {
 
 fn attack(attacker: &Human, defender: &mut Human) {
     let damage = attacker.damage.saturating_sub(defender.armor);
-    defender.health = if damage == 0 {
-        defender.health.saturating_sub(1)
-    } else {
-        defender.health.saturating_sub(damage)
-    }
+    defender.health = defender.health.saturating_sub(if damage == 0 { 1 } else { damage });
 }
 
 #[cfg(test)]
@@ -215,7 +231,7 @@ mod tests {
         let human = Human { health: 8, damage: 5, armor: 5, wealth: 0 };
         let enemy = Human { health: 12, damage: 7, armor: 2, wealth: 0 };
 
-        let result = fight_to_death(human, enemy);
+        let result = fight_to_death(&human, &enemy);
         assert_eq!(result, Battle::Won, "The battle should be won");
     }
 
@@ -224,7 +240,30 @@ mod tests {
         let human = Human { health: 8, damage: 5, armor: 5, wealth: 0 };
         let enemy = Human { health: 12, damage: 20, armor: 2, wealth: 0 };
 
-        let result = fight_to_death(human, enemy);
+        let result = fight_to_death(&human, &enemy);
         assert_eq!(result, Battle::Lost, "The battle should be lost");
+    }
+
+    #[test]
+    fn test_attack() {
+        let human = Human { health: 8, damage: 5, armor: 5, wealth: 0 };
+        let mut enemy = Human { health: 12, damage: 7, armor: 2, wealth: 0 };
+
+        attack(&human, &mut enemy);
+        assert_eq!(enemy.health, 12 - (5 - 2)); // 9 left
+
+        enemy.armor = 100; // boost
+        attack(&human, &mut enemy);
+        assert_eq!(enemy.health, 9 - 1);
+    }
+
+    #[test]
+    fn test_find_cheapest_warrior() {
+        let wealth = find_cheapest_warrior(
+            r#"Hit Points: 100
+            Damage: 8
+            Armor: 2"#);
+
+        assert_eq!(wealth, 91);
     }
 }
