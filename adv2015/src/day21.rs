@@ -16,6 +16,24 @@ pub fn find_cheapest_warrior(input: &str) -> usize {
     wealth
 }
 
+pub fn find_expensive_loser(input: &str) -> usize {
+    let mut humanity = Generator::new();
+    let mut wealth = 0usize;
+    let enemy = parse_enemy(input);
+
+    while let Some(human) = humanity.next() {
+        if wealth < human.wealth {
+            let battle = fight_to_death(&human, &enemy);
+
+            if let Battle::Lost = battle {
+                wealth = human.wealth;
+            }
+        }
+    }
+
+    wealth
+}
+
 #[derive(Debug)]
 enum Battle {
     Lost,
@@ -124,7 +142,7 @@ impl Iterator for Generator {
         }
 
         // Check to see if we've finished counting or not.
-        if self.counter > 0x4445 { // max digits, e.g. 5 weapons, 5 armors, 6 rings
+        if self.counter > 0x4556 { // max digits, e.g. 5 weapons, 6 armors, 7 rings
             return None;
         }
 
@@ -223,7 +241,7 @@ mod tests {
     #[test]
     fn test_generator() {
         let cnt = Generator::new();
-        assert_eq!(cnt.map(|human| human.health).sum::<usize>(), 1747800usize); // magick number
+        assert_eq!(cnt.map(|human| human.health).sum::<usize>(), 1775100usize); // magick number
     }
 
     #[test]
@@ -266,6 +284,16 @@ mod tests {
             Armor: 2"#);
 
         assert_eq!(wealth, 91);
+    }
+
+    #[test]
+    fn test_find_expensive_loser() {
+        let wealth = find_expensive_loser(
+            r#"Hit Points: 100
+            Damage: 8
+            Armor: 2"#);
+
+        assert_eq!(wealth, 158);
     }
 
     #[test]
