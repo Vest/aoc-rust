@@ -270,11 +270,11 @@ mod tests {
 
     #[test]
     fn test_human_death() {
-        let alive = Human::default();
-        assert!(alive.dead());
+        let dead = Human::default();
+        assert!(dead.dead());
 
-        let mut dead = Human::default();
-        dead.health = 0;
+        let mut alive = Human::default();
+        alive.health = 100;
         assert!(!alive.dead());
     }
 }
