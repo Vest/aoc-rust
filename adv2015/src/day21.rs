@@ -156,15 +156,14 @@ fn parse_enemy(input: &str) -> Human {
             let mut pair = line.split(": ");
 
             let item = pair.next().unwrap();
-            let value = pair.next().unwrap().parse::<usize>().unwrap();
-
-            match item {
-                "hit points" => res.health = value,
-                "damage" => res.damage = value,
-                "armor" => res.armor = value,
-                _ => {}
+            if let Ok(value) = pair.next().unwrap().parse::<usize>() {
+                match item {
+                    "hit points" => res.health = value,
+                    "damage" => res.damage = value,
+                    "armor" => res.armor = value,
+                    _ => {}
+                }
             }
-
             res
         })
 }
@@ -212,7 +211,8 @@ mod tests {
         let enemy = parse_enemy(
             r#"Hit Points: 100
             Damage: 8
-            Armor: 2"#);
+            Armor: 2
+            Name: Tester"#);
 
         assert_eq!(enemy.health, 100);
         assert_eq!(enemy.damage, 8);
@@ -233,6 +233,7 @@ mod tests {
 
         let result = fight_to_death(&human, &enemy);
         assert_eq!(result, Battle::Won, "The battle should be won");
+        assert_ne!(result, Battle::Lost, "The battle should be won"); // coverage PartialEq
     }
 
     #[test]
