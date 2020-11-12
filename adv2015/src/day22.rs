@@ -1,3 +1,28 @@
+pub fn find_answer(input: &str) -> usize {
+    let enemy = parse_enemy(input);
+    let player = Player {
+        health: 50,
+        mana: 500,
+        armor: 0,
+    };
+    let turns_count = enemy.health / 2;
+    let mut cost = usize::MAX;
+    let gen = Generator::new(turns_count);
+    for queue in gen {
+        if is_queue_valid(&queue) {
+            let new_cost = count_queue_cost(&queue);
+            if new_cost < cost {
+                if let Battle::Won = simulate_battle(&player, &enemy, &queue) {
+                    println!("Won with {} mana", new_cost);
+                    cost = new_cost;
+                }
+            }
+        }
+    }
+
+    cost
+}
+
 #[derive(Debug)]
 enum Battle {
     Lost,
@@ -40,14 +65,45 @@ enum Action {
     },
 }
 
+impl Action {
+    fn cost(&self) -> usize {
+        match self {
+            Action::MagickMissile { cost, .. } => *cost,
+            Action::Drain { cost, .. } => *cost,
+            Action::Shield { cost, .. } => *cost,
+            Action::Poison { cost, .. } => *cost,
+            Action::Recharge { cost, .. } => *cost,
+        }
+    }
+}
+
+#[derive(Clone)]
 struct Player {
     health: usize,
     mana: usize,
+    armor: usize,
 }
 
+impl Player {
+    fn dead(&self) -> bool {
+        self.health == 0
+    }
+
+    fn can_cast(&self, mana: usize) -> bool {
+        self.mana > mana
+    }
+}
+
+#[derive(Clone)]
 struct Enemy {
     health: usize,
     damage: usize,
+}
+
+impl Enemy {
+    fn dead(&self) -> bool {
+        self.health == 0
+    }
 }
 
 impl Action {
@@ -216,12 +272,106 @@ fn is_queue_valid(queue: &Vec<Action>) -> bool {
 }
 
 fn simulate_battle(player: &Player, enemy: &Enemy, actions: &Vec<Action>) -> Battle {
+    let mut player_clone = (*player).clone();
+    let mut enemy_clone = (*enemy).clone();
+    let mut shield_status = (0usize, 0usize);
+    let mut poison_status = (0usize, 0usize);
+    let mut recharge_status = (0usize, 0usize);
+
+    for action in actions {
+        if !player_clone.can_cast(action.cost()) {
+            return Battle::Lost;
+        }
+        player_clone.mana = player_clone.mana.saturating_sub(action.cost());
+
+        player_clone.armor = shield_status.1;
+        enemy_clone.health = enemy_clone.health.saturating_sub(poison_status.1);
+        player_clone.mana = player_clone.mana.saturating_add(recharge_status.1);
+
+        if shield_status.0 == 0 {
+            shield_status.1 = 0;
+        }
+        if poison_status.0 == 0 {
+            poison_status.1 = 0;
+        }
+        if recharge_status.0 == 0 {
+            recharge_status.1 = 0;
+        }
+
+        // Player Turn
+        match action {
+            Action::MagickMissile { damage, .. } => {
+                enemy_clone.health = enemy_clone.health.saturating_sub(*damage);
+            }
+            Action::Drain { damage, heal, .. } => {
+                enemy_clone.health = enemy_clone.health.saturating_sub(*damage);
+                player_clone.health = player_clone.health.saturating_add(*heal);
+            }
+            Action::Shield { duration, armor, .. } => {
+                shield_status.0 += *duration;
+                shield_status.1 += *armor;
+            }
+            Action::Poison { duration, damage, .. } => {
+                poison_status.0 += *duration;
+                poison_status.1 += *damage;
+            }
+            Action::Recharge { duration, mana, .. } => {
+                recharge_status.0 += *duration;
+                recharge_status.1 += *mana;
+            }
+        }
+        // Enemy Turn
+        player_clone.armor = shield_status.1;
+        enemy_clone.health = enemy_clone.health.saturating_sub(poison_status.1);
+        player_clone.mana = player_clone.mana.saturating_add(recharge_status.1);
+
+        if enemy_clone.dead() {
+            return Battle::Won;
+        }
+
+        let damage = enemy_clone.damage.saturating_sub(player_clone.armor);
+        player_clone.health = player_clone.health.saturating_sub(if damage == 0 { 1 } else { damage });
+
+        shield_status.0 = shield_status.0.saturating_sub(1);
+        poison_status.0 = poison_status.0.saturating_sub(1);
+        recharge_status.0 = recharge_status.0.saturating_sub(1);
+
+        if shield_status.0 == 0 {
+            shield_status.1 = 0;
+        }
+        if poison_status.0 == 0 {
+            poison_status.1 = 0;
+        }
+        if recharge_status.0 == 0 {
+            recharge_status.1 = 0;
+        }
+
+        if player_clone.dead() {
+            return Battle::Lost;
+        }
+    }
+
     Battle::Lost
+}
+
+fn count_queue_cost(queue: &Vec<Action>) -> usize {
+    queue.iter()
+        .map(|a| a.cost())
+        .sum()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    impl PartialEq for Battle {
+        fn eq(&self, other: &Self) -> bool {
+            match (self, other) {
+                (Battle::Won, Battle::Won) | (Battle::Lost, Battle::Lost) => true,
+                _ => false,
+            }
+        }
+    }
 
     #[test]
     fn test_parse_enemy() {
@@ -232,7 +382,6 @@ mod tests {
 
         assert_eq!(enemy.health, 71);
         assert_eq!(enemy.damage, 10);
-        assert_eq!(enemy.armor, 0);
     }
 
     #[test]
@@ -300,10 +449,11 @@ mod tests {
     }
 
     #[test]
-    fn test_simulate_battle() {
+    fn test_simulate_battle_1() {
         let player = Player {
             health: 10,
             mana: 250,
+            armor: 0,
         };
 
         let enemy = Enemy {
@@ -312,6 +462,30 @@ mod tests {
         };
 
         let actions = vec![Action::from_u8(4).unwrap(), Action::from_u8(1).unwrap()];
+
+        assert_eq!(simulate_battle(&player, &enemy, &actions), Battle::Won);
+    }
+
+    #[test]
+    fn test_simulate_battle_2() {
+        let player = Player {
+            health: 10,
+            mana: 250,
+            armor: 0,
+        };
+
+        let enemy = Enemy {
+            health: 14,
+            damage: 8,
+        };
+
+        let actions = vec![
+            Action::from_u8(5).unwrap(),
+            Action::from_u8(3).unwrap(),
+            Action::from_u8(2).unwrap(),
+            Action::from_u8(4).unwrap(),
+            Action::from_u8(1).unwrap()
+        ];
 
         assert_eq!(simulate_battle(&player, &enemy, &actions), Battle::Won);
     }

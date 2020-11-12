@@ -217,8 +217,7 @@ mod tests {
     impl PartialEq for Battle {
         fn eq(&self, other: &Self) -> bool {
             match (self, other) {
-                (Battle::Lost, Battle::Lost) => true,
-                (Battle::Won, Battle::Won) => true,
+                (Battle::Lost, Battle::Lost) | (Battle::Won, Battle::Won) => true,
                 _ => false,
             }
         }
