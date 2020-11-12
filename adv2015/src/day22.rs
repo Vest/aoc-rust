@@ -5,19 +5,34 @@ pub fn find_answer(input: &str) -> usize {
         mana: 500,
         armor: 0,
     };
-    let turns_count = enemy.health / 2;
+    let turns_count = 13;
     let mut cost = usize::MAX;
     let gen = Generator::new(turns_count);
+/*
+    println!("Start generation");
+    let mut sorted_gen: Vec<Vec<Action>> = gen.collect();
+    println!("End generation");
+    println!("Start sorting");
+    sorted_gen.sort_by(|a, b| {
+        let cost_a = count_queue_cost(a);
+        let cost_b = count_queue_cost(b);
+
+        cost_a.cmp(&cost_b)
+    });
+    println!("End sorting");
+*/
+    println!("Start the battle!!!!");
     for queue in gen {
-        if is_queue_valid(&queue) {
-            let new_cost = count_queue_cost(&queue);
+        //    if is_queue_valid(&queue) {
+        if let (Battle::Won, new_cost) = simulate_battle(&player, &enemy, &queue) {
+            println!("Won with {} mana", new_cost);
             if new_cost < cost {
-                if let Battle::Won = simulate_battle(&player, &enemy, &queue) {
-                    println!("Won with {} mana", new_cost);
-                    cost = new_cost;
-                }
+                cost = new_cost;
             }
+        } else {
+            // println!("Lost with {} mana", new_cost);
         }
+        //       }
     }
 
     cost
@@ -271,7 +286,8 @@ fn is_queue_valid(queue: &Vec<Action>) -> bool {
     true
 }
 
-fn simulate_battle(player: &Player, enemy: &Enemy, actions: &Vec<Action>) -> Battle {
+fn simulate_battle(player: &Player, enemy: &Enemy, actions: &Vec<Action>) -> (Battle, usize) {
+    let mut cost = 0usize;
     let mut player_clone = (*player).clone();
     let mut enemy_clone = (*enemy).clone();
     let mut shield_status = (0usize, 0usize);
@@ -280,13 +296,19 @@ fn simulate_battle(player: &Player, enemy: &Enemy, actions: &Vec<Action>) -> Bat
 
     for action in actions {
         if !player_clone.can_cast(action.cost()) {
-            return Battle::Lost;
+            return (Battle::Lost, cost);
         }
+        // Cast the spell
         player_clone.mana = player_clone.mana.saturating_sub(action.cost());
+        cost += action.cost();
 
         player_clone.armor = shield_status.1;
         enemy_clone.health = enemy_clone.health.saturating_sub(poison_status.1);
         player_clone.mana = player_clone.mana.saturating_add(recharge_status.1);
+
+        shield_status.0 = shield_status.0.saturating_sub(1);
+        poison_status.0 = poison_status.0.saturating_sub(1);
+        recharge_status.0 = recharge_status.0.saturating_sub(1);
 
         if shield_status.0 == 0 {
             shield_status.1 = 0;
@@ -308,16 +330,13 @@ fn simulate_battle(player: &Player, enemy: &Enemy, actions: &Vec<Action>) -> Bat
                 player_clone.health = player_clone.health.saturating_add(*heal);
             }
             Action::Shield { duration, armor, .. } => {
-                shield_status.0 += *duration;
-                shield_status.1 += *armor;
+                shield_status = (*duration, *armor);
             }
             Action::Poison { duration, damage, .. } => {
-                poison_status.0 += *duration;
-                poison_status.1 += *damage;
+                poison_status = (*duration, *damage);
             }
             Action::Recharge { duration, mana, .. } => {
-                recharge_status.0 += *duration;
-                recharge_status.1 += *mana;
+                recharge_status = (*duration, *mana);
             }
         }
         // Enemy Turn
@@ -326,11 +345,15 @@ fn simulate_battle(player: &Player, enemy: &Enemy, actions: &Vec<Action>) -> Bat
         player_clone.mana = player_clone.mana.saturating_add(recharge_status.1);
 
         if enemy_clone.dead() {
-            return Battle::Won;
+            return (Battle::Won, cost);
         }
 
         let damage = enemy_clone.damage.saturating_sub(player_clone.armor);
         player_clone.health = player_clone.health.saturating_sub(if damage == 0 { 1 } else { damage });
+
+        if player_clone.dead() {
+            return (Battle::Lost, cost);
+        }
 
         shield_status.0 = shield_status.0.saturating_sub(1);
         poison_status.0 = poison_status.0.saturating_sub(1);
@@ -345,13 +368,9 @@ fn simulate_battle(player: &Player, enemy: &Enemy, actions: &Vec<Action>) -> Bat
         if recharge_status.0 == 0 {
             recharge_status.1 = 0;
         }
-
-        if player_clone.dead() {
-            return Battle::Lost;
-        }
     }
 
-    Battle::Lost
+    (Battle::Lost, cost)
 }
 
 fn count_queue_cost(queue: &Vec<Action>) -> usize {
@@ -462,8 +481,9 @@ mod tests {
         };
 
         let actions = vec![Action::from_u8(4).unwrap(), Action::from_u8(1).unwrap()];
+        let cost = count_queue_cost(&actions);
 
-        assert_eq!(simulate_battle(&player, &enemy, &actions), Battle::Won);
+        assert_eq!(simulate_battle(&player, &enemy, &actions), (Battle::Won, cost));
     }
 
     #[test]
@@ -486,7 +506,8 @@ mod tests {
             Action::from_u8(4).unwrap(),
             Action::from_u8(1).unwrap()
         ];
+        let cost = count_queue_cost(&actions);
 
-        assert_eq!(simulate_battle(&player, &enemy, &actions), Battle::Won);
+        assert_eq!(simulate_battle(&player, &enemy, &actions), (Battle::Won, cost));
     }
 }
