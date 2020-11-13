@@ -1,49 +1,105 @@
-pub fn find_answer(input: &str) -> usize {
+const PLAYER: Player = Player {
+    health: 50,
+    mana: 500,
+    armor: 0,
+};
+
+pub fn find_easy_result(input: &str) -> usize {
     let enemy = parse_enemy(input);
-    let player = Player {
-        health: 50,
-        mana: 500,
-        armor: 0,
+
+    let mut game = GameState {
+        queue: Vec::new(),
+        player: PLAYER,
+        enemy,
+        won_cost: usize::MAX,
+        queue_cost: 0,
     };
-    let turns_count = 13;
-    let mut cost = usize::MAX;
-    let gen = Generator::new(turns_count);
-/*
-    println!("Start generation");
-    let mut sorted_gen: Vec<Vec<Action>> = gen.collect();
-    println!("End generation");
-    println!("Start sorting");
-    sorted_gen.sort_by(|a, b| {
-        let cost_a = count_queue_cost(a);
-        let cost_b = count_queue_cost(b);
 
-        cost_a.cmp(&cost_b)
-    });
-    println!("End sorting");
-*/
-    println!("Start the battle!!!!");
-    for queue in gen {
-        //    if is_queue_valid(&queue) {
-        if let (Battle::Won, new_cost) = simulate_battle(&player, &enemy, &queue) {
-            println!("Won with {} mana", new_cost);
-            if new_cost < cost {
-                cost = new_cost;
+    simulate_game(&mut game, false);
+
+    game.won_cost
+}
+
+pub fn find_hard_result(input: &str) -> usize {
+    let enemy = parse_enemy(input);
+
+    let mut game = GameState {
+        queue: Vec::new(),
+        player: PLAYER,
+        enemy,
+        won_cost: usize::MAX,
+        queue_cost: 0,
+    };
+
+    simulate_game(&mut game, true);
+
+    game.won_cost
+}
+
+struct GameState {
+    queue: Vec<Action>,
+    player: Player,
+    enemy: Enemy,
+    won_cost: usize,
+    queue_cost: usize,
+}
+
+impl GameState {
+    fn find_possible_actions(&self) -> Vec<Action> {
+        let mut possible_actions: Vec<Action> = vec![Action::from_u8(1).unwrap(),
+                                                     Action::from_u8(2).unwrap()];
+        let mut queue_clone = self.queue.to_vec();
+        for action_idx in 3..=5 {
+            if let Some(action) = Action::from_u8(action_idx) {
+                queue_clone.push(action);
+                if is_queue_valid(&queue_clone) {
+                    possible_actions.push(Action::from_u8(action_idx).unwrap());
+                }
+                queue_clone.pop();
             }
-        } else {
-            // println!("Lost with {} mana", new_cost);
         }
-        //       }
-    }
 
-    cost
+        possible_actions
+    }
+}
+
+fn simulate_game(game: &mut GameState, hard: bool) {
+    let result = simulate_battle(&game.player, &game.enemy, &game.queue, hard);
+
+    match result {
+        (Battle::Won, cost) => {
+            if cost < game.won_cost {
+                game.won_cost = cost;
+            }
+        }
+        (Battle::Draw, _) => {
+            let actions = game.find_possible_actions();
+
+            for action in actions {
+                let action_cost = action.cost();
+                if game.queue_cost + action_cost < game.won_cost {
+                    game.queue.push(action);
+                    game.queue_cost += action_cost;
+
+                    simulate_game(game, hard);
+
+                    game.queue.pop();
+                    game.queue_cost -= action_cost;
+                }
+            }
+        }
+        _ => {}
+    }
 }
 
 #[derive(Debug)]
 enum Battle {
+    Draw,
     Lost,
     Won,
 }
 
+#[derive(Clone)]
 enum Action {
     // 1
     MagickMissile {
@@ -162,103 +218,16 @@ fn parse_enemy(input: &str) -> Enemy {
         })
 }
 
-struct Generator {
-    counter: BigNumber,
-    finish: bool,
-}
-
-impl Generator {
-    fn new(queue_length: usize) -> Generator {
-        Generator {
-            counter: BigNumber::new(5, queue_length),
-            finish: false,
-        }
-    }
-}
-
-impl Iterator for Generator {
-    type Item = Vec<Action>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.finish {
-            return None;
-        }
-
-        let mut queue = create_queue_from_vec(&self.counter.counter);
-        while !is_queue_valid(&queue) {
-            let next = self.counter.next();
-            if next.is_none() {
-                self.finish = true;
-                return None;
-            }
-
-            queue = create_queue_from_vec(&next.unwrap());
-        }
-        self.counter.next();
-        Some(queue)
-    }
-}
-
-struct BigNumber {
-    counter: Vec<u8>,
-    capped_value: u8,
-}
-
-impl BigNumber {
-    fn new(capped_value: u8, length: usize) -> BigNumber {
-        BigNumber {
-            counter: vec![1; length],
-            capped_value,
-        }
-    }
-}
-
-impl Iterator for BigNumber {
-    type Item = Vec<u8>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.counter.iter()
-            .filter(|digit| **digit == self.capped_value)
-            .count() == self.counter.len() {
-            return None;
-        }
-
-        let mut next = false;
-        let counter_length = self.counter.len();
-
-        self.counter[counter_length - 1] += 1;
-        for i in (0..counter_length).rev() {
-            if next {
-                self.counter[i] += 1;
-                next = false;
-            }
-
-            if self.counter[i] > self.capped_value {
-                next = true;
-                self.counter[i] -= self.capped_value;
-            }
-        }
-
-        Some(self.counter.clone())
-    }
-}
-
-fn create_queue_from_vec(input: &Vec<u8>) -> Vec<Action> {
-    input.iter()
-        .map(|c| Action::from_u8(*c))
-        .filter_map(|a| a)
-        .collect()
-}
-
 fn is_queue_valid(queue: &Vec<Action>) -> bool {
     let mut shield_duration = 0usize;
     let mut poison_duration = 0usize;
     let mut recharge_duration = 0usize;
 
     for action in queue {
-        shield_duration = shield_duration.saturating_sub(1);
-        poison_duration = poison_duration.saturating_sub(1);
-        recharge_duration = recharge_duration.saturating_sub(1);
+        // Two actions per Turn (Player + Enemy)
+        shield_duration = shield_duration.saturating_sub(2);
+        poison_duration = poison_duration.saturating_sub(2);
+        recharge_duration = recharge_duration.saturating_sub(2);
 
         match action {
             Action::Shield { duration, .. } => {
@@ -286,7 +255,7 @@ fn is_queue_valid(queue: &Vec<Action>) -> bool {
     true
 }
 
-fn simulate_battle(player: &Player, enemy: &Enemy, actions: &Vec<Action>) -> (Battle, usize) {
+fn simulate_battle(player: &Player, enemy: &Enemy, actions: &Vec<Action>, hard: bool) -> (Battle, usize) {
     let mut cost = 0usize;
     let mut player_clone = (*player).clone();
     let mut enemy_clone = (*enemy).clone();
@@ -298,6 +267,15 @@ fn simulate_battle(player: &Player, enemy: &Enemy, actions: &Vec<Action>) -> (Ba
         if !player_clone.can_cast(action.cost()) {
             return (Battle::Lost, cost);
         }
+
+        // Hard mode enables
+        if hard {
+            player_clone.health = player_clone.health.saturating_sub(1);
+            if player_clone.dead() {
+                return (Battle::Lost, cost);
+            }
+        }
+
         // Cast the spell
         player_clone.mana = player_clone.mana.saturating_sub(action.cost());
         cost += action.cost();
@@ -370,13 +348,7 @@ fn simulate_battle(player: &Player, enemy: &Enemy, actions: &Vec<Action>) -> (Ba
         }
     }
 
-    (Battle::Lost, cost)
-}
-
-fn count_queue_cost(queue: &Vec<Action>) -> usize {
-    queue.iter()
-        .map(|a| a.cost())
-        .sum()
+    (Battle::Draw, cost)
 }
 
 #[cfg(test)]
@@ -386,10 +358,16 @@ mod tests {
     impl PartialEq for Battle {
         fn eq(&self, other: &Self) -> bool {
             match (self, other) {
-                (Battle::Won, Battle::Won) | (Battle::Lost, Battle::Lost) => true,
+                (Battle::Won, Battle::Won) | (Battle::Lost, Battle::Lost) | (Battle::Draw, Battle::Draw) => true,
                 _ => false,
             }
         }
+    }
+
+    fn count_queue_cost(queue: &Vec<Action>) -> usize {
+        queue.iter()
+            .map(|a| a.cost())
+            .sum()
     }
 
     #[test]
@@ -404,30 +382,6 @@ mod tests {
     }
 
     #[test]
-    fn test_big_number_small() {
-        let mut big = BigNumber::new(2, 2);
-        assert_eq!(big.counter, vec![1, 1]);
-        assert_eq!(big.next(), Some(vec![1, 2]));
-        assert_eq!(big.next(), Some(vec![2, 1]));
-        assert_eq!(big.next(), Some(vec![2, 2]));
-        assert_eq!(big.next(), None);
-    }
-
-    #[test]
-    fn test_big_number_big() {
-        let mut big = BigNumber::new(3, 3);
-        assert_eq!(big.counter, vec![1, 1, 1]);
-        big.next();
-        big.next();
-        assert_eq!(big.next(), Some(vec![1, 2, 1]));
-        assert_eq!(big.next(), Some(vec![1, 2, 2]));
-        big.next();
-        big.next();
-        big.next();
-        assert_eq!(big.next(), Some(vec![1, 3, 3]));
-    }
-
-    #[test]
     fn test_from_u8() {
         assert!(Action::from_u8(0).is_none());
         assert!(Action::from_u8(1).is_some());
@@ -436,14 +390,6 @@ mod tests {
         assert!(Action::from_u8(4).is_some());
         assert!(Action::from_u8(5).is_some());
         assert!(Action::from_u8(6).is_none());
-    }
-
-    #[test]
-    fn test_create_queue_from_vec() {
-        let mut big = BigNumber::new(3, 3);
-        let next_number = big.next();
-        let actions = create_queue_from_vec(&next_number.unwrap());
-        assert_eq!(actions.len(), 3);
     }
 
     #[test]
@@ -456,19 +402,12 @@ mod tests {
         assert!(!is_queue_valid(&vec![Action::from_u8(4).unwrap(), Action::from_u8(4).unwrap()]));
         assert!(!is_queue_valid(&vec![Action::from_u8(5).unwrap(), Action::from_u8(5).unwrap()]));
         assert!(is_queue_valid(&vec![Action::from_u8(3).unwrap(), Action::from_u8(4).unwrap(), Action::from_u8(5).unwrap()]));
+        assert!(is_queue_valid(&vec![Action::from_u8(5).unwrap(), Action::from_u8(1).unwrap(), Action::from_u8(1).unwrap(), Action::from_u8(5).unwrap()]));
     }
 
-    #[test]
-    fn test_generator() {
-        let mut generator = Generator::new(2);
-        assert_eq!(generator.count(), 5 + 5 + 4 + 4 + 4);
-
-        generator = Generator::new(3);
-        assert_eq!(generator.count(), 86);
-    }
 
     #[test]
-    fn test_simulate_battle_1() {
+    fn test_simulate_easy_battle_1() {
         let player = Player {
             health: 10,
             mana: 250,
@@ -483,11 +422,11 @@ mod tests {
         let actions = vec![Action::from_u8(4).unwrap(), Action::from_u8(1).unwrap()];
         let cost = count_queue_cost(&actions);
 
-        assert_eq!(simulate_battle(&player, &enemy, &actions), (Battle::Won, cost));
+        assert_eq!(simulate_battle(&player, &enemy, &actions, false), (Battle::Won, cost));
     }
 
     #[test]
-    fn test_simulate_battle_2() {
+    fn test_simulate_easy_battle_2() {
         let player = Player {
             health: 10,
             mana: 250,
@@ -508,6 +447,6 @@ mod tests {
         ];
         let cost = count_queue_cost(&actions);
 
-        assert_eq!(simulate_battle(&player, &enemy, &actions), (Battle::Won, cost));
+        assert_eq!(simulate_battle(&player, &enemy, &actions, false), (Battle::Won, cost));
     }
 }
