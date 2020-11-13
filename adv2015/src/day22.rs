@@ -396,6 +396,10 @@ mod tests {
         assert!(Action::from_u8(4).is_some());
         assert!(Action::from_u8(5).is_some());
         assert!(Action::from_u8(6).is_none());
+
+        if let None = Action::from_u8(100) {
+            assert!(true, "Cool!!");
+        }
     }
 
     #[test]
