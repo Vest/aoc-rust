@@ -307,6 +307,6 @@ mod tests {
 
     #[test]
     fn test_coverage() {
-        assert_eq!(format!("{:?}", Battle::Draw), "Draw");
+        assert_eq!(format!("{:?}", Battle::Lost), "Lost");
     }
 }
