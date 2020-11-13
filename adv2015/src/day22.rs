@@ -371,6 +371,12 @@ mod tests {
     }
 
     #[test]
+    fn test_battle_eq() {
+        assert_eq!(Battle::Lost, Battle::Lost);
+        assert_ne!(Battle::Won, Battle::Lost);
+    }
+
+    #[test]
     fn test_parse_enemy() {
         let enemy = parse_enemy(
             r#"Hit Points: 71
@@ -468,6 +474,24 @@ mod tests {
     }
 
     #[test]
+    fn test_simulate_easy_battle_4() {
+        let player = Player {
+            health: 50,
+            mana: 500,
+            armor: 0,
+        };
+
+        let enemy = Enemy {
+            health: 70,
+            damage: 15,
+        };
+
+        let actions = vec![Action::from_u8(1).unwrap(), Action::from_u8(1).unwrap(), Action::from_u8(1).unwrap(), Action::from_u8(1).unwrap(), Action::from_u8(1).unwrap()];
+
+        assert_eq!(simulate_battle(&player, &enemy, &actions, false).0, Battle::Lost);
+    }
+
+    #[test]
     fn test_simulate_hard_battle_1() {
         let player = Player {
             health: 10,
@@ -499,5 +523,23 @@ mod tests {
 
         let actions = vec![Action::from_u8(1).unwrap()];
         assert_eq!(simulate_battle(&player, &enemy, &actions, true), (Battle::Draw, 53));
+    }
+
+    #[test]
+    fn test_find_possible_actions() {
+        let game = GameState {
+            queue: vec![Action::from_u8(5).unwrap()],
+            player: Player {
+                health: 20,
+                mana: 100,
+                armor: 0
+            },
+            enemy: Default::default(),
+            won_cost: 0,
+            queue_cost: 0
+        };
+
+        let actions = game.find_possible_actions();
+        assert_eq!(actions.len(), 4);
     }
 }
