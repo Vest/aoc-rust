@@ -532,14 +532,39 @@ mod tests {
             player: Player {
                 health: 20,
                 mana: 100,
-                armor: 0
+                armor: 0,
             },
             enemy: Default::default(),
             won_cost: 0,
-            queue_cost: 0
+            queue_cost: 0,
         };
 
         let actions = game.find_possible_actions();
         assert_eq!(actions.len(), 4);
+    }
+
+    #[test]
+    fn test_structs() {
+        let player = Player {
+            health: 10,
+            mana: 20,
+            armor: 30,
+        };
+        assert!(!player.dead(), "The player should be alive");
+        assert!(!player.can_cast(500), "The player cannot cast this");
+
+        let enemy = Enemy::default();
+        assert_eq!(enemy.health, 0);
+        assert_eq!(enemy.damage, 0);
+        assert!(enemy.dead());
+
+        let player_clone = player.clone();
+        let enemy_clone = enemy.clone();
+        assert_eq!(player_clone.health, 10);
+        assert_eq!(player_clone.mana, 20);
+        assert_eq!(enemy_clone.health, 0);
+        assert_eq!(enemy_clone.damage, 0);
+        assert!(!player_clone.dead());
+        assert!(enemy_clone.dead());
     }
 }
