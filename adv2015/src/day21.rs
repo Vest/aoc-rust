@@ -304,4 +304,9 @@ mod tests {
         alive.health = 100;
         assert!(!alive.dead());
     }
+
+    #[test]
+    fn test_coverage() {
+        assert_eq!(format!("{:?}", Battle::Draw), "Draw");
+    }
 }
