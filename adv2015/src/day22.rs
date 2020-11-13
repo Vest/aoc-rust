@@ -405,7 +405,6 @@ mod tests {
         assert!(is_queue_valid(&vec![Action::from_u8(5).unwrap(), Action::from_u8(1).unwrap(), Action::from_u8(1).unwrap(), Action::from_u8(5).unwrap()]));
     }
 
-
     #[test]
     fn test_simulate_easy_battle_1() {
         let player = Player {
@@ -448,5 +447,57 @@ mod tests {
         let cost = count_queue_cost(&actions);
 
         assert_eq!(simulate_battle(&player, &enemy, &actions, false), (Battle::Won, cost));
+    }
+
+    #[test]
+    fn test_simulate_easy_battle_3() {
+        let player = Player {
+            health: 10,
+            mana: 10,
+            armor: 0,
+        };
+
+        let enemy = Enemy {
+            health: 11,
+            damage: 8,
+        };
+
+        let actions = vec![Action::from_u8(1).unwrap()];
+
+        assert_eq!(simulate_battle(&player, &enemy, &actions, false).0, Battle::Lost);
+    }
+
+    #[test]
+    fn test_simulate_hard_battle_1() {
+        let player = Player {
+            health: 10,
+            mana: 250,
+            armor: 0,
+        };
+
+        let enemy = Enemy {
+            health: 13,
+            damage: 8,
+        };
+
+        let actions = vec![Action::from_u8(4).unwrap(), Action::from_u8(1).unwrap()];
+        assert_eq!(simulate_battle(&player, &enemy, &actions, true), (Battle::Lost, 173));
+    }
+
+    #[test]
+    fn test_simulate_draw() {
+        let player = Player {
+            health: 10,
+            mana: 250,
+            armor: 0,
+        };
+
+        let enemy = Enemy {
+            health: 13,
+            damage: 8,
+        };
+
+        let actions = vec![Action::from_u8(1).unwrap()];
+        assert_eq!(simulate_battle(&player, &enemy, &actions, true), (Battle::Draw, 53));
     }
 }
