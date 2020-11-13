@@ -396,10 +396,6 @@ mod tests {
         assert!(Action::from_u8(4).is_some());
         assert!(Action::from_u8(5).is_some());
         assert!(Action::from_u8(6).is_none());
-
-        if let None = Action::from_u8(100) {
-            assert!(true, "Cool!!");
-        }
     }
 
     #[test]
@@ -570,5 +566,6 @@ mod tests {
         assert_eq!(enemy_clone.damage, 0);
         assert!(!player_clone.dead());
         assert!(enemy_clone.dead());
+        assert_eq!(format!("{:?}", Battle::Draw), "Draw");
     }
 }
