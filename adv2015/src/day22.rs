@@ -156,10 +156,12 @@ struct Player {
 }
 
 impl Player {
+    #[inline]
     fn dead(&self) -> bool {
         self.health == 0
     }
 
+    #[inline]
     fn can_cast(&self, mana: usize) -> bool {
         self.mana > mana
     }
@@ -172,6 +174,7 @@ struct Enemy {
 }
 
 impl Enemy {
+    #[inline]
     fn dead(&self) -> bool {
         self.health == 0
     }
@@ -191,6 +194,7 @@ impl Action {
 }
 
 impl Default for Enemy {
+    #[inline]
     fn default() -> Enemy {
         Enemy {
             health: 0,

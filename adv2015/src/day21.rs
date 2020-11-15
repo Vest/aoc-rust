@@ -105,6 +105,7 @@ const RINGS: [Item; 7] = [
 ];
 
 impl Default for Human {
+    #[inline]
     fn default() -> Human {
         Human {
             health: 0,
@@ -117,6 +118,7 @@ impl Default for Human {
 }
 
 impl Human {
+    #[inline]
     fn dead(&self) -> bool {
         self.health == 0
     }
@@ -297,12 +299,12 @@ mod tests {
 
     #[test]
     fn test_human_death() {
-        let dead = Human::default();
+        let dead: Human = Human::default();
         assert!(dead.dead());
 
-        let mut alive = Human::default();
+        let mut alive: Human = Human::default();
         alive.health = 100;
-        assert!(!alive.dead());
+        assert_eq!(alive.dead(), alive.health == 0);
     }
 
     #[test]
