@@ -130,5 +130,21 @@ mod tests {
 
         // PartialEq for ParseInstructionError
         assert_eq!(Instruction::from_str("jio err, -2").unwrap_err(), ParseInstructionError(String::from("jio err, -2")));
+
+        // only xxx y or xxx y, z
+        assert_eq!(Instruction::from_str("jio a, b, c, d").unwrap_err(), ParseInstructionError(String::from("jio err, -2")));
+    }
+
+    #[test]
+    fn test_debug() {
+        assert_eq!(format!("{:?}", Instruction::from_str("hlf a").unwrap()), "hlf('a')");
+        assert_eq!(format!("{:?}", Instruction::from_str("tpl b").unwrap()), "tpl('b')");
+        assert_eq!(format!("{:?}", Instruction::from_str("inc c").unwrap()), "inc('c')");
+        assert_eq!(format!("{:?}", Instruction::from_str("jmp 1").unwrap()), "jmp(1)");
+        assert_eq!(format!("{:?}", Instruction::from_str("jie b, 3").unwrap()), "jie('b', 3)");
+        assert_eq!(format!("{:?}", Instruction::from_str("jio  b, 3").unwrap()), "jio('b', 3)");
+
+        assert_eq!(format!("{:?}", Instruction::from_str("jio err, -2").unwrap_err()), "ParseInstructionError(\"jio err, -2\")");
+
     }
 }
