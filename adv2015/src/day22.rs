@@ -156,12 +156,10 @@ struct Player {
 }
 
 impl Player {
-    #[inline]
     fn dead(&self) -> bool {
         self.health == 0
     }
 
-    #[inline]
     fn can_cast(&self, mana: usize) -> bool {
         self.mana > mana
     }
@@ -174,7 +172,6 @@ struct Enemy {
 }
 
 impl Enemy {
-    #[inline]
     fn dead(&self) -> bool {
         self.health == 0
     }
@@ -194,7 +191,6 @@ impl Action {
 }
 
 impl Default for Enemy {
-    #[inline]
     fn default() -> Enemy {
         Enemy {
             health: 0,
@@ -400,6 +396,35 @@ mod tests {
         assert!(Action::from_u8(4).is_some());
         assert!(Action::from_u8(5).is_some());
         assert!(Action::from_u8(6).is_none());
+
+        if let Action::MagickMissile { cost, damage } = Action::from_u8(1).unwrap() {
+            assert_eq!(cost, 53);
+            assert_eq!(damage, 4);
+        }
+
+        if let Action::Drain { cost, damage, heal } = Action::from_u8(2).unwrap() {
+            assert_eq!(cost, 73);
+            assert_eq!(damage, 2);
+            assert_eq!(heal, 2);
+        }
+
+        if let Action::Shield { cost, duration, armor } = Action::from_u8(3).unwrap() {
+            assert_eq!(cost, 113);
+            assert_eq!(duration, 6);
+            assert_eq!(armor, 7);
+        }
+
+        if let Action::Poison { cost, duration, damage } = Action::from_u8(4).unwrap() {
+            assert_eq!(cost, 173);
+            assert_eq!(duration, 6);
+            assert_eq!(damage, 3);
+        }
+
+        if let Action::Recharge { cost, duration, mana } = Action::from_u8(5).unwrap() {
+            assert_eq!(cost, 229);
+            assert_eq!(duration, 5);
+            assert_eq!(mana, 101);
+        }
     }
 
     #[test]
