@@ -217,8 +217,7 @@ mod tests {
     impl PartialEq for Battle {
         fn eq(&self, other: &Self) -> bool {
             match (self, other) {
-                (Battle::Lost, Battle::Lost) => true,
-                (Battle::Won, Battle::Won) => true,
+                (Battle::Lost, Battle::Lost) | (Battle::Won, Battle::Won) => true,
                 _ => false,
             }
         }
@@ -298,11 +297,16 @@ mod tests {
 
     #[test]
     fn test_human_death() {
-        let dead = Human::default();
+        let dead: Human = Human::default();
         assert!(dead.dead());
 
-        let mut alive = Human::default();
+        let mut alive: Human = Human::default();
         alive.health = 100;
-        assert!(!alive.dead());
+        assert_eq!(alive.dead(), alive.health == 0);
+    }
+
+    #[test]
+    fn test_coverage() {
+        assert_eq!(format!("{:?}", Battle::Lost), "Lost");
     }
 }
