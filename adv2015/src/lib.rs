@@ -51,7 +51,7 @@ pub fn print_answers(day: u8, input: String) {
         20 => println!("{} {} and {}", prefix, day20::get_richest_house_before_strike(input), day20::get_richest_house_after_strike(input)),
         21 => println!("{} {} and {}", prefix, day21::find_cheapest_warrior(input), day21::find_expensive_loser(input)),
         22 => println!("{} {} and {}", prefix, day22::find_easy_result(input), day22::find_hard_result(input)),
-        23 => println!("{} {} and {}", prefix, day23::get_answer(input), day23::get_answer(input)),
+        23 => println!("{} {} and {}", prefix, day23::get_answer_b(input), day23::get_answer_b_after_a(input)),
         _ => { eprintln!("2015: I don't know the answer for day {} :(", day) }
     }
 }

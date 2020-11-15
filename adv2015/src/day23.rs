@@ -1,9 +1,23 @@
 use std::str::FromStr;
+use std::collections::HashMap;
 
-pub fn get_answer(input: &str) -> usize {
+pub fn get_answer_b(input: &str) -> i32 {
     let instructions = parse_code(input);
+    let mut machine = Machine::new(instructions);
 
-    instructions.len()
+    while machine.do_evaluate() {};
+
+    Machine::get_register(&mut machine.registers, &'b')
+}
+
+pub fn get_answer_b_after_a(input: &str) -> i32 {
+    let instructions = parse_code(input);
+    let mut machine = Machine::new(instructions);
+    Machine::set_register(&mut machine.registers, &'a', 1);
+
+    while machine.do_evaluate() {};
+
+    Machine::get_register(&mut machine.registers, &'b')
 }
 
 type Offset = i16;
@@ -29,6 +43,79 @@ enum Instruction {
 
     // is like jmp, but only jumps if register r is 1 ("jump if one", not odd)
     jio(Register, Offset),
+}
+
+struct Machine {
+    registers: HashMap<Register, i32>,
+    position: usize,
+    instructions: Vec<Instruction>,
+}
+
+impl Machine {
+    pub fn new(instructions: Vec<Instruction>) -> Machine {
+        Machine {
+            registers: HashMap::with_capacity(2),
+            position: 0,
+            instructions,
+        }
+    }
+
+    fn do_evaluate(&mut self) -> bool {
+        if let Some(inst) = self.instructions.get(self.position) {
+            match inst {
+                Instruction::hlf(r) | Instruction::tpl(r) | Instruction::inc(r) => {
+                    let register_value = Self::get_register(&mut self.registers, r);
+
+                    let new_register_value = if let Instruction::hlf(_) = inst {
+                        register_value.overflowing_div(2)
+                    } else if let Instruction::tpl(_) = inst {
+                        register_value.overflowing_mul(3)
+                    } else {
+                        register_value.overflowing_add(1)
+                    };
+
+                    Self::set_register(&mut self.registers, r, new_register_value.0);
+                    Self::jump(&mut self.position, 1) && !new_register_value.1
+                }
+
+                Instruction::jmp(o) => Self::jump(&mut self.position, *o),
+
+                Instruction::jie(r, o) | Instruction::jio(r, o) => {
+                    let register_value = Self::get_register(&mut self.registers, r);
+
+                    if let Instruction::jie(_, _) = inst {
+                        // Is even
+                        Self::jump(&mut self.position, if register_value & 1 == 0 { *o } else { 1 })
+                    } else {
+                        Self::jump(&mut self.position, if register_value == 1 { *o } else { 1 })
+                    }
+                }
+            }
+        } else {
+            false
+        }
+    }
+
+    fn jump(position: &mut usize, offset: Offset) -> bool {
+        let o = if offset.is_negative() {
+            position.overflowing_sub(offset.abs() as usize)
+        } else {
+            position.overflowing_add(offset as usize)
+        };
+        *position = o.0;
+
+        !o.1
+    }
+
+    fn get_register(registers: &mut HashMap<Register, i32>, r: &Register) -> i32 {
+        registers.entry(*r)
+            .or_insert(0)
+            .clone()
+    }
+
+    fn set_register(registers: &mut HashMap<Register, i32>, r: &Register, v: i32) {
+        registers.insert(*r, v);
+    }
 }
 
 #[derive(Debug)]
@@ -168,5 +255,149 @@ mod tests {
         assert_eq!(instructions[0], Instruction::jio('a', 19));
         assert_eq!(instructions[1], Instruction::inc('a'));
         assert_eq!(instructions.len(), 2);
+    }
+
+    #[test]
+    fn test_machine_1() {
+        let input = r#"inc a"#;
+        let mut machine = Machine::new(parse_code(input));
+        let result1 = machine.do_evaluate();
+        let result2 = machine.do_evaluate();
+        assert!(result1);
+        assert!(!result2);
+        assert_eq!(machine.position, 1);
+        assert_eq!(machine.registers.get(&'a'), Some(&1));
+    }
+
+    #[test]
+    fn test_machine_2() {
+        let input = r#"inc a
+                  inc a
+                  hlf a"#;
+        let mut machine = Machine::new(parse_code(input));
+        machine.do_evaluate(); // a == 1
+        machine.do_evaluate(); // a == 2
+        assert_eq!(machine.registers.get(&'a'), Some(&2));
+        machine.do_evaluate(); // a == 1
+        assert_eq!(machine.registers.get(&'a'), Some(&1));
+    }
+
+    #[test]
+    fn test_machine_3() {
+        let input = r#"inc a
+                  inc a
+                  tpl a"#;
+        let mut machine = Machine::new(parse_code(input));
+        machine.do_evaluate(); // a == 1
+        machine.do_evaluate(); // a == 2
+        assert_eq!(machine.registers.get(&'a'), Some(&2));
+        machine.do_evaluate(); // a == 6
+        assert_eq!(machine.registers.get(&'a'), Some(&6));
+    }
+
+    #[test]
+    fn test_machine_4() {
+        let input = r#"jmp +2
+                  inc a
+                  tpl a"#;
+        let mut machine = Machine::new(parse_code(input));
+        assert_eq!(machine.position, 0);
+        machine.do_evaluate(); // position == 0 + 2
+        assert_eq!(machine.position, 2);
+        machine.do_evaluate(); // a == 0 * 3
+        assert_eq!(machine.registers.get(&'a'), Some(&0));
+    }
+
+    #[test]
+    fn test_machine_4_overflow() {
+        let input = r#"jmp +2
+                  inc a"#;
+        let mut machine = Machine::new(parse_code(input));
+        assert_eq!(machine.position, 0);
+        let result = machine.do_evaluate(); // position == 0 + 2
+        assert!(result);
+        assert_eq!(machine.position, 2);
+    }
+
+    #[test]
+    fn test_machine_5() {
+        let input = r#"inc a
+                  inc a
+                  jmp -2"#;
+        let mut machine = Machine::new(parse_code(input));
+        assert_eq!(machine.position, 0);
+        machine.do_evaluate(); // position == 0 + 1
+        assert_eq!(machine.position, 1);
+        machine.do_evaluate(); // position == 1 + 1
+        assert_eq!(machine.position, 2);
+        machine.do_evaluate(); // position == 2 - 2
+        assert_eq!(machine.position, 0);
+        assert_eq!(machine.registers.get(&'a'), Some(&2));
+    }
+
+    #[test]
+    fn test_machine_6a() {
+        let input = r#"inc a
+                  inc a
+                  jie a, -2"#;
+        let mut machine = Machine::new(parse_code(input));
+        assert_eq!(machine.position, 0);
+        machine.do_evaluate(); // position == 0 + 1
+        assert_eq!(machine.position, 1);
+        machine.do_evaluate(); // position == 1 + 1
+        assert_eq!(machine.position, 2);
+        machine.do_evaluate(); // position == 2 - 2
+        assert_eq!(machine.position, 0);
+        assert_eq!(machine.registers.get(&'a'), Some(&2));
+    }
+
+    #[test]
+    fn test_machine_6b() {
+        let input = r#"inc a
+                  inc b
+                  jie a, -2"#;
+        let mut machine = Machine::new(parse_code(input));
+        assert_eq!(machine.position, 0);
+        machine.do_evaluate(); // position == 0 + 1
+        assert_eq!(machine.position, 1);
+        machine.do_evaluate(); // position == 1 + 1
+        assert_eq!(machine.position, 2);
+        machine.do_evaluate(); // position == 2 + 1
+        assert_eq!(machine.position, 3);
+        assert_eq!(machine.registers.get(&'a'), Some(&1));
+        assert_eq!(machine.registers.get(&'b'), Some(&1));
+    }
+
+    #[test]
+    fn test_machine_7a() {
+        let input = r#"inc a
+                  inc a
+                  jio a, -2"#;
+        let mut machine = Machine::new(parse_code(input));
+        assert_eq!(machine.position, 0);
+        machine.do_evaluate(); // position == 0 + 1
+        assert_eq!(machine.position, 1);
+        machine.do_evaluate(); // position == 1 + 1
+        assert_eq!(machine.position, 2);
+        machine.do_evaluate(); // position == 2 + 1
+        assert_eq!(machine.position, 3);
+        assert_eq!(machine.registers.get(&'a'), Some(&2));
+    }
+
+    #[test]
+    fn test_machine_7b() {
+        let input = r#"inc a
+                  inc b
+                  jio a, -2"#;
+        let mut machine = Machine::new(parse_code(input));
+        assert_eq!(machine.position, 0);
+        machine.do_evaluate(); // position == 0 + 1
+        assert_eq!(machine.position, 1);
+        machine.do_evaluate(); // position == 1 + 1
+        assert_eq!(machine.position, 2);
+        machine.do_evaluate(); // position == 2 - 2
+        assert_eq!(machine.position, 0);
+        assert_eq!(machine.registers.get(&'a'), Some(&1));
+        assert_eq!(machine.registers.get(&'b'), Some(&1));
     }
 }
