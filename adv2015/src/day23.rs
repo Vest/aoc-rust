@@ -1,7 +1,9 @@
 use std::str::FromStr;
 
 pub fn get_answer(input: &str) -> usize {
-    0
+    let instructions = parse_code(input);
+
+    instructions.len()
 }
 
 type Offset = i16;
@@ -84,6 +86,13 @@ impl FromStr for Instruction {
     }
 }
 
+fn parse_code(input: &str) -> Vec<Instruction> {
+    input.lines()
+        .map(|l| Instruction::from_str(l))
+        .filter_map(|r| r.ok())
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -148,6 +157,16 @@ mod tests {
         assert_eq!(format!("{:?}", Instruction::from_str("jpa  b, 3").unwrap_err()), "ParseInstructionError(\"jpa  b, 3\")");
 
         assert_eq!(format!("{:?}", Instruction::from_str("jio err, -2").unwrap_err()), "ParseInstructionError(\"jio err, -2\")");
+    }
 
+    #[test]
+    fn test_parse_code() {
+        let input = r#"jio a, +19
+                       inc a
+                       jop 123"#;
+        let instructions = parse_code(input);
+        assert_eq!(instructions[0], Instruction::jio('a', 19));
+        assert_eq!(instructions[1], Instruction::inc('a'));
+        assert_eq!(instructions.len(), 2);
     }
 }
