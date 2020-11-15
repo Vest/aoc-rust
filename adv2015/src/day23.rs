@@ -132,7 +132,7 @@ mod tests {
         assert_eq!(Instruction::from_str("jio err, -2").unwrap_err(), ParseInstructionError(String::from("jio err, -2")));
 
         // only xxx y or xxx y, z
-        assert_eq!(Instruction::from_str("jio a, b, c, d").unwrap_err(), ParseInstructionError(String::from("jio err, -2")));
+        assert_eq!(Instruction::from_str("jio a, b, c, d").unwrap_err(), ParseInstructionError(String::from("jio a, b, c, d")));
     }
 
     #[test]
