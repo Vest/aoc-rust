@@ -7,6 +7,7 @@ pub fn get_answer(input: &str) -> usize {
 type Offset = i16;
 type Register = char;
 
+#[allow(non_camel_case_types)]
 #[derive(Debug)]
 enum Instruction {
     // sets register r to half its current value, then continues with the next instruction
@@ -143,6 +144,8 @@ mod tests {
         assert_eq!(format!("{:?}", Instruction::from_str("jmp 1").unwrap()), "jmp(1)");
         assert_eq!(format!("{:?}", Instruction::from_str("jie b, 3").unwrap()), "jie('b', 3)");
         assert_eq!(format!("{:?}", Instruction::from_str("jio  b, 3").unwrap()), "jio('b', 3)");
+
+        assert_eq!(format!("{:?}", Instruction::from_str("jpa  b, 3").unwrap_err()), "ParseInstructionError(\"jpa  b, 3\")");
 
         assert_eq!(format!("{:?}", Instruction::from_str("jio err, -2").unwrap_err()), "ParseInstructionError(\"jio err, -2\")");
 
