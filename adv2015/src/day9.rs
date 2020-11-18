@@ -1,5 +1,5 @@
+use combination::*;
 use std::collections::{HashMap, HashSet};
-use permute::permutations_of;
 use std::iter::FromIterator;
 use std::cmp;
 
@@ -55,7 +55,7 @@ impl Santa {
         let vector: Vec<&String> = Vec::from_iter(&self.cities);
         let mut min_distance = usize::max_value();
         let mut max_distance = usize::min_value();
-        for permutation in permutations_of(&vector) {
+        for permutation in permutate::permutate_vec(&vector) {
             let mut current_distance = 0usize;
             let mut prev_city = String::new();
 

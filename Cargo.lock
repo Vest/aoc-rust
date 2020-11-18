@@ -4,7 +4,7 @@
 name = "adv2015"
 version = "0.24.0"
 dependencies = [
- "combinations",
+ "combination",
  "divisors",
  "md5",
  "permute",
@@ -75,10 +75,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 
 [[package]]
-name = "combinations"
-version = "0.1.0"
+name = "combination"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "728b7ab3119b5167cc60a4aad16b6086b762278f5571cc650e7eed2e89a23a15"
+checksum = "dfb42c29f0e8fdd208b13976859e9d6be9ce3f25d85e1d4ced76b7518bc9384b"
 
 [[package]]
 name = "core-foundation"
