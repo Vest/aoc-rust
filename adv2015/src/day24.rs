@@ -32,4 +32,12 @@ mod tests {
         assert_eq!(packages[1], 2);
         assert_eq!(packages[2], 6);
     }
+
+    #[test]
+    fn test_create_groups() {
+        let available_packages: Vec<usize> = vec![1, 2, 4, 5];
+        let group_1 = create_groups(&available_packages, 2);
+
+        assert_eq!(group_1.len(), 4 * 3 * 2 / (2 * 2));
+    }
 }
