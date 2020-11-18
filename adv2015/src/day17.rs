@@ -1,4 +1,4 @@
-use combination::*;
+use combinations::Combinations;
 
 const REQUIRED_VOLUME: usize = 150;
 
@@ -40,9 +40,9 @@ fn find_cans_combination_total_count(vec: &Vec<usize>, required_volume: usize) -
                 .enumerate()
                 .map(|e| (e.0, *e.1))
                 .collect();
-            let computed = combine::combine_vec(&cloned_vec, k);
+            let computed = Combinations::new(cloned_vec, k);
 
-            answer += computed.iter().map(|c| {
+            answer += computed.map(|c| {
                 c.iter().map(|can| can.1)
                     .sum()
             })
@@ -66,9 +66,9 @@ fn find_cans_combination_minimal_count(vec: &Vec<usize>, required_volume: usize)
             let cloned_vec: Vec<(usize, usize)> = vec.iter().enumerate()
                 .map(|e| (e.0, *e.1))
                 .collect();
-            let computed = combine::combine_vec(&cloned_vec, k);
+            let computed = Combinations::new(cloned_vec, k);
 
-            let answer = computed.iter().map(|c| {
+            let answer = computed.map(|c| {
                 c.iter().map(|can| can.1)
                     .sum()
             })
