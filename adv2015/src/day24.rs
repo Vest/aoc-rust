@@ -1,15 +1,21 @@
 use combinations::Combinations;
 use std::cmp::min;
-use std::iter::Filter;
 
 pub fn find_answer(input: &str) -> usize {
     let packages = parse_packages(input);
+    let weight = packages.iter().sum::<usize>() / 3;
 
-    find_optimal_qe(&packages)
+    find_optimal_qe(&packages, weight)
 }
 
-fn find_optimal_qe(packages: &Vec<usize>) -> usize {
-    let weight = packages.iter().sum::<usize>() / 3;
+pub fn find_answer_better(input: &str) -> usize {
+    let packages = parse_packages(input);
+    let weight = packages.iter().sum::<usize>() / 4;
+
+    find_optimal_qe(&packages, weight)
+}
+
+fn find_optimal_qe(packages: &Vec<usize>, weight: usize) -> usize {
     let mut lowest_qe = usize::MAX;
     let mut lowest_count = usize::MAX;
 
