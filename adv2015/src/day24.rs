@@ -1,5 +1,6 @@
 use combinations::Combinations;
 use std::cmp::min;
+use std::iter::Filter;
 
 pub fn find_answer(input: &str) -> usize {
     let packages = parse_packages(input);
@@ -12,18 +13,27 @@ fn find_optimal_qe(packages: &Vec<usize>) -> usize {
     let mut lowest_qe = usize::MAX;
     let mut lowest_count = usize::MAX;
 
-    for group in find_groups_with_weight(&packages, weight) {
-        let current_qe = calc_qe(&group);
-        let current_count = group.len();
+    let sleigh = SleighCombination::new(&packages, weight);
 
-        if (lowest_qe == usize::MAX && lowest_count == usize::MAX)
-            || (current_count < lowest_count && current_qe < lowest_qe) {
-            let rest_packages = subtract_vectors(packages, &group);
+    for group in sleigh {
+        for filtered_group in group.filter(|group| group.iter().sum::<usize>() == weight) {
+            let current_qe = calc_qe(&filtered_group);
+            let current_count = filtered_group.len();
 
-            if group_with_weight_exists(&rest_packages, weight) {
-                lowest_qe = min(lowest_qe, current_qe);
-                lowest_count = min(lowest_count, current_count);
+            if (lowest_qe == usize::MAX && lowest_count == usize::MAX)
+                || (current_count < lowest_count && current_qe < lowest_qe) {
+                let rest_packages = subtract_vectors(packages, &filtered_group);
+
+                if group_with_weight_exists(&rest_packages, weight) {
+                    lowest_qe = min(lowest_qe, current_qe);
+                    lowest_count = min(lowest_count, current_count);
+                    println!("Found something: {}, {}", lowest_qe, lowest_count);
+                }
             }
+        }
+
+        if lowest_qe != usize::MAX {
+            return lowest_qe;
         }
     }
 
@@ -54,6 +64,39 @@ fn create_groups_iter(packages: &Vec<usize>, size: usize) -> Combinations<usize>
     Combinations::new(copy_packages, size)
 }
 
+struct SleighCombination {
+    size: usize,
+    packages: Vec<usize>,
+    weight: usize,
+}
+
+impl SleighCombination {
+    fn new(packages: &Vec<usize>, weight: usize) -> SleighCombination {
+        let copy_packages = packages.to_vec();
+
+        SleighCombination {
+            size: 0,
+            weight,
+            packages: copy_packages,
+        }
+    }
+}
+
+impl Iterator for SleighCombination {
+    type Item = Combinations<usize>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.size += 1;
+
+        if self.size == self.packages.len() {
+            return None;
+        }
+
+        let copy_packages = self.packages.to_vec();
+        Some(Combinations::new(copy_packages, self.size))
+    }
+}
+
 fn find_groups_with_weight(packages: &Vec<usize>, weight: usize) -> Vec<Vec<usize>> {
     let mut result = Vec::new();
 
@@ -62,7 +105,7 @@ fn find_groups_with_weight(packages: &Vec<usize>, weight: usize) -> Vec<Vec<usiz
     }
 
     for size in 1..packages.len() {
-        create_groups(&packages, size).iter()
+        create_groups_iter(&packages, size)
             .filter(|group| group.iter().sum::<usize>() == weight)
             .for_each(|group| {
                 let copy_group = group.to_vec();
