@@ -1,4 +1,34 @@
 use combinations::Combinations;
+use std::cmp::min;
+
+pub fn find_answer(input: &str) -> usize {
+    let packages = parse_packages(input);
+
+    find_optimal_qe(&packages)
+}
+
+fn find_optimal_qe(packages: &Vec<usize>) -> usize {
+    let weight = packages.iter().sum::<usize>() / 3;
+    let mut lowest_qe = usize::MAX;
+    let mut lowest_count = usize::MAX;
+
+    for group in find_groups_with_weight(&packages, weight) {
+        let current_qe = calc_qe(&group);
+        let current_count = group.len();
+
+        if (lowest_qe == usize::MAX && lowest_count == usize::MAX)
+            || (current_count < lowest_count && current_qe < lowest_qe) {
+            let rest_packages = subtract_vectors(packages, &group);
+
+            if group_with_weight_exists(&rest_packages, weight) {
+                lowest_qe = min(lowest_qe, current_qe);
+                lowest_count = min(lowest_count, current_count);
+            }
+        }
+    }
+
+    lowest_qe
+}
 
 fn parse_packages(input: &str) -> Vec<usize> {
     input.lines()
@@ -18,6 +48,12 @@ fn create_groups(packages: &Vec<usize>, size: usize) -> Vec<Vec<usize>> {
     Combinations::new(copy_packages, size).collect()
 }
 
+fn create_groups_iter(packages: &Vec<usize>, size: usize) -> Combinations<usize> {
+    let copy_packages = packages.to_vec();
+
+    Combinations::new(copy_packages, size)
+}
+
 fn find_groups_with_weight(packages: &Vec<usize>, weight: usize) -> Vec<Vec<usize>> {
     let mut result = Vec::new();
 
@@ -33,6 +69,32 @@ fn find_groups_with_weight(packages: &Vec<usize>, weight: usize) -> Vec<Vec<usiz
                 result.push(copy_group);
             });
     }
+
+    result
+}
+
+fn group_with_weight_exists(packages: &Vec<usize>, weight: usize) -> bool {
+    for size in 1..packages.len() {
+        if create_groups_iter(&packages, size)
+            .any(|packages| packages.iter().sum::<usize>() == weight) {
+            return true;
+        }
+    }
+
+    false
+}
+
+// quantum entanglement
+fn calc_qe(group: &Vec<usize>) -> usize {
+    group.iter()
+        .fold(1, |acc, p| acc * p)
+}
+
+fn subtract_vectors(from: &Vec<usize>, rhs: &Vec<usize>) -> Vec<usize> {
+    let mut result = Vec::new();
+
+    result.extend(from.iter()
+        .filter(|i| !rhs.contains(i)));
 
     result
 }
@@ -69,6 +131,32 @@ mod tests {
         let found_packages = find_groups_with_weight(&packages, packages.iter().sum::<usize>() / 3);
 
         assert_eq!(found_packages.len(), 25); // taken from demo (indeed in the demo there are 13 combinations)
-        println!("{:?}", found_packages);
+        println!("{:?}", &found_packages[0..10]);
+        println!("{:?}", &found_packages[10..20]);
+        println!("{:?}", &found_packages[20..25]);
+    }
+
+    #[test]
+    fn test_calc_qe() {
+        assert_eq!(calc_qe(&vec![11, 9]), 99);
+        assert_eq!(calc_qe(&vec![10, 4, 3, 2, 1]), 240);
+    }
+
+    #[test]
+    fn test_subtract_vectors() {
+        let packages: Vec<usize> = vec![1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
+        let result = subtract_vectors(&packages, &vec![10, 4, 3, 2, 1]);
+        assert_eq!(result.len(), 5);
+        assert!(result.contains(&5));
+        assert!(result.contains(&7));
+        assert!(result.contains(&8));
+        assert!(result.contains(&9));
+        assert!(result.contains(&11));
+    }
+
+    #[test]
+    fn test_find_optimal_qe() {
+        let packages: Vec<usize> = vec![1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
+        assert_eq!(find_optimal_qe(&packages), 99);
     }
 }
