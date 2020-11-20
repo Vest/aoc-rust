@@ -22,7 +22,7 @@ fn find_optimal_qe(packages: &Vec<usize>, weight: usize) -> usize {
     let sleigh = SleighCombination::new(&packages, weight);
 
     for group in sleigh {
-        for filtered_group in group.filter(|group| group.iter().sum::<usize>() == weight) {
+        for filtered_group in group {
             let current_qe = calc_qe(&filtered_group);
             let current_count = filtered_group.len();
 
@@ -33,7 +33,6 @@ fn find_optimal_qe(packages: &Vec<usize>, weight: usize) -> usize {
                 if group_with_weight_exists(&rest_packages, weight) {
                     lowest_qe = min(lowest_qe, current_qe);
                     lowest_count = min(lowest_count, current_count);
-                    println!("Found something: {}, {}", lowest_qe, lowest_count);
                 }
             }
         }
@@ -52,22 +51,6 @@ fn parse_packages(input: &str) -> Vec<usize> {
         .filter(|l| !l.is_empty())
         .filter_map(|p| p.parse::<usize>().ok())
         .collect()
-}
-
-fn create_groups(packages: &Vec<usize>, size: usize) -> Vec<Vec<usize>> {
-    if !(1..=packages.len()).contains(&size) {
-        return Vec::new();
-    }
-
-    let copy_packages = packages.to_vec();
-
-    Combinations::new(copy_packages, size).collect()
-}
-
-fn create_groups_iter(packages: &Vec<usize>, size: usize) -> Combinations<usize> {
-    let copy_packages = packages.to_vec();
-
-    Combinations::new(copy_packages, size)
 }
 
 struct SleighCombination {
@@ -89,7 +72,7 @@ impl SleighCombination {
 }
 
 impl Iterator for SleighCombination {
-    type Item = Combinations<usize>;
+    type Item = Box<dyn Iterator<Item=Vec<usize>>>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.size += 1;
@@ -99,32 +82,17 @@ impl Iterator for SleighCombination {
         }
 
         let copy_packages = self.packages.to_vec();
-        Some(Combinations::new(copy_packages, self.size))
+        let copy_weight = self.weight.clone();
+        Some(Box::new(Combinations::new(copy_packages, self.size)
+            .filter(move |group| group.iter().sum::<usize>() == copy_weight)))
     }
-}
-
-fn find_groups_with_weight(packages: &Vec<usize>, weight: usize) -> Vec<Vec<usize>> {
-    let mut result = Vec::new();
-
-    if packages.is_empty() {
-        return result;
-    }
-
-    for size in 1..packages.len() {
-        create_groups_iter(&packages, size)
-            .filter(|group| group.iter().sum::<usize>() == weight)
-            .for_each(|group| {
-                let copy_group = group.to_vec();
-                result.push(copy_group);
-            });
-    }
-
-    result
 }
 
 fn group_with_weight_exists(packages: &Vec<usize>, weight: usize) -> bool {
     for size in 1..packages.len() {
-        if create_groups_iter(&packages, size)
+        let copy_packages = packages.to_vec();
+
+        if Combinations::new(copy_packages, size)
             .any(|packages| packages.iter().sum::<usize>() == weight) {
             return true;
         }
@@ -165,27 +133,6 @@ mod tests {
     }
 
     #[test]
-    fn test_create_groups() {
-        let available_packages: Vec<usize> = vec![1, 2, 4, 5];
-        let group_1 = create_groups(&available_packages, 2);
-
-        assert_eq!(group_1.len(), 4 * 3 * 2 / (2 * 2));
-        assert!(create_groups(&available_packages, 0).is_empty());
-        assert!(create_groups(&available_packages, 5).is_empty());
-    }
-
-    #[test]
-    fn test_find_groups_with_weight() {
-        let packages: Vec<usize> = vec![1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
-        let found_packages = find_groups_with_weight(&packages, packages.iter().sum::<usize>() / 3);
-
-        assert_eq!(found_packages.len(), 25); // taken from demo (indeed in the demo there are 13 combinations)
-        println!("{:?}", &found_packages[0..10]);
-        println!("{:?}", &found_packages[10..20]);
-        println!("{:?}", &found_packages[20..25]);
-    }
-
-    #[test]
     fn test_calc_qe() {
         assert_eq!(calc_qe(&vec![11, 9]), 99);
         assert_eq!(calc_qe(&vec![10, 4, 3, 2, 1]), 240);
@@ -206,6 +153,6 @@ mod tests {
     #[test]
     fn test_find_optimal_qe() {
         let packages: Vec<usize> = vec![1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
-        assert_eq!(find_optimal_qe(&packages), 99);
+        assert_eq!(find_optimal_qe(&packages, packages.iter().sum::<usize>() / 3), 99);
     }
 }
