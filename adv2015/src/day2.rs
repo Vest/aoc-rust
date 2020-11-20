@@ -1,10 +1,8 @@
 pub fn calc_packs(s: &str) -> u32 {
-    s.lines()
-        .map(|line| {
-            let (l, w, h) = parse_line(line);
-            calc_paper(l, w, h)
-        })
-        .sum()
+    s.lines().map(|line| {
+        let (l, w, h) = parse_line(line);
+        calc_paper(l, w, h)
+    }).sum()
 }
 
 pub fn calc_ribbons(s: &str) -> u32 {
