@@ -77,7 +77,7 @@ impl Iterator for SleighCombination {
     fn next(&mut self) -> Option<Self::Item> {
         self.size += 1;
 
-        if self.size == self.packages.len() {
+        if self.size == self.packages.len() || self.packages.is_empty() {
             return None;
         }
 
