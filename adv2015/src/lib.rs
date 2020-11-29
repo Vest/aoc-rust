@@ -55,6 +55,7 @@ pub fn print_answers(day: u8, input: String) {
         22 => println!("{} {} and {}", prefix, day22::find_easy_result(input), day22::find_hard_result(input)),
         23 => println!("{} {} and {}", prefix, day23::get_answer_b(input), day23::get_answer_b_after_a(input)),
         24 => println!("{} {} and {}", prefix, day24::find_answer(input), day24::find_answer_better(input)),
+        25 => println!("{} {}", prefix, day25::find_code(input)),
         _ => { eprintln!("2015: I don't know the answer for day {} :(", day) }
     }
 }
