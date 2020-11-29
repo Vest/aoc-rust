@@ -23,6 +23,7 @@ mod day21;
 mod day22;
 mod day23;
 mod day24;
+mod day25;
 /* </editor-fold> */
 
 pub fn print_answers(day: u8, input: String) {
@@ -82,6 +83,3 @@ mod tests {
         }
     }
 }
-
-
-
