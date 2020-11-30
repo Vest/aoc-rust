@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "adv2015",
+    "adv2020",
     "adventofcode",
 ]
