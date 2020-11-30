@@ -82,10 +82,6 @@ impl Iterator for ListCodes {
             find_next_code(self.current_code)
         };
 
-        if self.current_code == 0 {
-            return None;
-        }
-
         Some(self.current_code)
     }
 }
@@ -129,5 +125,10 @@ mod tests {
         assert_eq!(list.next(), Some(16080970));
         assert_eq!(list.next(), Some(21629792));
         assert_eq!(list.next(), None);
+    }
+
+    #[test]
+    fn test_find_code() {
+        assert_eq!(find_code("Give me bla-bla-bla row 6, bla-bla-bla col 4"), 24659492);
     }
 }
