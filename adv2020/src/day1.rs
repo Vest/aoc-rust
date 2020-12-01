@@ -24,6 +24,10 @@ fn parse_input(input: &str) -> Vec<usize> {
 }
 
 fn find_pair_with_sum(nums: Vec<usize>, desired_sum: usize) -> (usize, usize) {
+    if nums.is_empty() {
+        return (0, 0);
+    }
+
     let mut computed = Combinations::new(nums, 2);
     if let Some(result) = computed.find(|pair| pair[0] + pair[1] == desired_sum) {
         return (result[0], result[1]);
@@ -33,6 +37,10 @@ fn find_pair_with_sum(nums: Vec<usize>, desired_sum: usize) -> (usize, usize) {
 }
 
 fn find_triple_with_sum(nums: Vec<usize>, desired_sum: usize) -> (usize, usize, usize) {
+    if nums.is_empty() {
+        return (0, 0, 0);
+    }
+
     let mut computed = Combinations::new(nums, 3);
     if let Some(result) = computed.find(|pair| pair[0] + pair[1] + pair[2] == desired_sum) {
         return (result[0], result[1], result[2]);
