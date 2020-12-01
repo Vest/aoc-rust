@@ -75,6 +75,20 @@ mod tests {
     }
 
     #[test]
+    fn test_find_no_pair_with_sum() {
+        let result = find_pair_with_sum(vec![1, 979, 2, 299, 675, 3], DESIRED_SUM);
+        assert_eq!(result.1, 0);
+        assert_eq!(result.0, 0);
+    }
+    #[test]
+    fn test_find_triple_with_sum() {
+        let result = find_triple_with_sum(vec![1, 979, 2, 299, 675, 3], DESIRED_SUM);
+        assert_eq!(result.2, 0);
+        assert_eq!(result.1, 0);
+        assert_eq!(result.0, 0);
+    }
+
+    #[test]
     fn test_find_expenses() {
         assert_eq!(find_expenses(r#"1721
                    979
