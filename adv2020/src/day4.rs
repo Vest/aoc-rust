@@ -6,10 +6,6 @@ pub fn answer2(input: &str) -> i16 {
     0
 }
 
-fn parse_input(input: &str) -> Vec<i16> {
-    vec![0]
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
