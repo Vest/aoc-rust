@@ -74,7 +74,6 @@ mod tests {
                                    1-3 b: cdefg
                                    2-9 c: ccccccccc"#;
 
-
     #[test]
     fn test_parse_input() {
         let result: Vec<Rule> = parse_input(r#"17-18 f: fffffffffffffffffff
@@ -88,35 +87,35 @@ mod tests {
 
     #[test]
     fn test_is_password_simple() {
-        let mut rule = Rule {
+        let ref mut rule = Rule {
             from: 1,
             to: 3,
             letter: 'a',
             password: String::from("abcabab"),
         };
 
-        assert!(is_password_simple(&rule));
+        assert!(is_password_simple(rule));
 
         rule.to = 2;
-        assert!(!is_password_simple(&rule));
+        assert!(!is_password_simple(rule));
     }
 
     #[test]
     fn test_is_password_complex() {
-        let mut rule = Rule {
+        let ref mut rule = Rule {
             from: 1,
             to: 3,
             letter: 'a',
             password: String::from("abcabab"),
         };
 
-        assert!(is_password_complex(&rule));
+        assert!(is_password_complex(rule));
 
         rule.to = 4;
-        assert!(!is_password_complex(&rule));
+        assert!(!is_password_complex(rule));
 
         rule.from = 100;
-        assert!(!is_password_complex(&rule));
+        assert!(!is_password_complex(rule));
     }
 
     #[test]

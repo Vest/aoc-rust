@@ -20,4 +20,3 @@ mod tests {
         assert_eq!(answer2(""), 0);
     }
 }
-
