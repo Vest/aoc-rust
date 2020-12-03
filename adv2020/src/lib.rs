@@ -3,6 +3,7 @@ mod day1;
 mod day2;
 mod day3;
 mod day4;
+mod day5;
 /* </editor-fold> */
 
 pub fn print_answers(day: u8, input: String) {
@@ -12,8 +13,9 @@ pub fn print_answers(day: u8, input: String) {
     match day {
         1 => println!("{} {} and {}", prefix, day1::find_expenses(input), day1::find_more_expenses(input)),
         2 => println!("{} {} and {}", prefix, day2::count_simple_passwords(input), day2::count_complex_passwords(input)),
-        3 => println!("{} {} and {}", prefix, day3::answer1(input), day3::answer2(input)),
+        3 => println!("{} {} and {}", prefix, day3::count_single_slope(input), day3::count_multiple_slopes(input)),
         4 => println!("{} {} and {}", prefix, day4::answer1(input), day4::answer2(input)),
+        5 => println!("{} {} and {}", prefix, day5::answer1(input), day5::answer2(input)),
         _ => { eprintln!("2020: I don't know the answer for day {} :(", day) }
     }
 }
