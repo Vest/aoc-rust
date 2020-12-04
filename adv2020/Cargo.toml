@@ -1,6 +1,6 @@
 [package]
 name = "adv2020"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Vest <Vest@users.noreply.github.com>"]
 edition = "2018"
 
@@ -13,3 +13,4 @@ doc = false
 
 [dependencies]
 combinations = "0.1.0"
+regex = "1"
