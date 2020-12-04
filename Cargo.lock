@@ -14,14 +14,15 @@ dependencies = [
 
 [[package]]
 name = "adv2020"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "combinations",
+ "regex",
 ]
 
 [[package]]
 name = "adventofcode"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "adv2015",
  "adv2020",
