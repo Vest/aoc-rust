@@ -1,6 +1,6 @@
 [package]
 name = "adv2020"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Vest <Vest@users.noreply.github.com>"]
 edition = "2018"
 
