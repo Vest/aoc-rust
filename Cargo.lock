@@ -14,7 +14,7 @@ dependencies = [
 
 [[package]]
 name = "adv2020"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "combinations",
  "itertools",
@@ -22,7 +22,7 @@ dependencies = [
 
 [[package]]
 name = "adventofcode"
-version = "0.2.5"
+version = "0.2.6"
 dependencies = [
  "adv2015",
  "adv2020",
