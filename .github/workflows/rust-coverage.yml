@@ -44,9 +44,11 @@ jobs:
 
     - name: Run cargo-tarpaulin
       uses: actions-rs/tarpaulin@v0.1
+      env:
+        ADVENT_SECRET: ${{ secrets.ADVENT_TOKEN }}
       with:
         version: '0.16.0'
-        args: '-- --test-threads 1'
+        args: '--timeout 300 --coveralls "$ADVENT_SECRET" -- --test-threads 1'
 
     - name: Archive code coverage results
       uses: actions/upload-artifact@v1
