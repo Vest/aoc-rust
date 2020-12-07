@@ -37,7 +37,7 @@ pub fn find_answer2(input: &str) -> usize {
             line.chars()
                 .for_each(|c: char| {
                     if map_stats.contains_key(&c) {
-                        let mut value = map_stats.get(&c).unwrap();
+                        let value = map_stats.get(&c).unwrap();
                         let value = *value + 1;
                         map_stats.insert(c, value);
                     } else {
