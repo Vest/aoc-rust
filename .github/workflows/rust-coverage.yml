@@ -42,34 +42,14 @@ jobs:
         default: true
         override: true
 
-    - name: Install grcov
-      uses: actions-rs/cargo@v1
+    - name: Run cargo-tarpaulin
+      uses: actions-rs/tarpaulin@v0.1
       with:
-        command: install
-        args: grcov
-      continue-on-error: true
+        version: '0.16.0'
+        args: '-- --test-threads 1'
 
-    - name: Cargo Clean
-      uses: actions-rs/cargo@v1
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v1
       with:
-        command: clean
-
-    - name: cargo test
-      uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: --all-features --no-fail-fast -- --include-ignored -Z unstable-options
-      env:
-        CARGO_INCREMENTAL: '0'
-        RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-        RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-    
-    - id: coverage
-      name: grcov
-      uses: actions-rs/grcov@v0.1
-
-    - name: Upload to coveralls
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: ${{ steps.coverage.outputs.report }}
+        name: code-coverage-report
+        path: cobertura.xml
