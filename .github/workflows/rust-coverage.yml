@@ -42,34 +42,27 @@ jobs:
         default: true
         override: true
 
-    - name: Install grcov
-      uses: actions-rs/cargo@v1
-      with:
-        command: install
-        args: grcov
-      continue-on-error: true
-
-    - name: Cargo Clean
+    - name: Clean build folder
       uses: actions-rs/cargo@v1
       with:
         command: clean
 
-    - name: cargo test
+    - name: Run all tests
       uses: actions-rs/cargo@v1
       with:
         command: test
         args: --all-features --no-fail-fast -- --include-ignored -Z unstable-options
       env:
         CARGO_INCREMENTAL: '0'
-        RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-        RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-    
+        RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+        RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+
     - id: coverage
       name: grcov
       uses: actions-rs/grcov@v0.1
 
-    - name: Upload to coveralls
+    - name: Coveralls upload
       uses: coverallsapp/github-action@master
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ secrets.GITHUB_TOKEN }} # don't change this, because this is an internal token.
         path-to-lcov: ${{ steps.coverage.outputs.report }}
