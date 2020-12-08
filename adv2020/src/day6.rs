@@ -53,7 +53,39 @@ pub fn find_answer2(input: &str) -> usize {
         .filter(|&(_, v)| *v == lines)
         .count()
 }
+/*
+struct AggregateIterator<'a, T: Iterator<Item=&'a str> + 'a> {
+    input: T,
+}
 
+impl AggregateIterator<T> {
+    fn new(input: &str) -> AggregateIterator<T> {
+        AggregateIterator {
+            input: input.lines()
+        }
+    }
+}
+
+impl Iterator for AggregateIterator<T> {
+    type Item = String;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut vec: Vec<String> = Vec::new();
+
+        for str in self.input.map(&str::trim) {
+            if str.is_empty {
+                break;
+            }
+            vec.append(str);
+        }
+
+        if vec.is_empty() {
+            None
+        } else {
+            Some(vec.join(" "))
+        }
+    }
+}*/
 
 #[cfg(test)]
 mod tests {
