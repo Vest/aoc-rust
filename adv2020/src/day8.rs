@@ -146,7 +146,7 @@ acc +6"#;
     fn test_parse_program() {
         let program = parse_program(INPUT_PROGRAM);
         assert_eq!(program.len(), 9);
-        assert_eq!(program[0], Operation::ACC(1));
+        assert_eq!(program[0], Operation::NOP(0));
         assert_eq!(program[8], Operation::ACC(6));
     }
 
@@ -166,5 +166,8 @@ acc +6"#;
     fn test_execute_programs() {
         assert_eq!(execute_first_program(INPUT_PROGRAM), 5);
         assert_eq!(execute_second_program(INPUT_PROGRAM), 8);
+
+        assert_eq!(execute_first_program(""), 0);
+        assert_eq!(execute_second_program(""), 0);
     }
 }
