@@ -21,7 +21,7 @@ pub fn print_answers(day: u8, input: String) {
         5 => println!("{} {} and {}", prefix, day5::find_maximum_seat_id(input), day5::find_your_seat(input)),
         6 => println!("{} {} and {}", prefix, day6::find_answer1(input), day6::find_answer2(input)),
         7 => println!("{} {} and {}", prefix, day7::find_answer1(input), day7::find_answer2(input)),
-        8 => println!("{} {} and {}", prefix, day8::find_answer1(input), day8::find_answer2(input)),
+        8 => println!("{} {} and {}", prefix, day8::execute_first_program(input), day8::execute_second_program(input)),
         _ => { eprintln!("2020: I don't know the answer for day {} :(", day) }
     }
 }
