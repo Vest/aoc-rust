@@ -14,4 +14,3 @@ doc = false
 [dependencies]
 combinations = "0.1.0"
 itertools = "0.9.0"
-rand="0.7.3"
