@@ -10,6 +10,7 @@ mod day8;
 mod day9;
 mod day10;
 mod day11;
+mod day12;
 /* </editor-fold> */
 
 pub fn print_answers(day: u8, input: String) {
@@ -28,6 +29,7 @@ pub fn print_answers(day: u8, input: String) {
         9 => println!("{} {} and {}", prefix, day9::find_weak_number_25(input), day9::find_sum_of_any_numbers(input)),
         10 => println!("{} {} and {}", prefix, day10::find_one_by_three(input), day10::find_answer2(input)),
         11 => println!("{} {} and {}", prefix, day11::find_answer1(input), day11::find_answer2(input)),
+        12 => println!("{} {} and {}", prefix, day12::find_answer1(input), day12::find_answer2(input)),
        // 9 => println!("{} {} and {}", prefix, day9::find_answer1(input), day9::find_answer2(input)),
 
         _ => { eprintln!("2020: I don't know the answer for day {} :(", day) }
