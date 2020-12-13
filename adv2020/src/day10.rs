@@ -33,7 +33,7 @@ impl Default for OneTwo {
 }
 
 
-fn group_by_difference(input: &Vec<usize>) -> OneTwo {
+fn group_by_difference(input: &[usize]) -> OneTwo {
     input.windows(2)
         .filter(check_jolt)
         .fold(OneTwo::default(), |mut acc, pair| {
@@ -53,9 +53,29 @@ fn check_jolt(pair: &&[usize]) -> bool {
     }
 
     match pair[1].saturating_sub(pair[0]) {
-        1 | 3 => true,
+        1 | 2 | 3 => true,
         _ => false
     }
+}
+
+fn is_chain_valid(chain: &[usize]) -> bool {
+    chain.windows(2)
+        .find(|pair| !check_jolt(pair))
+        .is_none()
+}
+
+fn count_possible_valid_chains(chain: &[usize]) -> usize {
+    let mut count = 0;
+
+    for i in 1..chain.len() {
+        //let temp = [&[..i], &[i + 1..]].concat();
+        if is_chain_valid(&chain[i..]) {
+            count += 1;
+        }
+        count += count_possible_valid_chains(&chain[i..]);
+    }
+
+    count
 }
 
 #[cfg(test)]
@@ -92,5 +112,20 @@ mod tests {
     fn test_find_one_by_three() {
         assert_eq!(find_one_by_three(SHORT_INPUT), 7 * 5);
         assert_eq!(find_one_by_three(LONG_INPUT), 22 * 10);
+    }
+
+    #[test]
+    fn test_is_chain_valid() {
+        assert!(is_chain_valid(&vec![0, 1, 4, 5, 6, 7, 10, 11, 12, 15, 16, 19, 22]));
+        assert!(is_chain_valid(&vec![0, 1, 4, 5, 6, 7, 10, 12, 15, 16, 19, 22]));
+        assert!(is_chain_valid(&vec![0, 1, 4, 6, 7, 10, 12, 15, 16, 19, 22]));
+
+        assert!(!is_chain_valid(&vec![0, 1, 5, 8]));
+        assert!(is_chain_valid(&vec![]));
+    }
+
+    #[test]
+    fn test_count_possible_valid_chains() {
+    //    count_possible_valid_chains()
     }
 }
