@@ -94,11 +94,12 @@ mod tests {
     #[test]
     fn test_parse_as_sorted() {
         let result = parse_as_sorted("3 \n 1\n2\n\n");
-        assert_eq!(result.len(), 4);
+        assert_eq!(result.len(), 5);
         assert_eq!(result[0], 0);
         assert_eq!(result[1], 1);
         assert_eq!(result[2], 2);
         assert_eq!(result[3], 3);
+        assert_eq!(result[4], 6);
     }
 
     #[test]
