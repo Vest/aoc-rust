@@ -13,6 +13,9 @@ mod day10;
 mod day12;
 mod day13;
 mod day14;
+mod day15;
+mod day16;
+mod day17;
 /* </editor-fold> */
 
 pub fn print_answers(day: u8, input: String) {
@@ -34,6 +37,9 @@ pub fn print_answers(day: u8, input: String) {
         12 => println!("{} {} and {}", prefix, day12::find_answer1(input), day12::find_answer2(input)),
         13 => println!("{} {} and {}", prefix, day13::find_answer1(input), day13::find_answer2(input)),
         14 => println!("{} {} and {}", prefix, day14::find_answer1(input), day14::find_answer2(input)),
+        15 => println!("{} {} and {}", prefix, day15::find_answer1(input), day15::find_answer2(input)),
+        16 => println!("{} {} and {}", prefix, day16::find_answer1(input), day16::find_answer2(input)),
+        17 => println!("{} {} and {}", prefix, day17::find_answer1(input), day17::find_answer2(input)),
        // 9 => println!("{} {} and {}", prefix, day9::find_answer1(input), day9::find_answer2(input)),
 
         _ => { eprintln!("2020: I don't know the answer for day {} :(", day) }
