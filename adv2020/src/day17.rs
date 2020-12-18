@@ -2,6 +2,24 @@ use std::collections::HashSet;
 use std::cmp::{min, max};
 use itertools::iproduct;
 
+pub fn count_standard_cube(input: &str) -> usize {
+    let mut cube = Cube::load_from_string(input);
+    for _ in 1..=6 {
+        cube.evolve(false);
+    }
+
+    cube.count_actives()
+}
+
+pub fn count_hyper_cube(input: &str) -> usize {
+    let mut cube = Cube::load_from_string(input);
+    for _ in 1..=6 {
+        cube.evolve(true);
+    }
+
+    cube.count_actives()
+}
+
 #[derive(Eq, PartialEq, Hash)]
 struct Coord(i32, i32, i32, i32);
 
@@ -141,31 +159,6 @@ impl Cube {
     }
 }
 
-pub fn find_answer1(input: &str) -> usize {
-    let mut cube = Cube::load_from_string(input);
-    for _ in 1..=6 {
-        cube.evolve(false);
-    }
-
-    cube.count_actives()
-}
-
-pub fn find_answer2(input: &str) -> usize {
-    let mut cube = Cube::load_from_string(input);
-    for _ in 1..=6 {
-        cube.evolve(true);
-    }
-
-    cube.count_actives()
-}
-/*
-fn parse_input<'a>(input: &'a str) -> impl Iterator<Item=Seat> + 'a {
-    input.lines()
-        .map(&str::trim)
-        .map(parse_seat)
-}
-*/
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -176,8 +169,8 @@ mod tests {
 
     #[test]
     fn test_empty_answers() {
-        assert_eq!(find_answer1(""), 0);
-        assert_eq!(find_answer2(""), 0);
+        assert_eq!(count_standard_cube(""), 0);
+        assert_eq!(count_hyper_cube(""), 0);
     }
 
     #[test]
