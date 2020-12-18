@@ -38,7 +38,7 @@ fn parse_all(input: &str) -> (Vec<Replace>, &str) {
 
     input.lines()
         .into_iter()
-        .map(|line| line.trim())
+        .map(&str::trim)
         .for_each(|line| {
             if line.is_empty() {
                 is_molecule = true;
