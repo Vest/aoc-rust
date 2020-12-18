@@ -47,17 +47,13 @@ impl Plane {
     }
 
     fn get_seat(&self, row: i32, col: i32) -> &Seat {
-        if let Ok(u_row) = usize::try_from(row) {
-            if let Ok(u_col) = usize::try_from(col) {
-                if let Some(row) = self.seats.get(u_row) {
-                    if let Some(seat) = row.get(u_col) {
-                        return seat;
-                    }
-                }
-            }
+        match (usize::try_from(row), usize::try_from(col)) {
+            (Ok(row), Ok(col)) => self.seats
+                .get(row)
+                .and_then(|row| row.get(col))
+                .unwrap_or(&Seat::NoSeat),
+            _ => &Seat::NoSeat
         }
-
-        &Seat::NoSeat
     }
 
     fn count_direct_neighbours(&self, row: usize, col: usize) -> usize {
