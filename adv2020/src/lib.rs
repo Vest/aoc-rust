@@ -33,7 +33,7 @@ pub fn print_answers(day: u8, input: String) {
         8 => println!("{} {} and {}", prefix, day8::execute_first_program(input), day8::execute_second_program(input)),
         9 => println!("{} {} and {}", prefix, day9::find_weak_number_25(input), day9::find_sum_of_any_numbers(input)),
         10 => println!("{} {} and {}", prefix, day10::find_one_by_three(input), day10::find_answer2(input)),
-        11 => println!("{} {} and {}", prefix, day11::find_answer1(input), day11::find_answer2(input)),
+        11 => println!("{} {} and {}", prefix, day11::find_places_direct(input), day11::find_seats_visible_only(input)),
         12 => println!("{} {} and {}", prefix, day12::find_answer1(input), day12::find_answer2(input)),
         13 => println!("{} {} and {}", prefix, day13::find_answer1(input), day13::find_answer2(input)),
         14 => println!("{} {} and {}", prefix, day14::find_answer1(input), day14::find_answer2(input)),

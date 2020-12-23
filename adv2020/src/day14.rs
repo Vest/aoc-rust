@@ -51,7 +51,7 @@ fn apply_mask(mut value: usize, bitmask: &str) -> usize {
     value
 }
 
-fn create_mask(mut address: usize, bitmask: &str) -> String {
+fn create_mask(address: usize, bitmask: &str) -> String {
     bitmask.chars()
         .rev()
         .enumerate()
@@ -77,12 +77,6 @@ fn generate_addresses(bitmask: &str) -> Vec<String> {
     let total = bitmask.chars().filter(|c| *c == 'X').count();
 
     (0..2usize.pow(total as u32)).map(|i| {
-        let xs: Vec<usize> = bitmask.chars()
-            .enumerate()
-            .filter(|(pos, c)| *c == 'X')
-            .map(|(pos, _)| pos)
-            .collect();
-
         let mut j = 0usize;
 
         bitmask.chars()
@@ -107,7 +101,7 @@ pub fn find_answer2(input: &str) -> usize {
             if line.starts_with("mask") {
                 mask = extract_mask(line);
             } else {
-                let (address, mut value) = extract_address_value(line);
+                let (address, value) = extract_address_value(line);
                 let addresses = generate_addresses(create_mask(address, mask.as_str()).as_str());
                 addresses.iter()
                     .for_each(|addr| {
