@@ -197,7 +197,7 @@ mod tests {
 
     #[test]
     fn test_load_from_string() {
-        let mut cube = Cube::load_from_string(INPUT);
+        let cube = Cube::load_from_string(INPUT);
         assert_eq!(cube.dim_x, (0, 2));
         assert_eq!(cube.dim_y, (0, 2));
         assert_eq!(cube.dim_z, (0, 0));
