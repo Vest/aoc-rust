@@ -35,7 +35,7 @@ pub fn print_answers(day: u8, input: String) {
         10 => println!("{} {} and {}", prefix, day10::find_one_by_three(input), day10::find_answer2(input)),
         11 => println!("{} {} and {}", prefix, day11::find_places_direct(input), day11::find_seats_visible_only(input)),
         12 => println!("{} {} and {}", prefix, day12::find_answer1(input), day12::find_answer2(input)),
-        13 => println!("{} {} and {}", prefix, day13::find_answer1(input), day13::find_answer2(input)),
+        13 => println!("{} {} and {}", prefix, day13::find_earliest_bus(input), day13::find_earliest_timestamp(input)),
         14 => println!("{} {} and {}", prefix, day14::find_answer1(input), day14::find_answer2(input)),
         15 => println!("{} {} and {}", prefix, day15::find_answer1(input), day15::find_answer2(input)),
         16 => println!("{} {} and {}", prefix, day16::find_answer1(input), day16::find_answer2(input)),
