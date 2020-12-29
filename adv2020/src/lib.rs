@@ -37,7 +37,7 @@ pub fn print_answers(day: u8, input: String) {
         12 => println!("{} {} and {}", prefix, day12::find_answer1(input), day12::find_answer2(input)),
         13 => println!("{} {} and {}", prefix, day13::find_earliest_bus(input), day13::find_earliest_timestamp(input)),
         14 => println!("{} {} and {}", prefix, day14::find_answer1(input), day14::find_answer2(input)),
-        15 => println!("{} {} and {}", prefix, day15::find_answer1(input), day15::find_answer2(input)),
+        15 => println!("{} {} and {}", prefix, day15::find_number_2020(input), day15::find_number_30000000(input)),
         16 => println!("{} {} and {}", prefix, day16::find_answer1(input), day16::find_answer2(input)),
         17 => println!("{} {} and {}", prefix, day17::count_standard_cube(input), day17::count_hyper_cube(input)),
        // 9 => println!("{} {} and {}", prefix, day9::find_answer1(input), day9::find_answer2(input)),
