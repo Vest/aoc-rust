@@ -1,4 +1,6 @@
 use reqwest::header::{HeaderMap, HeaderValue, InvalidHeaderValue};
+use std::fmt::{Display, Formatter};
+use core::fmt;
 
 pub enum HttpError {
     WrongHeader(InvalidHeaderValue),
@@ -14,6 +16,15 @@ impl From<InvalidHeaderValue> for HttpError {
 impl From<reqwest::Error> for HttpError {
     fn from(err: reqwest::Error) -> HttpError {
         HttpError::WrongClient(err)
+    }
+}
+
+impl Display for HttpError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            HttpError::WrongHeader(_) => f.write_str("Header doesn't exist"),
+            HttpError::WrongClient(_) => f.write_str("Couldn't send the HTTP request"),
+        }
     }
 }
 
