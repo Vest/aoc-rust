@@ -40,7 +40,7 @@ fn main() {
 
                 let input = advent::get_input(day_num, year_num, session);
                 if input.is_err() {
-                    eprintln!("Couldn't get Input value for day {} / {}.", day_num, year_num);
+                    eprintln!("Couldn't get input value for day {} / {}. Error: {}", day_num, year_num, input.unwrap_err());
                     return;
                 }
 

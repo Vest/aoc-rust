@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 pub fn find_one_by_three(input: &str) -> usize {
     let input: Vec<usize> = parse_as_sorted(input);
     let OneTwo(ones, threes) = group_by_difference(&input);
@@ -5,8 +7,9 @@ pub fn find_one_by_three(input: &str) -> usize {
     ones * threes
 }
 
-pub fn find_answer2(_input: &str) -> usize {
-    0
+pub fn find_all_combinations(input: &str) -> usize {
+    let input: Vec<usize> = parse_as_sorted(input);
+    count_possible_valid_chains(&input)
 }
 
 fn parse_as_sorted(input: &str) -> Vec<usize> {
@@ -59,23 +62,69 @@ fn check_jolt(pair: &&[usize]) -> bool {
 }
 
 fn is_chain_valid(chain: &[usize]) -> bool {
+    if chain.len() <= 1 {
+        return false;
+    }
+
     chain.windows(2)
         .find(|pair| !check_jolt(pair))
         .is_none()
 }
 
 fn count_possible_valid_chains(chain: &[usize]) -> usize {
-    let mut count = 0;
+    let mut one_diffs: Vec<Vec<usize>> = vec![vec![]];
 
-    for i in 1..chain.len() {
-        //let temp = [&[..i], &[i + 1..]].concat();
-        if is_chain_valid(&chain[i..]) {
-            count += 1;
+    // creates a vector with jolts, with the difference equal to 1:
+    // one_diffs: [[0, 1], [4, 5, 6, 7], [10, 11, 12], [15, 16], [19], [22]]
+    chain.windows(2)
+        .for_each(|window| {
+            let diff = window[1] - window[0];
+            let last = one_diffs.last_mut().unwrap();
+            last.push(window[0]);
+            if diff == 3 {
+                one_diffs.push(vec![]);
+            }
+        });
+    one_diffs.last_mut().unwrap().push(*chain.last().unwrap());
+
+    one_diffs.iter()
+        .map(|joins| {
+            let length = joins.len();
+            if length == 1 || length == 2 {
+                return 1;
+            } else if length == 3 {
+                return 2;
+            }
+
+            count_one_diff_joints(joins)
+        })
+        .product()
+}
+
+fn count_one_diff_joints(adapters: &[usize]) -> usize {
+    let length = adapters.len();
+
+    (1..length - 1)
+        .map(|k| {
+            // all possible combinations. E.g. [4, 5, 6, 7] gives [4, 5, 7], [4, 6, 7], [4, 5, 6, 7]
+            adapters[1..length - 1].iter()
+                .combinations(k)
+                .filter(|joint_combination| {
+                    let mut tmp_joint = vec![adapters[0]];
+                    joint_combination.iter().for_each(|i| tmp_joint.push(**i));
+                    tmp_joint.push(*adapters.last().unwrap());
+
+                    is_chain_valid(&tmp_joint)
+                }).count()
+        }).sum::<usize>() +
+        {
+            // Situation, when we check: [4, 5, 6, 7] -> [4, 7]
+            if is_chain_valid(&vec![adapters[0], adapters[length - 1]]) {
+                1
+            } else {
+                0
+            }
         }
-        count += count_possible_valid_chains(&chain[i..]);
-    }
-
-    count
 }
 
 #[cfg(test)]
@@ -88,7 +137,7 @@ mod tests {
     #[test]
     fn test_empty_answers() {
         assert_eq!(find_one_by_three(""), 0);
-        assert_eq!(find_answer2(""), 0);
+        assert_eq!(find_all_combinations(""), 1);
     }
 
     #[test]
@@ -122,11 +171,22 @@ mod tests {
         assert!(is_chain_valid(&vec![0, 1, 4, 6, 7, 10, 12, 15, 16, 19, 22]));
 
         assert!(!is_chain_valid(&vec![0, 1, 5, 8]));
-        assert!(is_chain_valid(&vec![]));
+        assert!(!is_chain_valid(&vec![]));
     }
 
     #[test]
     fn test_count_possible_valid_chains() {
-    //    count_possible_valid_chains()
+        assert_eq!(count_possible_valid_chains(&vec![0, 1, 4, 5, 6, 7, 10, 11,
+                                                     12, 15, 16, 19, 22]), 8);
+        assert_eq!(count_possible_valid_chains(&vec![0, 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 17,
+                                                     18, 19, 20, 23, 24, 25, 28, 31, 32, 33, 34, 35,
+                                                     38, 39, 42, 45, 46, 47, 48, 49, 52]), 19208);
+    }
+
+    #[test]
+    fn test_count_one_diff_joints() {
+        assert_eq!(count_one_diff_joints(&vec![4, 5, 6, 7]), 4);
+        assert_eq!(count_one_diff_joints(&vec![4, 5, 6, 7, 8]), 7);
+        assert_eq!(count_one_diff_joints(&vec![4, 5, 6, 7, 8, 9]), 13);
     }
 }
