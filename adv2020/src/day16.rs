@@ -1,5 +1,7 @@
 use itertools::Itertools;
 use std::collections::HashMap;
+use rand::thread_rng;
+use rand::seq::SliceRandom;
 
 #[derive(Debug)]
 struct Validation<'a> {
@@ -10,8 +12,7 @@ struct Validation<'a> {
 impl Validation<'_> {
     fn is_valid(&self, number: usize) -> bool {
         self.rules.iter()
-            .find(|rule| (rule.0..=rule.1).contains(&number))
-            .is_some()
+            .any(|rule| (rule.0..=rule.1).contains(&number))
     }
 }
 
@@ -43,6 +44,9 @@ pub fn find_answer2(input: &str) -> usize {
             .all(|number| is_number_correct(*number, &validations))
         )
         .collect::<Vec<Vec<usize>>>();
+
+    other_tickets.iter()
+        .for_each(|ticket| println!("{:?}", ticket));
 
     let correct_combination = find_validation_combination(&other_tickets, &validations);
 
@@ -108,7 +112,7 @@ fn is_number_correct(number: usize, validations: &Vec<Validation>) -> bool {
     validations.iter()
         .any(|Validation { rules, .. }|
             rules.iter()
-                .any(|(from, to)| number >= *from && number <= *to)
+                .any(|&(from, to)| (from..=to).contains(&number))
         )
 }
 
@@ -133,22 +137,32 @@ fn validate_rules_ordered(numbers: &Vec<usize>, validations: &Vec<&Validation>) 
 fn find_validation_combination<'a>(tickets: &Vec<Vec<usize>>, validations: &'a Vec<Validation<'a>>) -> Vec<&'a Validation<'a>> {
     let validations_count = validations.len();
 
+    let mut shuffled = validations.iter().collect::<Vec<&Validation>>();
+
+
     let mut valid_rules = HashMap::<usize, &Validation>::new();
 
-    //  while valid_rules.len() != validations_count {
-    'another_rule: for rule in validations {
-        'position: for pos in 0..validations_count {
-            if valid_rules.contains_key(&pos) {
-                continue 'position;
+    while valid_rules.len() != validations_count {
+        'another_rule: for rule in &shuffled {
+            'position: for pos in 0..validations_count {
+                if valid_rules.contains_key(&pos) {
+                    continue 'position;
+                }
+                if tickets.iter()
+                    .all(|ticket| rule.is_valid(ticket[pos])) {
+                    valid_rules.insert(pos, rule);
+                    continue 'another_rule;
+                }
             }
-            if tickets.iter()
-                .all(|ticket| rule.is_valid(ticket[pos])) {
-                valid_rules.insert(pos, rule);
-                continue 'another_rule;
-            }
+            println!("nikaque: {:?}", rule);
+        }
+
+        if valid_rules.len() != validations_count {
+            println!("Couldn't find the order");
+            shuffled.shuffle(&mut thread_rng());
+            valid_rules.clear();
         }
     }
-    //  }
 
     println!("Identified rules, count: {}, {:?}", valid_rules.len(), valid_rules);
 
