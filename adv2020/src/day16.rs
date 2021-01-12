@@ -1,9 +1,6 @@
 use itertools::Itertools;
 use std::collections::HashMap;
-use rand::thread_rng;
-use rand::seq::SliceRandom;
 
-#[derive(Debug)]
 struct Validation<'a> {
     name: &'a str,
     rules: Vec<(usize, usize)>,
@@ -16,7 +13,7 @@ impl Validation<'_> {
     }
 }
 
-pub fn find_answer1(input: &str) -> usize {
+pub fn find_invalid_tickets(input: &str) -> usize {
     let mut lines = input.lines();
     let validations = extract_rules(&mut lines);
 
@@ -29,7 +26,11 @@ pub fn find_answer1(input: &str) -> usize {
         .sum::<usize>()
 }
 
-pub fn find_answer2(input: &str) -> usize {
+pub fn find_departure_tickets(input: &str) -> usize {
+    if input.is_empty() {
+        return 0;
+    }
+
     let mut lines = input.lines();
     let validations = extract_rules(&mut lines);
 
@@ -45,9 +46,6 @@ pub fn find_answer2(input: &str) -> usize {
         )
         .collect::<Vec<Vec<usize>>>();
 
-    other_tickets.iter()
-        .for_each(|ticket| println!("{:?}", ticket));
-
     let correct_combination = find_validation_combination(&other_tickets, &validations);
 
     correct_combination.iter()
@@ -56,7 +54,6 @@ pub fn find_answer2(input: &str) -> usize {
         .map(|(pos, _)| your_ticket[pos])
         .product()
 }
-
 
 fn extract_rules<'a>(lines: &mut dyn Iterator<Item=&'a str>) -> Vec<Validation<'a>> {
     let mut validations: Vec<Validation> = Vec::new();
@@ -78,7 +75,7 @@ fn map_rule(input: &str) -> Option<Validation> {
     let name = splitter.next()?;
     let range = splitter.next()?.split("or")
         .map(&str::trim)
-        .map(|part|
+        .map(|part: &str|
             part.split('-')
                 .map(&str::parse::<usize>)
                 .filter_map(Result::ok)
@@ -123,48 +120,36 @@ fn parse_numbers(input: &str) -> Vec<usize> {
         .collect::<Vec<usize>>()
 }
 
-fn validate_rules_ordered(numbers: &Vec<usize>, validations: &Vec<&Validation>) -> bool {
-    if numbers.len() != validations.len() {
-        return false;
-    }
-
-    numbers.iter()
-        .zip(validations)
-        .find(|(&num, &validation)| !validation.is_valid(num))
-        .is_none()
-}
-
 fn find_validation_combination<'a>(tickets: &Vec<Vec<usize>>, validations: &'a Vec<Validation<'a>>) -> Vec<&'a Validation<'a>> {
     let validations_count = validations.len();
-
-    let mut shuffled = validations.iter().collect::<Vec<&Validation>>();
-
 
     let mut valid_rules = HashMap::<usize, &Validation>::new();
 
     while valid_rules.len() != validations_count {
-        'another_rule: for rule in &shuffled {
-            'position: for pos in 0..validations_count {
+        let mut candidate: Option<(&Validation, usize)> = None;
+
+        'rule: for rule in validations {
+            'pos: for pos in 0..validations_count {
                 if valid_rules.contains_key(&pos) {
-                    continue 'position;
+                    continue 'pos;
                 }
+
                 if tickets.iter()
                     .all(|ticket| rule.is_valid(ticket[pos])) {
-                    valid_rules.insert(pos, rule);
-                    continue 'another_rule;
+                    if candidate.is_none() {
+                        candidate = Some((rule, pos));
+                    } else {
+                        candidate = None;
+                        continue 'rule;
+                    }
                 }
             }
-            println!("nikaque: {:?}", rule);
-        }
 
-        if valid_rules.len() != validations_count {
-            println!("Couldn't find the order");
-            shuffled.shuffle(&mut thread_rng());
-            valid_rules.clear();
+            if let Some((candidate_rule, candidate_pos)) = candidate {
+                valid_rules.insert(candidate_pos, candidate_rule);
+            }
         }
     }
-
-    println!("Identified rules, count: {}, {:?}", valid_rules.len(), valid_rules);
 
     valid_rules.into_iter()
         .sorted_by(|a, b| a.0.cmp(&b.0))
@@ -176,11 +161,10 @@ fn find_validation_combination<'a>(tickets: &Vec<Vec<usize>>, validations: &'a V
 mod tests {
     use super::*;
 
-
     #[test]
     fn test_empty_answers() {
-        assert_eq!(find_answer1(""), 0);
-        assert_eq!(find_answer2(""), 0);
+        assert_eq!(find_invalid_tickets(""), 0);
+        assert_eq!(find_departure_tickets(""), 0);
     }
 
     #[test]
@@ -218,8 +202,8 @@ nearby tickets:
 38,6,12"#;
 
     #[test]
-    fn test_find_answer1() {
-        let result = find_answer1(INPUT);
+    fn test_find_invalid_tickets() {
+        let result = find_invalid_tickets(INPUT);
 
         assert_eq!(result, 71);
     }
@@ -257,28 +241,6 @@ seat: 13-40 or 45-50"#.lines();
     }
 
     #[test]
-    fn test_validate_rules_ordered() {
-        let mut lines = r#"class: 0-1 or 4-19
-row: 0-5 or 8-19
-seat: 0-13 or 16-19"#.lines();
-        let rules = extract_rules(&mut lines);
-        let ticket_1 = vec![3, 9, 18];
-        let ticket_2 = vec![15, 1, 5];
-        let ticket_3 = vec![5, 14, 9];
-
-        let rule_1 = vec![&rules[0], &rules[1], &rules[2]];
-        let rule_2 = vec![&rules[1], &rules[0], &rules[2]];
-
-        assert!(!validate_rules_ordered(&ticket_1, &rule_1));
-        assert!(validate_rules_ordered(&ticket_2, &rule_1));
-        assert!(validate_rules_ordered(&ticket_3, &rule_1));
-
-        assert!(validate_rules_ordered(&ticket_1, &rule_2));
-        assert!(validate_rules_ordered(&ticket_2, &rule_2));
-        assert!(validate_rules_ordered(&ticket_3, &rule_2));
-    }
-
-    #[test]
     fn test_find_validation_combination() {
         let mut lines = r#"class: 0-1 or 4-19
 row: 0-5 or 8-19
@@ -296,5 +258,22 @@ seat: 0-13 or 16-19"#.lines();
         assert_eq!(ordered_rules[0].name, "row");
         assert_eq!(ordered_rules[1].name, "class");
         assert_eq!(ordered_rules[2].name, "seat");
+    }
+
+    #[test]
+    fn test_find_departure_tickets() {
+        let input = r#"class: 0-1 or 4-19
+row: 0-5 or 8-19
+departure seat: 0-13 or 16-19
+
+your ticket:
+3,6,17
+
+nearby tickets:
+3,9,18
+15,1,5
+5,14,9"#;
+        let result = find_departure_tickets(input);
+        assert_eq!(result, 17);
     }
 }
