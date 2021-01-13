@@ -1,5 +1,5 @@
 use reqwest::header::{HeaderMap, HeaderValue, InvalidHeaderValue};
-use std::fmt::{Display, Formatter};
+use std::fmt::{Display};
 use core::fmt;
 
 pub enum HttpError {
