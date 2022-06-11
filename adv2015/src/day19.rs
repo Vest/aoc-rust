@@ -72,13 +72,13 @@ fn build_molecules(molecule: &str, replacements: &Vec<Replace>) -> HashSet<Strin
                 let mut molecule: Vec<&str> = Vec::with_capacity(atoms.len());
                 if atoms[top] == replace.from {
                     if top > 0 {
-                        &atoms[0..top].iter()
-                            .for_each(|a| molecule.push(a));
+                        molecule.extend(atoms.iter()
+                            .take(top));
                     }
                     molecule.push(replace.to);
                     if top < atoms.len() - 1 {
-                        &atoms[top + 1..].iter()
-                            .for_each(|a| molecule.push(a));
+                        molecule.extend(atoms.iter()
+                            .skip(top + 1));
                     }
 
                     let result_molecule = String::from(molecule.concat());
