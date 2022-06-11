@@ -1,20 +1,20 @@
 mod advent;
 
 use std::env;
-use clap::{Arg, App};
+use clap::{Arg, Command};
 
 fn main() {
-    let matches = App::new("Advent 2015, 2020!")
+    let matches = Command::new("Advent 2015, 2020!")
         .author("Vest <vest at github.com>")
         .about("Solves advent calendar from https://adventofcode.com")
-        .arg(Arg::with_name("day")
-            .short("d")
+        .arg(Arg::new("day")
+            .short('d')
             .long("day")
             .takes_value(true)
             .required(false)
             .help("A day of the advent"))
-        .arg(Arg::with_name("year")
-            .short("y")
+        .arg(Arg::new("year")
+            .short('y')
             .long("year")
             .takes_value(true)
             .required(false)
