@@ -6,10 +6,7 @@ pub fn mine_suffix(secret: &str, zeroes: u8) -> u32 {
         pattern.push('0');
     }
 
-    while !is_adventcoin(
-        calc_md5(secret, answer).as_str(),
-        pattern.as_str(),
-    ) {
+    while !is_adventcoin(calc_md5(secret, answer).as_str(), pattern.as_str()) {
         answer += 1;
     }
 
@@ -33,19 +30,33 @@ mod tests {
 
     #[test]
     fn test_calc_md5() {
-        assert_eq!(calc_md5("abcdef", 609043), "000001dbbfa3a5c83a2d506429c7b00e")
+        assert_eq!(
+            calc_md5("abcdef", 609043),
+            "000001dbbfa3a5c83a2d506429c7b00e"
+        )
     }
 
     #[test]
     fn test_is_adventcoin() {
-        assert!(is_adventcoin("000001dbbfa3a5c83a2d506429c7b00e", "00000"), "doesn't have five zeroes");
+        assert!(
+            is_adventcoin("000001dbbfa3a5c83a2d506429c7b00e", "00000"),
+            "doesn't have five zeroes"
+        );
     }
 
     #[test]
     #[ignore]
     fn test_mine_suffix_slow() {
-        assert_eq!(mine_suffix("abcdef", 5), 609043, "Didn't mine suffix properly");
-        assert_eq!(mine_suffix("pqrstuv", 5), 1048970, "Didn't mine suffix properly");
+        assert_eq!(
+            mine_suffix("abcdef", 5),
+            609043,
+            "Didn't mine suffix properly"
+        );
+        assert_eq!(
+            mine_suffix("pqrstuv", 5),
+            1048970,
+            "Didn't mine suffix properly"
+        );
     }
 
     #[test]

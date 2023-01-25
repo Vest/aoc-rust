@@ -1,11 +1,11 @@
-use std::str::FromStr;
 use std::collections::HashMap;
+use std::str::FromStr;
 
 pub fn get_answer_b(input: &str) -> i32 {
     let instructions = parse_code(input);
     let mut machine = Machine::new(instructions);
 
-    while machine.do_evaluate() {};
+    while machine.do_evaluate() {}
 
     Machine::get_register(&mut machine.registers, &'b')
 }
@@ -15,7 +15,7 @@ pub fn get_answer_b_after_a(input: &str) -> i32 {
     let mut machine = Machine::new(instructions);
     Machine::set_register(&mut machine.registers, &'a', 1);
 
-    while machine.do_evaluate() {};
+    while machine.do_evaluate() {}
 
     Machine::get_register(&mut machine.registers, &'b')
 }
@@ -85,7 +85,10 @@ impl Machine {
 
                     if let Instruction::jie(_, _) = inst {
                         // Is even
-                        Self::jump(&mut self.position, if register_value & 1 == 0 { *o } else { 1 })
+                        Self::jump(
+                            &mut self.position,
+                            if register_value & 1 == 0 { *o } else { 1 },
+                        )
                     } else {
                         Self::jump(&mut self.position, if register_value == 1 { *o } else { 1 })
                     }
@@ -108,9 +111,7 @@ impl Machine {
     }
 
     fn get_register(registers: &mut HashMap<Register, i32>, r: &Register) -> i32 {
-        registers.entry(*r)
-            .or_insert(0)
-            .clone()
+        registers.entry(*r).or_insert(0).clone()
     }
 
     fn set_register(registers: &mut HashMap<Register, i32>, r: &Register, v: i32) {
@@ -125,7 +126,8 @@ impl FromStr for Instruction {
     type Err = ParseInstructionError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let split: Vec<&str> = s.trim()
+        let split: Vec<&str> = s
+            .trim()
             .split(|c: char| c == ' ' || c == ',')
             .filter(|s| !s.is_empty())
             .collect();
@@ -168,13 +170,14 @@ impl FromStr for Instruction {
                         .map(|o| Instruction::jio(r, o))
                 }),
 
-            _ => Err(ParseInstructionError(String::from(s)))
+            _ => Err(ParseInstructionError(String::from(s))),
         }
     }
 }
 
 fn parse_code(input: &str) -> Vec<Instruction> {
-    input.lines()
+    input
+        .lines()
         .map(|l| Instruction::from_str(l))
         .filter_map(|r| r.ok())
         .collect()
@@ -200,7 +203,7 @@ mod tests {
                 (jmp(o1), jmp(o2)) => o1 == o2,
                 (jie(r1, o1), jie(r2, o2)) => r1 == r2 && o1 == o2,
                 (jio(r1, o1), jio(r2, o2)) => r1 == r2 && o1 == o2,
-                (_, _) => false
+                (_, _) => false,
             }
         }
     }
@@ -226,24 +229,54 @@ mod tests {
         assert_ne!(Instruction::from_str("jio c, -2").unwrap(), inc('c'));
 
         // PartialEq for ParseInstructionError
-        assert_eq!(Instruction::from_str("jio err, -2").unwrap_err(), ParseInstructionError(String::from("jio err, -2")));
+        assert_eq!(
+            Instruction::from_str("jio err, -2").unwrap_err(),
+            ParseInstructionError(String::from("jio err, -2"))
+        );
 
         // only xxx y or xxx y, z
-        assert_eq!(Instruction::from_str("jio a, b, c, d").unwrap_err(), ParseInstructionError(String::from("jio a, b, c, d")));
+        assert_eq!(
+            Instruction::from_str("jio a, b, c, d").unwrap_err(),
+            ParseInstructionError(String::from("jio a, b, c, d"))
+        );
     }
 
     #[test]
     fn test_debug() {
-        assert_eq!(format!("{:?}", Instruction::from_str("hlf a").unwrap()), "hlf('a')");
-        assert_eq!(format!("{:?}", Instruction::from_str("tpl b").unwrap()), "tpl('b')");
-        assert_eq!(format!("{:?}", Instruction::from_str("inc c").unwrap()), "inc('c')");
-        assert_eq!(format!("{:?}", Instruction::from_str("jmp 1").unwrap()), "jmp(1)");
-        assert_eq!(format!("{:?}", Instruction::from_str("jie b, 3").unwrap()), "jie('b', 3)");
-        assert_eq!(format!("{:?}", Instruction::from_str("jio  b, 3").unwrap()), "jio('b', 3)");
+        assert_eq!(
+            format!("{:?}", Instruction::from_str("hlf a").unwrap()),
+            "hlf('a')"
+        );
+        assert_eq!(
+            format!("{:?}", Instruction::from_str("tpl b").unwrap()),
+            "tpl('b')"
+        );
+        assert_eq!(
+            format!("{:?}", Instruction::from_str("inc c").unwrap()),
+            "inc('c')"
+        );
+        assert_eq!(
+            format!("{:?}", Instruction::from_str("jmp 1").unwrap()),
+            "jmp(1)"
+        );
+        assert_eq!(
+            format!("{:?}", Instruction::from_str("jie b, 3").unwrap()),
+            "jie('b', 3)"
+        );
+        assert_eq!(
+            format!("{:?}", Instruction::from_str("jio  b, 3").unwrap()),
+            "jio('b', 3)"
+        );
 
-        assert_eq!(format!("{:?}", Instruction::from_str("jpa  b, 3").unwrap_err()), "ParseInstructionError(\"jpa  b, 3\")");
+        assert_eq!(
+            format!("{:?}", Instruction::from_str("jpa  b, 3").unwrap_err()),
+            "ParseInstructionError(\"jpa  b, 3\")"
+        );
 
-        assert_eq!(format!("{:?}", Instruction::from_str("jio err, -2").unwrap_err()), "ParseInstructionError(\"jio err, -2\")");
+        assert_eq!(
+            format!("{:?}", Instruction::from_str("jio err, -2").unwrap_err()),
+            "ParseInstructionError(\"jio err, -2\")"
+        );
     }
 
     #[test]

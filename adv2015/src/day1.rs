@@ -67,4 +67,3 @@ mod tests {
         assert_eq!(count_position("()()("), None);
     }
 }
-

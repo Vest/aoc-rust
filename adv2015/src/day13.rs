@@ -1,6 +1,6 @@
-use std::collections::{HashMap, HashSet};
 use permute::permutations_of;
 use std::cmp::max;
+use std::collections::{HashMap, HashSet};
 
 pub fn get_answer(input: &str) -> i32 {
     calculate_everyone(input)
@@ -21,7 +21,8 @@ fn parse_line(input: &str) -> PersonToPerson {
     let who = split.next().unwrap(); // name
     split.next(); // would
     let verb = split.next().unwrap(); // gain/lose
-    let attitude = split.next().unwrap().parse::<i32>().unwrap() * if verb == "lose" { -1 } else { 1 }; // amount * verb
+    let attitude =
+        split.next().unwrap().parse::<i32>().unwrap() * if verb == "lose" { -1 } else { 1 }; // amount * verb
     split.next(); // happiness
     split.next(); // units
     split.next(); // by
@@ -39,9 +40,7 @@ fn parse_line(input: &str) -> PersonToPerson {
 }
 
 fn parse_input(input: &str) -> Vec<PersonToPerson> {
-    let vec: Vec<PersonToPerson> = input.lines()
-        .map(|line| parse_line(line))
-        .collect();
+    let vec: Vec<PersonToPerson> = input.lines().map(|line| parse_line(line)).collect();
 
     vec
 }
@@ -59,7 +58,9 @@ fn build_relationships(input: &Vec<PersonToPerson>) -> HashMap<(String, String),
 fn extract_names(input: &Vec<PersonToPerson>) -> HashSet<String> {
     let mut hash_set: HashSet<String> = HashSet::with_capacity(5);
 
-    input.iter().for_each(|person| { hash_set.insert(person.who.clone()); });
+    input.iter().for_each(|person| {
+        hash_set.insert(person.who.clone());
+    });
 
     hash_set
 }
@@ -77,7 +78,10 @@ fn calculate_happiness(people: &Vec<String>, relationship: &HashMap<(String, Str
     result
 }
 
-fn calculate_happiness_with_me(people: &Vec<String>, relationship: &HashMap<(String, String), i32>) -> i32 {
+fn calculate_happiness_with_me(
+    people: &Vec<String>,
+    relationship: &HashMap<(String, String), i32>,
+) -> i32 {
     let mut result = 0i32;
     let mut previous = String::from(people.last().unwrap());
 
@@ -98,7 +102,10 @@ fn calculate_happiness_with_me(people: &Vec<String>, relationship: &HashMap<(Str
 fn calculate_everyone(input: &str) -> i32 {
     let people = parse_input(input);
     let relationship = build_relationships(&people);
-    let table: Vec<String> = extract_names(&people).iter().map(|n| (*n).clone()).collect();
+    let table: Vec<String> = extract_names(&people)
+        .iter()
+        .map(|n| (*n).clone())
+        .collect();
 
     let mut result = 0i32;
 
@@ -115,7 +122,10 @@ fn calculate_everyone(input: &str) -> i32 {
 fn calculate_everyone_and_me(input: &str) -> i32 {
     let people = parse_input(input);
     let relationship = build_relationships(&people);
-    let mut table: Vec<String> = extract_names(&people).iter().map(|n| (*n).clone()).collect();
+    let mut table: Vec<String> = extract_names(&people)
+        .iter()
+        .map(|n| (*n).clone())
+        .collect();
     table.push("Me".to_string());
 
     let mut result = 0i32;
@@ -201,7 +211,12 @@ mod tests {
     fn test_calculate_happiness() {
         let people = parse_input(INPUT);
         let hash_map = build_relationships(&people);
-        let table: Vec<String> = vec!["Alice".to_string(), "Bob".to_string(), "Carol".to_string(), "David".to_string()];
+        let table: Vec<String> = vec![
+            "Alice".to_string(),
+            "Bob".to_string(),
+            "Carol".to_string(),
+            "David".to_string(),
+        ];
 
         let result = calculate_happiness(&table, &hash_map);
         assert_eq!(result, 330);

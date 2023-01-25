@@ -8,26 +8,26 @@ pub fn find_maximum_seat_id(input: &str) -> usize {
 }
 
 pub fn find_your_seat(input: &str) -> usize {
-   if let Err(result) = parse_seats(input)
-        .map(|seat| seat.id())
-        .sorted()
-        .try_fold(0, |acc, item| {
-            if item - acc == 1 || acc == 0 {
-                Ok(item)
-            } else {
-                Err(acc + 1) // next ID after the last successful
-            }
-        }) {
-       result
-   } else {
-       0
-   }
+    if let Err(result) =
+        parse_seats(input)
+            .map(|seat| seat.id())
+            .sorted()
+            .try_fold(0, |acc, item| {
+                if item - acc == 1 || acc == 0 {
+                    Ok(item)
+                } else {
+                    Err(acc + 1) // next ID after the last successful
+                }
+            })
+    {
+        result
+    } else {
+        0
+    }
 }
 
-fn parse_seats<'a>(input: &'a str) -> impl Iterator<Item=Seat> + 'a {
-    input.lines()
-        .map(&str::trim)
-        .map(parse_seat)
+fn parse_seats<'a>(input: &'a str) -> impl Iterator<Item = Seat> + 'a {
+    input.lines().map(&str::trim).map(parse_seat)
 }
 
 struct Seat(usize, usize);
@@ -36,29 +36,27 @@ fn parse_seat(input: &str) -> Seat {
     let mut row = (0, 127usize);
     let mut column = (0, 7usize);
 
-    input.chars()
+    input
+        .chars()
         .map(|c| c.to_ascii_uppercase())
         .enumerate()
-        .for_each(|(position, c)| {
-            match position {
-                0..=6 => {
-                    let lower = (row.0, (row.1 + row.0 + 1) / 2 - 1);
-                    let upper = ((row.1 + row.0 + 1) / 2, row.1);
+        .for_each(|(position, c)| match position {
+            0..=6 => {
+                let lower = (row.0, (row.1 + row.0 + 1) / 2 - 1);
+                let upper = ((row.1 + row.0 + 1) / 2, row.1);
 
-                    row = if c == 'F' { lower } else { upper };
-                }
-
-                7..=9 => {
-                    let lower = (column.0, (column.1 + column.0 + 1) / 2 - 1);
-                    let upper = ((column.1 + column.0 + 1) / 2, column.1);
-
-                    column = if c == 'L' { lower } else { upper };
-                }
-
-                _ => {}
+                row = if c == 'F' { lower } else { upper };
             }
-        });
 
+            7..=9 => {
+                let lower = (column.0, (column.1 + column.0 + 1) / 2 - 1);
+                let upper = ((column.1 + column.0 + 1) / 2, column.1);
+
+                column = if c == 'L' { lower } else { upper };
+            }
+
+            _ => {}
+        });
 
     Seat(row.0, column.0)
 }

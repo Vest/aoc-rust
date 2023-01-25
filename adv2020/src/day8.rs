@@ -5,7 +5,9 @@ pub fn execute_first_program(input: &str) -> i32 {
 
     if let Execution::Infinite(result) = execute_program(&program) {
         result
-    } else { 0 }
+    } else {
+        0
+    }
 }
 
 pub fn execute_second_program(input: &str) -> i32 {
@@ -65,9 +67,7 @@ fn parse_line(input: &str) -> Option<Operation> {
 }
 
 fn parse_program(input: &str) -> Vec<Operation> {
-    input.lines()
-        .filter_map(parse_line)
-        .collect()
+    input.lines().filter_map(parse_line).collect()
 }
 
 fn execute_program(program: &Vec<Operation>) -> Execution {
@@ -119,7 +119,6 @@ enum Execution {
 #[cfg(test)]
 mod tests {
     use super::*;
-
 
     const INPUT_PROGRAM: &'static str = r#"nop +0
 acc +1

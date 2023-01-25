@@ -26,8 +26,7 @@ struct RangiferTarandus {
 fn parse_line(input: &str) -> RangiferTarandus {
     let mut split = input.split_whitespace();
     let name = String::from(split.next().unwrap());
-    let numbers: Vec<usize> = split.filter_map(|s| s.parse().ok())
-        .collect();
+    let numbers: Vec<usize> = split.filter_map(|s| s.parse().ok()).collect();
 
     RangiferTarandus {
         _name: name,
@@ -55,7 +54,8 @@ fn calculate_deer(deer: &RangiferTarandus, time: usize) -> usize {
 }
 
 fn find_fastest_deer(input: &str, total: usize) -> usize {
-    input.lines()
+    input
+        .lines()
         .map(|l| parse_line(l))
         .map(|d| calculate_deer(&d, total))
         .max()
@@ -63,48 +63,43 @@ fn find_fastest_deer(input: &str, total: usize) -> usize {
 }
 
 fn deer_race(input: &str, duration: usize) -> usize {
-    let mut deers: Vec<RangiferTarandus> = input.lines()
-        .map(|l| parse_line(l))
-        .collect();
+    let mut deers: Vec<RangiferTarandus> = input.lines().map(|l| parse_line(l)).collect();
 
     for _ in 0..duration + 1 {
-        deers.iter_mut()
-            .for_each(|d| {
-                if d.running_time == d.endurance {
-                    d.is_running = false;
-                    d.sleeping_time = 0;
-                    d.running_time = 0;
-                }
+        deers.iter_mut().for_each(|d| {
+            if d.running_time == d.endurance {
+                d.is_running = false;
+                d.sleeping_time = 0;
+                d.running_time = 0;
+            }
 
-                if d.sleeping_time == d.sleep {
-                    d.is_running = true;
-                    d.sleeping_time = 0;
-                    d.running_time = 0;
-                }
+            if d.sleeping_time == d.sleep {
+                d.is_running = true;
+                d.sleeping_time = 0;
+                d.running_time = 0;
+            }
 
-                if d.is_running {
-                    d.distance += d.speed;
-                    d.running_time += 1;
-                } else {
-                    d.sleeping_time += 1;
-                }
-            });
+            if d.is_running {
+                d.distance += d.speed;
+                d.running_time += 1;
+            } else {
+                d.sleeping_time += 1;
+            }
+        });
 
-        if let Some(max_distance) = deers.iter()
-            .map(|d| d.distance)
-            .max() {
-            deers.iter_mut()
+        if let Some(max_distance) = deers.iter().map(|d| d.distance).max() {
+            deers
+                .iter_mut()
                 .filter(|d| d.distance == max_distance)
                 .for_each(|d| d.points += 1);
         }
     }
 
-    return if let Some(deer) = deers.iter()
-        .max_by_key(|d| d.points) {
+    return if let Some(deer) = deers.iter().max_by_key(|d| d.points) {
         deer.points
     } else {
         0
-    }
+    };
 }
 
 #[cfg(test)]
@@ -124,8 +119,11 @@ mod tests {
 
     #[test]
     fn test_calculate_deer() {
-        let input1 = parse_line("Comet can fly 14 km/s for 10 seconds, but then must rest for 127 seconds.");
-        let input2 = parse_line("Dancer can fly 16 km/s for 11 seconds, but then must rest for 162 seconds.");
+        let input1 =
+            parse_line("Comet can fly 14 km/s for 10 seconds, but then must rest for 127 seconds.");
+        let input2 = parse_line(
+            "Dancer can fly 16 km/s for 11 seconds, but then must rest for 162 seconds.",
+        );
 
         let result1 = calculate_deer(&input1, 1000);
         let result2 = calculate_deer(&input2, 1000);

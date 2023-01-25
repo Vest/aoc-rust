@@ -78,30 +78,102 @@ impl Generator {
 }
 
 const WEAPONS: [Item; 5] = [
-    Item { cost: 8, damage: 4, armor: 0 },
-    Item { cost: 10, damage: 5, armor: 0 },
-    Item { cost: 25, damage: 6, armor: 0 },
-    Item { cost: 40, damage: 7, armor: 0 },
-    Item { cost: 74, damage: 8, armor: 0 },
+    Item {
+        cost: 8,
+        damage: 4,
+        armor: 0,
+    },
+    Item {
+        cost: 10,
+        damage: 5,
+        armor: 0,
+    },
+    Item {
+        cost: 25,
+        damage: 6,
+        armor: 0,
+    },
+    Item {
+        cost: 40,
+        damage: 7,
+        armor: 0,
+    },
+    Item {
+        cost: 74,
+        damage: 8,
+        armor: 0,
+    },
 ];
 
 const ARMORS: [Item; 6] = [
-    Item { cost: 0, damage: 0, armor: 0 },
-    Item { cost: 13, damage: 0, armor: 1 },
-    Item { cost: 31, damage: 0, armor: 2 },
-    Item { cost: 53, damage: 0, armor: 3 },
-    Item { cost: 75, damage: 0, armor: 4 },
-    Item { cost: 102, damage: 0, armor: 5 },
+    Item {
+        cost: 0,
+        damage: 0,
+        armor: 0,
+    },
+    Item {
+        cost: 13,
+        damage: 0,
+        armor: 1,
+    },
+    Item {
+        cost: 31,
+        damage: 0,
+        armor: 2,
+    },
+    Item {
+        cost: 53,
+        damage: 0,
+        armor: 3,
+    },
+    Item {
+        cost: 75,
+        damage: 0,
+        armor: 4,
+    },
+    Item {
+        cost: 102,
+        damage: 0,
+        armor: 5,
+    },
 ];
 
 const RINGS: [Item; 7] = [
-    Item { cost: 0, damage: 0, armor: 0 }, //no ring
-    Item { cost: 20, damage: 0, armor: 1 }, // defense +1
-    Item { cost: 25, damage: 1, armor: 0 }, // offense +1
-    Item { cost: 40, damage: 0, armor: 2 }, // defense +2
-    Item { cost: 50, damage: 2, armor: 0 }, // offense +2
-    Item { cost: 80, damage: 0, armor: 3 }, // defense +3
-    Item { cost: 100, damage: 3, armor: 0 }, // offense +3
+    Item {
+        cost: 0,
+        damage: 0,
+        armor: 0,
+    }, //no ring
+    Item {
+        cost: 20,
+        damage: 0,
+        armor: 1,
+    }, // defense +1
+    Item {
+        cost: 25,
+        damage: 1,
+        armor: 0,
+    }, // offense +1
+    Item {
+        cost: 40,
+        damage: 0,
+        armor: 2,
+    }, // defense +2
+    Item {
+        cost: 50,
+        damage: 2,
+        armor: 0,
+    }, // offense +2
+    Item {
+        cost: 80,
+        damage: 0,
+        armor: 3,
+    }, // defense +3
+    Item {
+        cost: 100,
+        damage: 3,
+        armor: 0,
+    }, // offense +3
 ];
 
 impl Default for Human {
@@ -142,7 +214,8 @@ impl Iterator for Generator {
         }
 
         // Check to see if we've finished counting or not.
-        if self.counter > 0x4556 { // max digits, e.g. 5 weapons, 6 armors, 7 rings
+        if self.counter > 0x4556 {
+            // max digits, e.g. 5 weapons, 6 armors, 7 rings
             return None;
         }
 
@@ -167,7 +240,8 @@ impl Iterator for Generator {
 }
 
 fn parse_enemy(input: &str) -> Human {
-    input.to_lowercase()
+    input
+        .to_lowercase()
         .lines()
         .map(|line| line.trim())
         .fold(Human::default(), |mut res, line| {
@@ -207,7 +281,9 @@ fn fight_to_death(human_sample: &Human, enemy_sample: &Human) -> Battle {
 
 fn attack(attacker: &Human, defender: &mut Human) {
     let damage = attacker.damage.saturating_sub(defender.armor);
-    defender.health = defender.health.saturating_sub(if damage == 0 { 1 } else { damage });
+    defender.health = defender
+        .health
+        .saturating_sub(if damage == 0 { 1 } else { damage });
 }
 
 #[cfg(test)]
@@ -229,7 +305,8 @@ mod tests {
             r#"Hit Points: 100
             Damage: 8
             Armor: 2
-            Name: Tester"#);
+            Name: Tester"#,
+        );
 
         assert_eq!(enemy.health, 100);
         assert_eq!(enemy.damage, 8);
@@ -245,8 +322,18 @@ mod tests {
 
     #[test]
     fn test_fight_to_death() {
-        let human = Human { health: 8, damage: 5, armor: 5, wealth: 0 };
-        let enemy = Human { health: 12, damage: 7, armor: 2, wealth: 0 };
+        let human = Human {
+            health: 8,
+            damage: 5,
+            armor: 5,
+            wealth: 0,
+        };
+        let enemy = Human {
+            health: 12,
+            damage: 7,
+            armor: 2,
+            wealth: 0,
+        };
 
         let result = fight_to_death(&human, &enemy);
         assert_eq!(result, Battle::Won, "The battle should be won");
@@ -255,8 +342,18 @@ mod tests {
 
     #[test]
     fn test_fight_with_uber_boss() {
-        let human = Human { health: 8, damage: 5, armor: 5, wealth: 0 };
-        let enemy = Human { health: 12, damage: 20, armor: 2, wealth: 0 };
+        let human = Human {
+            health: 8,
+            damage: 5,
+            armor: 5,
+            wealth: 0,
+        };
+        let enemy = Human {
+            health: 12,
+            damage: 20,
+            armor: 2,
+            wealth: 0,
+        };
 
         let result = fight_to_death(&human, &enemy);
         assert_eq!(result, Battle::Lost, "The battle should be lost");
@@ -264,8 +361,18 @@ mod tests {
 
     #[test]
     fn test_attack() {
-        let human = Human { health: 8, damage: 5, armor: 5, wealth: 0 };
-        let mut enemy = Human { health: 12, damage: 7, armor: 2, wealth: 0 };
+        let human = Human {
+            health: 8,
+            damage: 5,
+            armor: 5,
+            wealth: 0,
+        };
+        let mut enemy = Human {
+            health: 12,
+            damage: 7,
+            armor: 2,
+            wealth: 0,
+        };
 
         attack(&human, &mut enemy);
         assert_eq!(enemy.health, 12 - (5 - 2)); // 9 left
@@ -280,7 +387,8 @@ mod tests {
         let wealth = find_cheapest_warrior(
             r#"Hit Points: 100
             Damage: 8
-            Armor: 2"#);
+            Armor: 2"#,
+        );
 
         assert_eq!(wealth, 91);
     }
@@ -290,7 +398,8 @@ mod tests {
         let wealth = find_expensive_loser(
             r#"Hit Points: 100
             Damage: 8
-            Armor: 2"#);
+            Armor: 2"#,
+        );
 
         assert_eq!(wealth, 158);
     }

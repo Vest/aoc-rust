@@ -1,5 +1,5 @@
-use std::fmt;
 use std::collections::HashMap;
+use std::fmt;
 use std::fmt::Formatter;
 
 pub fn count_input_a(input: &str) -> u16 {
@@ -14,7 +14,9 @@ pub fn count_input_a_override(input: &str) -> u16 {
     bobby.interpret(String::from(input));
 
     let value_for_b = bobby.evaluate(&String::from("a")).unwrap();
-    bobby.evaluate_override_signal(&String::from("a"), &String::from("b"), value_for_b).unwrap_or_default()
+    bobby
+        .evaluate_override_signal(&String::from("a"), &String::from("b"), value_for_b)
+        .unwrap_or_default()
 }
 
 struct NextToken(Token, usize);
@@ -32,7 +34,6 @@ enum Token {
     Assign,
     EOF,
 }
-
 
 #[derive(Copy, Clone)]
 enum Operation {
@@ -87,7 +88,6 @@ struct BobbyInterpreter {
     tree: HashMap<String, Command>,
     cache: HashMap<String, u16>,
 }
-
 
 impl Lexer {
     fn new(input: String) -> Lexer {
@@ -203,7 +203,10 @@ impl Parser {
                         if let Token::Wire(target) = token {
                             if commands.len() == 1 {
                                 if let Some(lvalue) = lvalue_from_one(&commands) {
-                                    return Expression::Assign(Command::Result(lvalue), LValue::Var(target));
+                                    return Expression::Assign(
+                                        Command::Result(lvalue),
+                                        LValue::Var(target),
+                                    );
                                 }
                             } else if commands.len() == 2 {
                                 if let Some(lvalue) = lvalue_from_two(&commands) {
@@ -278,41 +281,65 @@ fn lvalue_from_three(commands: &Vec<Token>) -> Option<Command> {
     let lvalue2 = &commands[2];
 
     match op {
-        Token::And =>
+        Token::And => {
             if let (Token::Wire(s1), Token::Wire(s2)) = (lvalue1, lvalue2) {
-                Some(Command::Binary(RValue::Var(s1.clone()), Operation::And, RValue::Var(s2.clone())))
+                Some(Command::Binary(
+                    RValue::Var(s1.clone()),
+                    Operation::And,
+                    RValue::Var(s2.clone()),
+                ))
             } else if let (Token::Signal(u1), Token::Wire(s2)) = (lvalue1, lvalue2) {
-                Some(Command::Binary(RValue::Const(u1.clone()), Operation::And, RValue::Var(s2.clone())))
+                Some(Command::Binary(
+                    RValue::Const(u1.clone()),
+                    Operation::And,
+                    RValue::Var(s2.clone()),
+                ))
             } else {
                 None
-            },
-        Token::Or =>
+            }
+        }
+        Token::Or => {
             if let (Token::Wire(s1), Token::Wire(s2)) = (lvalue1, lvalue2) {
-                Some(Command::Binary(RValue::Var(s1.clone()), Operation::Or, RValue::Var(s2.clone())))
+                Some(Command::Binary(
+                    RValue::Var(s1.clone()),
+                    Operation::Or,
+                    RValue::Var(s2.clone()),
+                ))
             } else {
                 None
-            },
-        Token::LeftShift =>
+            }
+        }
+        Token::LeftShift => {
             if let (Token::Wire(ls1), Token::Signal(u1)) = (lvalue1, lvalue2) {
-                Some(Command::Binary(RValue::Var(ls1.clone()), Operation::LShift, RValue::Const(u1.clone())))
+                Some(Command::Binary(
+                    RValue::Var(ls1.clone()),
+                    Operation::LShift,
+                    RValue::Const(u1.clone()),
+                ))
             } else {
                 None
-            },
-        Token::RightShift =>
+            }
+        }
+        Token::RightShift => {
             if let (Token::Wire(rs1), Token::Signal(u1)) = (lvalue1, lvalue2) {
-                Some(Command::Binary(RValue::Var(rs1.clone()), Operation::RShift, RValue::Const(u1.clone())))
+                Some(Command::Binary(
+                    RValue::Var(rs1.clone()),
+                    Operation::RShift,
+                    RValue::Const(u1.clone()),
+                ))
             } else {
                 None
-            },
-        _ => None
+            }
+        }
+        _ => None,
     }
 }
 
 impl fmt::Display for Expression {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Expression::NOP => { f.write_str("NOP") }
-            Expression::Assign(_, _) => { f.write_str("Assign") }
+            Expression::NOP => f.write_str("NOP"),
+            Expression::Assign(_, _) => f.write_str("Assign"),
         }
     }
 }
@@ -349,12 +376,11 @@ impl fmt::Display for Operation {
 impl fmt::Display for Command {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            Command::Result(lvalue) =>
-                f.write_fmt(format_args!("{}", lvalue)),
-            Command::Binary(lvalue1, op, lvalue2) =>
-                f.write_fmt(format_args!("{} {} {}", lvalue1, op, lvalue2)),
-            Command::Unary(op, lvalue) =>
-                f.write_fmt(format_args!("{} {}", op, lvalue)),
+            Command::Result(lvalue) => f.write_fmt(format_args!("{}", lvalue)),
+            Command::Binary(lvalue1, op, lvalue2) => {
+                f.write_fmt(format_args!("{} {} {}", lvalue1, op, lvalue2))
+            }
+            Command::Unary(op, lvalue) => f.write_fmt(format_args!("{} {}", op, lvalue)),
         }
     }
 }
@@ -405,18 +431,16 @@ impl BobbyInterpreter {
         }
 
         let result = match next_command.unwrap().clone() {
-            Command::Result(lvalue) => {
-                match lvalue {
-                    RValue::Const(c) => Some(c.clone()),
-                    RValue::Var(w) => self.evaluate(&w),
-                }
-            }
+            Command::Result(lvalue) => match lvalue {
+                RValue::Const(c) => Some(c.clone()),
+                RValue::Var(w) => self.evaluate(&w),
+            },
             Command::Unary(op, lvalue) => {
                 // There is only one Unary operation, for more you can add "match"
                 if let Operation::Not = op {
                     match lvalue {
                         RValue::Const(c) => Some(!c.clone()),
-                        RValue::Var(w) => Some(!self.evaluate(&w).unwrap())
+                        RValue::Var(w) => Some(!self.evaluate(&w).unwrap()),
                     }
                 } else {
                     None
@@ -450,14 +474,21 @@ impl BobbyInterpreter {
         result
     }
 
-    fn evaluate_override_signal(&mut self, wire: &String, new_wire: &String, new_value: u16) -> Option<u16> {
+    fn evaluate_override_signal(
+        &mut self,
+        wire: &String,
+        new_wire: &String,
+        new_value: u16,
+    ) -> Option<u16> {
         self.cache.clear();
-        self.tree.insert((*new_wire).clone(), Command::Result(RValue::Const(new_value)));
+        self.tree.insert(
+            (*new_wire).clone(),
+            Command::Result(RValue::Const(new_value)),
+        );
 
         self.evaluate(wire)
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -485,8 +516,10 @@ mod tests {
     impl fmt::Debug for Expression {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             match self {
-                Expression::NOP => { f.write_str("NOP") }
-                Expression::Assign(command, rvalue) => { f.write_fmt(format_args!("{} = {}", rvalue, command)) }
+                Expression::NOP => f.write_str("NOP"),
+                Expression::Assign(command, rvalue) => {
+                    f.write_fmt(format_args!("{} = {}", rvalue, command))
+                }
             }
         }
     }
@@ -505,7 +538,11 @@ mod tests {
         fn eq(&self, other: &Self) -> bool {
             match (self, other) {
                 (Expression::NOP, Expression::NOP) => true,
-                (Expression::Assign(c1, r1), Expression::Assign(c2, r2)) if c1 == c2 && r1 == r2 => true,
+                (Expression::Assign(c1, r1), Expression::Assign(c2, r2))
+                    if c1 == c2 && r1 == r2 =>
+                {
+                    true
+                }
                 _ => false,
             }
         }
@@ -515,8 +552,14 @@ mod tests {
         fn eq(&self, other: &Self) -> bool {
             match (self, other) {
                 (Command::Result(l1), Command::Result(l2)) if l1 == l2 => true,
-                (Command::Binary(l11, op1, l12), Command::Binary(l21, op2, l22)) if l11 == l21 && op1 == op2 && l12 == l22 => true,
-                (Command::Unary(op1, l1), Command::Unary(op2, l2)) if op1 == op2 && l1 == l2 => true,
+                (Command::Binary(l11, op1, l12), Command::Binary(l21, op2, l22))
+                    if l11 == l21 && op1 == op2 && l12 == l22 =>
+                {
+                    true
+                }
+                (Command::Unary(op1, l1), Command::Unary(op2, l2)) if op1 == op2 && l1 == l2 => {
+                    true
+                }
                 _ => false,
             }
         }
@@ -570,94 +613,238 @@ mod tests {
     #[test]
     fn test_get_token_assign() {
         let input = "123 -> x";
-        assert_eq!(get_token(input, 0), NextToken(Token::Signal(123), 3), "Unexpected Token");
-        assert_eq!(get_token(input, 3), NextToken(Token::Assign, 6), "Unexpected Token");
-        assert_eq!(get_token(input, 6), NextToken(Token::Wire(String::from("x")), input.len()), "Unexpected Token");
+        assert_eq!(
+            get_token(input, 0),
+            NextToken(Token::Signal(123), 3),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 3),
+            NextToken(Token::Assign, 6),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 6),
+            NextToken(Token::Wire(String::from("x")), input.len()),
+            "Unexpected Token"
+        );
     }
 
     #[test]
     fn test_get_token_and() {
         let input = "x AND y -> d";
-        assert_eq!(get_token(input, 0), NextToken(Token::Wire(String::from("x")), 1), "Unexpected Token");
-        assert_eq!(get_token(input, 1), NextToken(Token::And, 5), "Unexpected Token");
-        assert_eq!(get_token(input, 5), NextToken(Token::Wire(String::from("y")), 7), "Unexpected Token");
-        assert_eq!(get_token(input, 7), NextToken(Token::Assign, 10), "Unexpected Token");
-        assert_eq!(get_token(input, 10), NextToken(Token::Wire(String::from("d")), input.len()), "Unexpected Token");
+        assert_eq!(
+            get_token(input, 0),
+            NextToken(Token::Wire(String::from("x")), 1),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 1),
+            NextToken(Token::And, 5),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 5),
+            NextToken(Token::Wire(String::from("y")), 7),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 7),
+            NextToken(Token::Assign, 10),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 10),
+            NextToken(Token::Wire(String::from("d")), input.len()),
+            "Unexpected Token"
+        );
     }
 
     #[test]
     fn test_get_token_or() {
         let input = "x OR y -> e";
-        assert_eq!(get_token(input, 0), NextToken(Token::Wire(String::from("x")), 1), "Unexpected Token");
-        assert_eq!(get_token(input, 1), NextToken(Token::Or, 4), "Unexpected Token");
-        assert_eq!(get_token(input, 4), NextToken(Token::Wire(String::from("y")), 6), "Unexpected Token");
-        assert_eq!(get_token(input, 6), NextToken(Token::Assign, 9), "Unexpected Token");
-        assert_eq!(get_token(input, 9), NextToken(Token::Wire(String::from("e")), input.len()), "Unexpected Token");
+        assert_eq!(
+            get_token(input, 0),
+            NextToken(Token::Wire(String::from("x")), 1),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 1),
+            NextToken(Token::Or, 4),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 4),
+            NextToken(Token::Wire(String::from("y")), 6),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 6),
+            NextToken(Token::Assign, 9),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 9),
+            NextToken(Token::Wire(String::from("e")), input.len()),
+            "Unexpected Token"
+        );
     }
 
     #[test]
     fn test_get_token_lshift() {
         let input = "x LSHIFT 2 -> f";
-        assert_eq!(get_token(input, 0), NextToken(Token::Wire(String::from("x")), 1), "Unexpected Token");
-        assert_eq!(get_token(input, 1), NextToken(Token::LeftShift, 8), "Unexpected Token");
-        assert_eq!(get_token(input, 8), NextToken(Token::Signal(2), 10), "Unexpected Token");
-        assert_eq!(get_token(input, 10), NextToken(Token::Assign, 13), "Unexpected Token");
-        assert_eq!(get_token(input, 13), NextToken(Token::Wire(String::from("f")), input.len()), "Unexpected Token");
+        assert_eq!(
+            get_token(input, 0),
+            NextToken(Token::Wire(String::from("x")), 1),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 1),
+            NextToken(Token::LeftShift, 8),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 8),
+            NextToken(Token::Signal(2), 10),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 10),
+            NextToken(Token::Assign, 13),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 13),
+            NextToken(Token::Wire(String::from("f")), input.len()),
+            "Unexpected Token"
+        );
     }
 
     #[test]
     fn test_get_token_rshift() {
         let input = "y RSHIFT 2 -> g";
-        assert_eq!(get_token(input, 0), NextToken(Token::Wire(String::from("y")), 1), "Unexpected Token");
-        assert_eq!(get_token(input, 1), NextToken(Token::RightShift, 8), "Unexpected Token");
-        assert_eq!(get_token(input, 8), NextToken(Token::Signal(2), 10), "Unexpected Token");
-        assert_eq!(get_token(input, 10), NextToken(Token::Assign, 13), "Unexpected Token");
-        assert_eq!(get_token(input, 13), NextToken(Token::Wire(String::from("g")), input.len()), "Unexpected Token");
+        assert_eq!(
+            get_token(input, 0),
+            NextToken(Token::Wire(String::from("y")), 1),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 1),
+            NextToken(Token::RightShift, 8),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 8),
+            NextToken(Token::Signal(2), 10),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 10),
+            NextToken(Token::Assign, 13),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 13),
+            NextToken(Token::Wire(String::from("g")), input.len()),
+            "Unexpected Token"
+        );
     }
 
     #[test]
     fn test_get_token_not() {
         let input = "NOT x -> h";
-        assert_eq!(get_token(input, 0), NextToken(Token::Not, 3), "Unexpected Token");
-        assert_eq!(get_token(input, 3), NextToken(Token::Wire(String::from("x")), 5), "Unexpected Token");
-        assert_eq!(get_token(input, 5), NextToken(Token::Assign, 8), "Unexpected Token");
-        assert_eq!(get_token(input, 8), NextToken(Token::Wire(String::from("h")), input.len()), "Unexpected Token");
+        assert_eq!(
+            get_token(input, 0),
+            NextToken(Token::Not, 3),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 3),
+            NextToken(Token::Wire(String::from("x")), 5),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 5),
+            NextToken(Token::Assign, 8),
+            "Unexpected Token"
+        );
+        assert_eq!(
+            get_token(input, 8),
+            NextToken(Token::Wire(String::from("h")), input.len()),
+            "Unexpected Token"
+        );
     }
 
     #[test]
     fn test_lexer() {
-        let mut lexer = Lexer::new(String::from("123 -> x\r\n456 -> y\r\nx AND y -> d\r\nx OR y -> e"));
+        let mut lexer = Lexer::new(String::from(
+            "123 -> x\r\n456 -> y\r\nx AND y -> d\r\nx OR y -> e",
+        ));
         assert_eq!(lexer.next_token(), Token::Signal(123), "Unexpected Token");
         assert_eq!(lexer.next_token(), Token::Assign, "Unexpected Token");
-        assert_eq!(lexer.next_token(), Token::Wire(String::from("x")), "Unexpected Token");
+        assert_eq!(
+            lexer.next_token(),
+            Token::Wire(String::from("x")),
+            "Unexpected Token"
+        );
 
         assert_eq!(lexer.next_token(), Token::Signal(456), "Unexpected Token");
         assert_eq!(lexer.next_token(), Token::Assign, "Unexpected Token");
-        assert_eq!(lexer.next_token(), Token::Wire(String::from("y")), "Unexpected Token");
+        assert_eq!(
+            lexer.next_token(),
+            Token::Wire(String::from("y")),
+            "Unexpected Token"
+        );
 
-        assert_eq!(lexer.next_token(), Token::Wire(String::from("x")), "Unexpected Token");
+        assert_eq!(
+            lexer.next_token(),
+            Token::Wire(String::from("x")),
+            "Unexpected Token"
+        );
         assert_eq!(lexer.next_token(), Token::And, "Unexpected Token");
-        assert_eq!(lexer.next_token(), Token::Wire(String::from("y")), "Unexpected Token");
+        assert_eq!(
+            lexer.next_token(),
+            Token::Wire(String::from("y")),
+            "Unexpected Token"
+        );
         assert_eq!(lexer.next_token(), Token::Assign, "Unexpected Token");
-        assert_eq!(lexer.next_token(), Token::Wire(String::from("d")), "Unexpected Token");
+        assert_eq!(
+            lexer.next_token(),
+            Token::Wire(String::from("d")),
+            "Unexpected Token"
+        );
 
-        assert_eq!(lexer.next_token(), Token::Wire(String::from("x")), "Unexpected Token");
+        assert_eq!(
+            lexer.next_token(),
+            Token::Wire(String::from("x")),
+            "Unexpected Token"
+        );
         assert_eq!(lexer.next_token(), Token::Or, "Unexpected Token");
-        assert_eq!(lexer.next_token(), Token::Wire(String::from("y")), "Unexpected Token");
+        assert_eq!(
+            lexer.next_token(),
+            Token::Wire(String::from("y")),
+            "Unexpected Token"
+        );
         assert_eq!(lexer.next_token(), Token::Assign, "Unexpected Token");
-        assert_eq!(lexer.next_token(), Token::Wire(String::from("e")), "Unexpected Token");
+        assert_eq!(
+            lexer.next_token(),
+            Token::Wire(String::from("e")),
+            "Unexpected Token"
+        );
     }
 
     #[test]
     fn test_parser() {
-        let mut parser = Parser::new(String::from("123 -> x
+        let mut parser = Parser::new(String::from(
+            "123 -> x
                                            456 -> y
                                            x AND y -> d
                                            x OR y -> e
                                            x LSHIFT 2 -> f
                                            y RSHIFT 2 -> g
                                            NOT x -> h
-                                           NOT y -> i"));
+                                           NOT y -> i",
+        ));
         match parser.next_operation() {
             Expression::Assign(c, v) => {
                 if let Command::Result(RValue::Const(u)) = c {
@@ -715,49 +902,95 @@ mod tests {
 
     #[test]
     fn test_bobby_interpreter() {
-        let input = String::from("123 -> x
+        let input = String::from(
+            "123 -> x
                                            456 -> y
                                            x AND y -> d
                                            x OR y -> e
                                            x LSHIFT 2 -> f
                                            y RSHIFT 2 -> g
                                            NOT x -> h
-                                           NOT y -> i");
+                                           NOT y -> i",
+        );
         let mut bobby = BobbyInterpreter::new();
         bobby.interpret(input);
         bobby.print_ast();
         let def = 0xffffu16;
 
-        assert_eq!(bobby.evaluate(&String::from("x")).unwrap_or(def.clone()), 123, "Unexpected value X");
-        assert_eq!(bobby.evaluate(&String::from("y")).unwrap_or(def.clone()), 456, "Unexpected value Y");
-        assert_eq!(bobby.evaluate(&String::from("h")).unwrap_or(def.clone()), 65412, "Unexpected value H");
-        assert_eq!(bobby.evaluate(&String::from("i")).unwrap_or(def.clone()), 65079, "Unexpected value I");
-        assert_eq!(bobby.evaluate(&String::from("d")).unwrap_or(def.clone()), 72, "Unexpected value D");
-        assert_eq!(bobby.evaluate(&String::from("e")).unwrap_or(def.clone()), 507, "Unexpected value E");
-        assert_eq!(bobby.evaluate(&String::from("f")).unwrap_or(def.clone()), 492, "Unexpected value F");
-        assert_eq!(bobby.evaluate(&String::from("g")).unwrap_or(def.clone()), 114, "Unexpected value G");
+        assert_eq!(
+            bobby.evaluate(&String::from("x")).unwrap_or(def.clone()),
+            123,
+            "Unexpected value X"
+        );
+        assert_eq!(
+            bobby.evaluate(&String::from("y")).unwrap_or(def.clone()),
+            456,
+            "Unexpected value Y"
+        );
+        assert_eq!(
+            bobby.evaluate(&String::from("h")).unwrap_or(def.clone()),
+            65412,
+            "Unexpected value H"
+        );
+        assert_eq!(
+            bobby.evaluate(&String::from("i")).unwrap_or(def.clone()),
+            65079,
+            "Unexpected value I"
+        );
+        assert_eq!(
+            bobby.evaluate(&String::from("d")).unwrap_or(def.clone()),
+            72,
+            "Unexpected value D"
+        );
+        assert_eq!(
+            bobby.evaluate(&String::from("e")).unwrap_or(def.clone()),
+            507,
+            "Unexpected value E"
+        );
+        assert_eq!(
+            bobby.evaluate(&String::from("f")).unwrap_or(def.clone()),
+            492,
+            "Unexpected value F"
+        );
+        assert_eq!(
+            bobby.evaluate(&String::from("g")).unwrap_or(def.clone()),
+            114,
+            "Unexpected value G"
+        );
     }
 
     #[test]
     fn test_lexer_eof() {
-        let mut lexer = Lexer::new(String::from("123 -> x
-                                           456 -> y"));
+        let mut lexer = Lexer::new(String::from(
+            "123 -> x
+                                           456 -> y",
+        ));
         assert_eq!(lexer.next_token(), Token::Signal(123), "Unexpected Token");
         assert_eq!(lexer.next_token(), Token::Assign, "Unexpected Token");
-        assert_eq!(lexer.next_token(), Token::Wire(String::from("x")), "Unexpected Token");
+        assert_eq!(
+            lexer.next_token(),
+            Token::Wire(String::from("x")),
+            "Unexpected Token"
+        );
 
         assert_eq!(lexer.next_token(), Token::Signal(456), "Unexpected Token");
         assert_eq!(lexer.next_token(), Token::Assign, "Unexpected Token");
-        assert_eq!(lexer.next_token(), Token::Wire(String::from("y")), "Unexpected Token");
+        assert_eq!(
+            lexer.next_token(),
+            Token::Wire(String::from("y")),
+            "Unexpected Token"
+        );
 
         assert_eq!(lexer.next_token(), Token::EOF, "Unexpected Token");
     }
 
     #[test]
     fn test_parser_with_const() {
-        let mut parser = Parser::new(String::from("jp RSHIFT 5 -> js
+        let mut parser = Parser::new(String::from(
+            "jp RSHIFT 5 -> js
         1 AND io -> ip
-        eo LSHIFT 15 -> es"));
+        eo LSHIFT 15 -> es",
+        ));
 
         match parser.next_operation() {
             Expression::Assign(c, v) => {
@@ -804,14 +1037,20 @@ mod tests {
 
     #[test]
     fn test_bobby_interpreter_empty() {
-        let input = String::from("123 -> x
-                                           456 -> y");
+        let input = String::from(
+            "123 -> x
+                                           456 -> y",
+        );
         let mut bobby = BobbyInterpreter::new();
         bobby.interpret(input);
         bobby.print_ast();
         let def = 0xffffu16;
 
-        assert_eq!(bobby.evaluate(&String::from("vest")).unwrap_or(def.clone()), 0xffffu16, "We shouldn't find any value");
+        assert_eq!(
+            bobby.evaluate(&String::from("vest")).unwrap_or(def.clone()),
+            0xffffu16,
+            "We shouldn't find any value"
+        );
     }
 
     #[test]
@@ -826,22 +1065,47 @@ mod tests {
         assert_eq!(Token::Assign.to_string(), "->");
         assert_eq!(Token::EOF.to_string(), "eof");
 
-        assert_eq!(Expression::Assign(Command::Result(RValue::Const(23)), LValue::Var(String::from("abc"))).to_string(), "Assign");
+        assert_eq!(
+            Expression::Assign(
+                Command::Result(RValue::Const(23)),
+                LValue::Var(String::from("abc"))
+            )
+            .to_string(),
+            "Assign"
+        );
         assert_eq!(Expression::NOP.to_string(), "NOP");
     }
 
     #[test]
     fn test_debug() {
-        assert_eq!(format!("{:?}", NextToken(Token::Signal(23), 12)), "NextToken(Signal(23), 12)");
+        assert_eq!(
+            format!("{:?}", NextToken(Token::Signal(23), 12)),
+            "NextToken(Signal(23), 12)"
+        );
 
         assert_eq!(format!("{:?}", RValue::Var(String::from("a"))), "a");
         assert_eq!(format!("{:?}", RValue::Const(23)), "23");
 
-        assert_eq!(format!("{:?}", Expression::Assign(Command::Result(RValue::Const(23)), LValue::Var(String::from("abc")))), "abc = 23");
-        assert_eq!(format!("{:?}", Expression::Assign(
-            Command::Result(RValue::Var(String::from("a"))),
-            LValue::Var(String::from("abc")))
-        ), "abc = a");
+        assert_eq!(
+            format!(
+                "{:?}",
+                Expression::Assign(
+                    Command::Result(RValue::Const(23)),
+                    LValue::Var(String::from("abc"))
+                )
+            ),
+            "abc = 23"
+        );
+        assert_eq!(
+            format!(
+                "{:?}",
+                Expression::Assign(
+                    Command::Result(RValue::Var(String::from("a"))),
+                    LValue::Var(String::from("abc"))
+                )
+            ),
+            "abc = a"
+        );
 
         assert_eq!(format!("{:?}", Expression::NOP), "NOP");
     }
@@ -850,51 +1114,79 @@ mod tests {
     fn test_parser_errors() {
         let mut parser = Parser::new(String::from("2 -> x"));
         let assign = parser.next_operation();
-        assert_eq!(assign, Expression::Assign(Command::Result(RValue::Const(2)), LValue::Var(String::from("x"))));
+        assert_eq!(
+            assign,
+            Expression::Assign(
+                Command::Result(RValue::Const(2)),
+                LValue::Var(String::from("x"))
+            )
+        );
 
         let mut parser = Parser::new(String::from("x RSHIFT 2 -> y"));
         let rshift_good = parser.next_operation();
-        assert_eq!(rshift_good, Expression::Assign(
-            Command::Binary(
-                RValue::Var(String::from("x")),
-                Operation::RShift,
-                RValue::Const(2)),
-            LValue::Var(String::from("y"))));
+        assert_eq!(
+            rshift_good,
+            Expression::Assign(
+                Command::Binary(
+                    RValue::Var(String::from("x")),
+                    Operation::RShift,
+                    RValue::Const(2)
+                ),
+                LValue::Var(String::from("y"))
+            )
+        );
 
         let mut parser = Parser::new(String::from("x LSHIFT 3 -> ly"));
         let lshift_good = parser.next_operation();
-        assert_eq!(lshift_good, Expression::Assign(
-            Command::Binary(
-                RValue::Var(String::from("x")),
-                Operation::LShift,
-                RValue::Const(3)),
-            LValue::Var(String::from("ly"))));
+        assert_eq!(
+            lshift_good,
+            Expression::Assign(
+                Command::Binary(
+                    RValue::Var(String::from("x")),
+                    Operation::LShift,
+                    RValue::Const(3)
+                ),
+                LValue::Var(String::from("ly"))
+            )
+        );
 
         let mut parser = Parser::new(String::from("x AND y -> ay"));
         let and_good = parser.next_operation();
-        assert_eq!(and_good, Expression::Assign(
-            Command::Binary(
-                RValue::Var(String::from("x")),
-                Operation::And,
-                RValue::Var(String::from("y"))),
-            LValue::Var(String::from("ay"))));
+        assert_eq!(
+            and_good,
+            Expression::Assign(
+                Command::Binary(
+                    RValue::Var(String::from("x")),
+                    Operation::And,
+                    RValue::Var(String::from("y"))
+                ),
+                LValue::Var(String::from("ay"))
+            )
+        );
 
         let mut parser = Parser::new(String::from("y OR x -> oy"));
         let or_good = parser.next_operation();
-        assert_eq!(or_good, Expression::Assign(
-            Command::Binary(
-                RValue::Var(String::from("y")),
-                Operation::Or,
-                RValue::Var(String::from("x"))),
-            LValue::Var(String::from("oy"))));
+        assert_eq!(
+            or_good,
+            Expression::Assign(
+                Command::Binary(
+                    RValue::Var(String::from("y")),
+                    Operation::Or,
+                    RValue::Var(String::from("x"))
+                ),
+                LValue::Var(String::from("oy"))
+            )
+        );
 
         let mut parser = Parser::new(String::from("NOT y -> ny"));
         let not_good = parser.next_operation();
-        assert_eq!(not_good, Expression::Assign(
-            Command::Unary(
-                Operation::Not,
-                RValue::Var(String::from("y"))),
-            LValue::Var(String::from("ny"))));
+        assert_eq!(
+            not_good,
+            Expression::Assign(
+                Command::Unary(Operation::Not, RValue::Var(String::from("y"))),
+                LValue::Var(String::from("ny"))
+            )
+        );
 
         let mut parser = Parser::new(String::from("2 LSHIFT 1 -> z"));
         let lshift = parser.next_operation();
@@ -914,9 +1206,13 @@ mod tests {
 
         let mut parser = Parser::new(String::from("x -> t"));
         let assign_bad = parser.next_operation();
-        assert_eq!(assign_bad, Expression::Assign(
-            Command::Result(RValue::Var(String::from("x"))),
-            LValue::Var(String::from("t"))));
+        assert_eq!(
+            assign_bad,
+            Expression::Assign(
+                Command::Result(RValue::Var(String::from("x"))),
+                LValue::Var(String::from("t"))
+            )
+        );
 
         let mut parser = Parser::new(String::from("8 RSHIFT x -> t"));
         let rshift_x = parser.next_operation();
@@ -958,10 +1254,12 @@ mod tests {
     #[test]
     fn test_interpreter() {
         let mut bobby = BobbyInterpreter::new();
-        bobby.interpret(String::from(r#"NOT a -> b
+        bobby.interpret(String::from(
+            r#"NOT a -> b
         b AND d -> e
         1 -> a
-        a -> d"#));
+        a -> d"#,
+        ));
         let answer = bobby.evaluate(&String::from("e"));
         assert_eq!(answer.unwrap(), 0);
     }
