@@ -32,7 +32,6 @@ struct Grid {
     grid: Vec<Vec<bool>>,
 }
 
-
 impl Grid {
     fn new(size: usize) -> Grid {
         Grid {
@@ -87,7 +86,8 @@ impl Grid {
             results.push(self.is_on(row3, col3));
         }
 
-        results.iter()
+        results
+            .iter()
             .filter(|&r| r.is_some())
             .map(|r| r.unwrap())
             .filter(|&r| *r)
@@ -95,16 +95,11 @@ impl Grid {
     }
 
     fn parse_grid(&mut self, lines: &str) {
-        lines.lines()
-            .enumerate()
-            .for_each(|(row, line)| {
-                line.trim()
-                    .chars()
-                    .enumerate()
-                    .for_each(|(col, light)| {
-                        self.grid[row][col] = light == '#';
-                    })
-            });
+        lines.lines().enumerate().for_each(|(row, line)| {
+            line.trim().chars().enumerate().for_each(|(col, light)| {
+                self.grid[row][col] = light == '#';
+            })
+        });
     }
 
     fn evolve(&mut self) {
@@ -125,12 +120,9 @@ impl Grid {
     }
 
     fn count_lights(&self) -> usize {
-        self.grid.iter()
-            .map(|line|
-                line.iter()
-                    .filter(|&light| *light)
-                    .count()
-            )
+        self.grid
+            .iter()
+            .map(|line| line.iter().filter(|&light| *light).count())
             .sum()
     }
 

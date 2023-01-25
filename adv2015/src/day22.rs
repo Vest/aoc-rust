@@ -46,8 +46,8 @@ struct GameState {
 
 impl GameState {
     fn find_possible_actions(&self) -> Vec<Action> {
-        let mut possible_actions: Vec<Action> = vec![Action::from_u8(1).unwrap(),
-                                                     Action::from_u8(2).unwrap()];
+        let mut possible_actions: Vec<Action> =
+            vec![Action::from_u8(1).unwrap(), Action::from_u8(2).unwrap()];
         let mut queue_clone = self.queue.to_vec();
         for action_idx in 3..=5 {
             if let Some(action) = Action::from_u8(action_idx) {
@@ -180,11 +180,30 @@ impl Enemy {
 impl Action {
     fn from_u8(n: u8) -> Option<Self> {
         match n {
-            1 => Some(Action::MagickMissile { cost: 53, damage: 4 }),
-            2 => Some(Action::Drain { cost: 73, damage: 2, heal: 2 }),
-            3 => Some(Action::Shield { cost: 113, duration: 6, armor: 7 }),
-            4 => Some(Action::Poison { cost: 173, duration: 6, damage: 3 }),
-            5 => Some(Action::Recharge { cost: 229, duration: 5, mana: 101 }),
+            1 => Some(Action::MagickMissile {
+                cost: 53,
+                damage: 4,
+            }),
+            2 => Some(Action::Drain {
+                cost: 73,
+                damage: 2,
+                heal: 2,
+            }),
+            3 => Some(Action::Shield {
+                cost: 113,
+                duration: 6,
+                armor: 7,
+            }),
+            4 => Some(Action::Poison {
+                cost: 173,
+                duration: 6,
+                damage: 3,
+            }),
+            5 => Some(Action::Recharge {
+                cost: 229,
+                duration: 5,
+                mana: 101,
+            }),
             _ => None,
         }
     }
@@ -200,7 +219,8 @@ impl Default for Enemy {
 }
 
 fn parse_enemy(input: &str) -> Enemy {
-    input.to_lowercase()
+    input
+        .to_lowercase()
         .lines()
         .map(|line| line.trim())
         .fold(Enemy::default(), |mut res, line| {
@@ -255,7 +275,12 @@ fn is_queue_valid(queue: &Vec<Action>) -> bool {
     true
 }
 
-fn simulate_battle(player: &Player, enemy: &Enemy, actions: &Vec<Action>, hard: bool) -> (Battle, usize) {
+fn simulate_battle(
+    player: &Player,
+    enemy: &Enemy,
+    actions: &Vec<Action>,
+    hard: bool,
+) -> (Battle, usize) {
     let mut cost = 0usize;
     let mut player_clone = (*player).clone();
     let mut enemy_clone = (*enemy).clone();
@@ -307,10 +332,14 @@ fn simulate_battle(player: &Player, enemy: &Enemy, actions: &Vec<Action>, hard: 
                 enemy_clone.health = enemy_clone.health.saturating_sub(*damage);
                 player_clone.health = player_clone.health.saturating_add(*heal);
             }
-            Action::Shield { duration, armor, .. } => {
+            Action::Shield {
+                duration, armor, ..
+            } => {
                 shield_status = (*duration, *armor);
             }
-            Action::Poison { duration, damage, .. } => {
+            Action::Poison {
+                duration, damage, ..
+            } => {
                 poison_status = (*duration, *damage);
             }
             Action::Recharge { duration, mana, .. } => {
@@ -327,7 +356,10 @@ fn simulate_battle(player: &Player, enemy: &Enemy, actions: &Vec<Action>, hard: 
         }
 
         let damage = enemy_clone.damage.saturating_sub(player_clone.armor);
-        player_clone.health = player_clone.health.saturating_sub(if damage == 0 { 1 } else { damage });
+        player_clone.health =
+            player_clone
+                .health
+                .saturating_sub(if damage == 0 { 1 } else { damage });
 
         if player_clone.dead() {
             return (Battle::Lost, cost);
@@ -358,16 +390,16 @@ mod tests {
     impl PartialEq for Battle {
         fn eq(&self, other: &Self) -> bool {
             match (self, other) {
-                (Battle::Won, Battle::Won) | (Battle::Lost, Battle::Lost) | (Battle::Draw, Battle::Draw) => true,
+                (Battle::Won, Battle::Won)
+                | (Battle::Lost, Battle::Lost)
+                | (Battle::Draw, Battle::Draw) => true,
                 _ => false,
             }
         }
     }
 
     fn count_queue_cost(queue: &Vec<Action>) -> usize {
-        queue.iter()
-            .map(|a| a.cost())
-            .sum()
+        queue.iter().map(|a| a.cost()).sum()
     }
 
     #[test]
@@ -381,7 +413,8 @@ mod tests {
         let enemy = parse_enemy(
             r#"Hit Points: 71
             Damage: 10
-            Name: Tester"#);
+            Name: Tester"#,
+        );
 
         assert_eq!(enemy.health, 71);
         assert_eq!(enemy.damage, 10);
@@ -408,19 +441,34 @@ mod tests {
             assert_eq!(heal, 2);
         }
 
-        if let Action::Shield { cost, duration, armor } = Action::from_u8(3).unwrap() {
+        if let Action::Shield {
+            cost,
+            duration,
+            armor,
+        } = Action::from_u8(3).unwrap()
+        {
             assert_eq!(cost, 113);
             assert_eq!(duration, 6);
             assert_eq!(armor, 7);
         }
 
-        if let Action::Poison { cost, duration, damage } = Action::from_u8(4).unwrap() {
+        if let Action::Poison {
+            cost,
+            duration,
+            damage,
+        } = Action::from_u8(4).unwrap()
+        {
             assert_eq!(cost, 173);
             assert_eq!(duration, 6);
             assert_eq!(damage, 3);
         }
 
-        if let Action::Recharge { cost, duration, mana } = Action::from_u8(5).unwrap() {
+        if let Action::Recharge {
+            cost,
+            duration,
+            mana,
+        } = Action::from_u8(5).unwrap()
+        {
             assert_eq!(cost, 229);
             assert_eq!(duration, 5);
             assert_eq!(mana, 101);
@@ -429,15 +477,45 @@ mod tests {
 
     #[test]
     fn test_is_queue_valid() {
-        assert!(is_queue_valid(&vec![Action::from_u8(1).unwrap(), Action::from_u8(2).unwrap()]));
-        assert!(is_queue_valid(&vec![Action::from_u8(2).unwrap(), Action::from_u8(3).unwrap()]));
-        assert!(!is_queue_valid(&vec![Action::from_u8(3).unwrap(), Action::from_u8(3).unwrap()]));
-        assert!(is_queue_valid(&vec![Action::from_u8(3).unwrap(), Action::from_u8(4).unwrap()]));
-        assert!(is_queue_valid(&vec![Action::from_u8(4).unwrap(), Action::from_u8(3).unwrap()]));
-        assert!(!is_queue_valid(&vec![Action::from_u8(4).unwrap(), Action::from_u8(4).unwrap()]));
-        assert!(!is_queue_valid(&vec![Action::from_u8(5).unwrap(), Action::from_u8(5).unwrap()]));
-        assert!(is_queue_valid(&vec![Action::from_u8(3).unwrap(), Action::from_u8(4).unwrap(), Action::from_u8(5).unwrap()]));
-        assert!(is_queue_valid(&vec![Action::from_u8(5).unwrap(), Action::from_u8(1).unwrap(), Action::from_u8(1).unwrap(), Action::from_u8(5).unwrap()]));
+        assert!(is_queue_valid(&vec![
+            Action::from_u8(1).unwrap(),
+            Action::from_u8(2).unwrap()
+        ]));
+        assert!(is_queue_valid(&vec![
+            Action::from_u8(2).unwrap(),
+            Action::from_u8(3).unwrap()
+        ]));
+        assert!(!is_queue_valid(&vec![
+            Action::from_u8(3).unwrap(),
+            Action::from_u8(3).unwrap()
+        ]));
+        assert!(is_queue_valid(&vec![
+            Action::from_u8(3).unwrap(),
+            Action::from_u8(4).unwrap()
+        ]));
+        assert!(is_queue_valid(&vec![
+            Action::from_u8(4).unwrap(),
+            Action::from_u8(3).unwrap()
+        ]));
+        assert!(!is_queue_valid(&vec![
+            Action::from_u8(4).unwrap(),
+            Action::from_u8(4).unwrap()
+        ]));
+        assert!(!is_queue_valid(&vec![
+            Action::from_u8(5).unwrap(),
+            Action::from_u8(5).unwrap()
+        ]));
+        assert!(is_queue_valid(&vec![
+            Action::from_u8(3).unwrap(),
+            Action::from_u8(4).unwrap(),
+            Action::from_u8(5).unwrap()
+        ]));
+        assert!(is_queue_valid(&vec![
+            Action::from_u8(5).unwrap(),
+            Action::from_u8(1).unwrap(),
+            Action::from_u8(1).unwrap(),
+            Action::from_u8(5).unwrap()
+        ]));
     }
 
     #[test]
@@ -456,7 +534,10 @@ mod tests {
         let actions = vec![Action::from_u8(4).unwrap(), Action::from_u8(1).unwrap()];
         let cost = count_queue_cost(&actions);
 
-        assert_eq!(simulate_battle(&player, &enemy, &actions, false), (Battle::Won, cost));
+        assert_eq!(
+            simulate_battle(&player, &enemy, &actions, false),
+            (Battle::Won, cost)
+        );
     }
 
     #[test]
@@ -477,11 +558,14 @@ mod tests {
             Action::from_u8(3).unwrap(),
             Action::from_u8(2).unwrap(),
             Action::from_u8(4).unwrap(),
-            Action::from_u8(1).unwrap()
+            Action::from_u8(1).unwrap(),
         ];
         let cost = count_queue_cost(&actions);
 
-        assert_eq!(simulate_battle(&player, &enemy, &actions, false), (Battle::Won, cost));
+        assert_eq!(
+            simulate_battle(&player, &enemy, &actions, false),
+            (Battle::Won, cost)
+        );
     }
 
     #[test]
@@ -499,7 +583,10 @@ mod tests {
 
         let actions = vec![Action::from_u8(1).unwrap()];
 
-        assert_eq!(simulate_battle(&player, &enemy, &actions, false).0, Battle::Lost);
+        assert_eq!(
+            simulate_battle(&player, &enemy, &actions, false).0,
+            Battle::Lost
+        );
     }
 
     #[test]
@@ -515,9 +602,18 @@ mod tests {
             damage: 15,
         };
 
-        let actions = vec![Action::from_u8(1).unwrap(), Action::from_u8(1).unwrap(), Action::from_u8(1).unwrap(), Action::from_u8(1).unwrap(), Action::from_u8(1).unwrap()];
+        let actions = vec![
+            Action::from_u8(1).unwrap(),
+            Action::from_u8(1).unwrap(),
+            Action::from_u8(1).unwrap(),
+            Action::from_u8(1).unwrap(),
+            Action::from_u8(1).unwrap(),
+        ];
 
-        assert_eq!(simulate_battle(&player, &enemy, &actions, false).0, Battle::Lost);
+        assert_eq!(
+            simulate_battle(&player, &enemy, &actions, false).0,
+            Battle::Lost
+        );
     }
 
     #[test]
@@ -534,7 +630,10 @@ mod tests {
         };
 
         let actions = vec![Action::from_u8(4).unwrap(), Action::from_u8(1).unwrap()];
-        assert_eq!(simulate_battle(&player, &enemy, &actions, true), (Battle::Lost, 173));
+        assert_eq!(
+            simulate_battle(&player, &enemy, &actions, true),
+            (Battle::Lost, 173)
+        );
     }
 
     #[test]
@@ -551,7 +650,10 @@ mod tests {
         };
 
         let actions = vec![Action::from_u8(1).unwrap()];
-        assert_eq!(simulate_battle(&player, &enemy, &actions, true), (Battle::Draw, 53));
+        assert_eq!(
+            simulate_battle(&player, &enemy, &actions, true),
+            (Battle::Draw, 53)
+        );
     }
 
     #[test]

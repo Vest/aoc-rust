@@ -67,7 +67,6 @@ pub fn count_houses_together(path: &str) -> usize {
     houses.len()
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -80,7 +79,12 @@ mod tests {
         c.step('o');
         c.step('v');
         c.step('^');
-        assert_eq!(c, Coord { x: 0, y: 0 }, "We should arrive to (0, 0) instead of {:?}", c);
+        assert_eq!(
+            c,
+            Coord { x: 0, y: 0 },
+            "We should arrive to (0, 0) instead of {:?}",
+            c
+        );
         // To increase the coverage level
         c.x = 1;
         c.y = 1;
@@ -93,7 +97,12 @@ mod tests {
         let mut c = Coord { x: 0, y: 0 };
         c.step('<');
         c.step('^');
-        assert_eq!(c, Coord { x: -1, y: 1 }, "We should arrive to (-1, 1) instead of {:?}", c);
+        assert_eq!(
+            c,
+            Coord { x: -1, y: 1 },
+            "We should arrive to (-1, 1) instead of {:?}",
+            c
+        );
     }
 
     #[test]
@@ -106,10 +115,13 @@ mod tests {
 
     #[test]
     fn test_count_houses_together() {
-        assert_eq!(count_houses_together(""), 1, "We always start with one house");
+        assert_eq!(
+            count_houses_together(""),
+            1,
+            "We always start with one house"
+        );
         assert_eq!(count_houses_together("^v"), 3, "^v - 3");
         assert_eq!(count_houses_together("^>v<"), 3, "^>v< - 3");
         assert_eq!(count_houses_together("^v^v^v^v^v"), 11, "^v^v^v^v^v - 11");
     }
 }
-

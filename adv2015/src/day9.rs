@@ -1,16 +1,15 @@
-use std::collections::{HashMap, HashSet};
 use permute::permutations_of;
-use std::iter::FromIterator;
 use std::cmp;
+use std::collections::{HashMap, HashSet};
+use std::iter::FromIterator;
 
 pub fn calc_shortest(input: &str) -> usize {
     let mut santa = Santa::new();
 
-    input.lines()
-        .for_each(|line| {
-            let path = parse_to_path(line);
-            santa.add_path(&path);
-        });
+    input.lines().for_each(|line| {
+        let path = parse_to_path(line);
+        santa.add_path(&path);
+    });
 
     santa.find_path().0
 }
@@ -18,11 +17,10 @@ pub fn calc_shortest(input: &str) -> usize {
 pub fn calc_longest(input: &str) -> usize {
     let mut santa = Santa::new();
 
-    input.lines()
-        .for_each(|line| {
-            let path = parse_to_path(line);
-            santa.add_path(&path);
-        });
+    input.lines().for_each(|line| {
+        let path = parse_to_path(line);
+        santa.add_path(&path);
+    });
 
     santa.find_path().1
 }
@@ -47,8 +45,10 @@ impl Santa {
 
         self.cities.insert(city1.clone());
         self.cities.insert(city2.clone());
-        self.distances.insert((city1.clone(), city2.clone()), *distance);
-        self.distances.insert((city2.clone(), city1.clone()), *distance);
+        self.distances
+            .insert((city1.clone(), city2.clone()), *distance);
+        self.distances
+            .insert((city2.clone(), city1.clone()), *distance);
     }
 
     fn find_path(&self) -> (usize, usize) {
@@ -65,7 +65,10 @@ impl Santa {
                     continue;
                 }
 
-                let path = *self.distances.get(&(prev_city.clone(), (*city).clone())).unwrap();
+                let path = *self
+                    .distances
+                    .get(&(prev_city.clone(), (*city).clone()))
+                    .unwrap();
                 prev_city = (*city).clone();
 
                 current_distance += path;
@@ -82,7 +85,11 @@ impl Santa {
 fn parse_to_path(input: &str) -> Path {
     let split: Vec<&str> = input.split_whitespace().collect();
 
-    Path(split[0].to_string(), split[2].to_string(), split[4].parse::<usize>().unwrap())
+    Path(
+        split[0].to_string(),
+        split[2].to_string(),
+        split[4].parse::<usize>().unwrap(),
+    )
 }
 
 #[cfg(test)]
@@ -104,10 +111,11 @@ mod tests {
         "London to Dublin = 464
          London to Belfast = 518
          Dublin to Belfast = 141"
-            .lines().for_each(|line| {
-            let path = parse_to_path(line);
-            santa.add_path(&path);
-        });
+            .lines()
+            .for_each(|line| {
+                let path = parse_to_path(line);
+                santa.add_path(&path);
+            });
 
         assert_eq!(santa.cities.len(), 3);
         assert_eq!(santa.distances.len(), 6);

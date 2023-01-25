@@ -1,46 +1,37 @@
 use std::char;
 
 pub fn calc_difference(input: &str) -> usize {
-    let literals = input.lines()
-        .fold(0, |acc, line| {
-            acc + count_literals(line)
-        });
+    let literals = input
+        .lines()
+        .fold(0, |acc, line| acc + count_literals(line));
 
-    let chars = input.lines()
-        .fold(0, |acc, line| {
-            acc + count_chars(line)
-        });
+    let chars = input.lines().fold(0, |acc, line| acc + count_chars(line));
 
     literals - chars
 }
 
 pub fn calc_new_difference(input: &str) -> usize {
-    let literals = input.lines()
-        .fold(0, |acc, line| {
-            acc + count_literals(line)
-        });
+    let literals = input
+        .lines()
+        .fold(0, |acc, line| acc + count_literals(line));
 
-    let chars = input.lines()
-        .fold(0, |acc, line| {
-            acc + count_escaped_chars(line)
-        });
+    let chars = input
+        .lines()
+        .fold(0, |acc, line| acc + count_escaped_chars(line));
 
     chars - literals
 }
 
 fn count_literals(input: &str) -> usize {
-    input.chars()
-        .count()
+    input.chars().count()
 }
 
 fn count_chars(input: &str) -> usize {
-    unescape(input).chars()
-        .count()
+    unescape(input).chars().count()
 }
 
 fn count_escaped_chars(input: &str) -> usize {
-    escape(input).chars()
-        .count()
+    escape(input).chars().count()
 }
 
 // Info: this code was taken from the crate "snailquote". It wasn't stolen for sale, but for
@@ -116,8 +107,9 @@ fn escape(input: &str) -> String {
 }
 
 fn parse_unicode<I>(chars: &mut I) -> char
-    where
-        I: Iterator<Item=char> {
+where
+    I: Iterator<Item = char>,
+{
     let c1 = chars.next().unwrap();
     let c2 = chars.next().unwrap();
 
@@ -159,11 +151,21 @@ mod tests {
 
     #[test]
     fn test_escape() {
-        println!("Debug: input={} result={} escape(input)={}", r#""""#, r#""\"\"""#, escape(r#""""#));
+        println!(
+            "Debug: input={} result={} escape(input)={}",
+            r#""""#,
+            r#""\"\"""#,
+            escape(r#""""#)
+        );
         assert_eq!(escape(r#""""#), r#""\"\"""#);
         assert_eq!(escape(r#""abc""#), r#""\"abc\"""#);
 
-        println!("Debug: input={} result={} escape(input)={}", r#""aaa\"aaa""#, r#""\"aaa\\\"aaa\"""#, escape(r#""aaa\"aaa""#));
+        println!(
+            "Debug: input={} result={} escape(input)={}",
+            r#""aaa\"aaa""#,
+            r#""\"aaa\\\"aaa\"""#,
+            escape(r#""aaa\"aaa""#)
+        );
         assert_eq!(escape(r#""aaa\"aaa""#), r#""\"aaa\\\"aaa\"""#);
         assert_eq!(escape(r#""\x27""#), r#""\"\\x27\"""#);
     }

@@ -1,6 +1,6 @@
 [package]
 name = "adventofcode"
-version = "0.2.17"
+version = "0.2.18"
 authors = ["Vest <Vest@users.noreply.github.com>"]
 edition = "2018"
 
@@ -8,6 +8,6 @@ edition = "2018"
 
 [dependencies]
 reqwest = { version = "~0", features = ["blocking"] }
-clap = "~3"
+clap = "~4"
 adv2015 = { path = "../adv2015" }
 adv2020 = { path = "../adv2020" }

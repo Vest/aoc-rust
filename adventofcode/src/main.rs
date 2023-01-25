@@ -1,53 +1,62 @@
 mod advent;
 
-use std::env;
 use clap::{Arg, Command};
+use std::env;
 
 fn main() {
     let matches = Command::new("Advent 2015, 2020!")
         .author("Vest <vest at github.com>")
         .about("Solves advent calendar from https://adventofcode.com")
-        .arg(Arg::new("day")
-            .short('d')
-            .long("day")
-            .takes_value(true)
-            .required(false)
-            .help("A day of the advent"))
-        .arg(Arg::new("year")
-            .short('y')
-            .long("year")
-            .takes_value(true)
-            .required(false)
-            .help("A year of the calendar"))
+        .arg(
+            Arg::new("day")
+                .short('d')
+                .long("day")
+                .required(false)
+                .help("A day of the advent"),
+        )
+        .arg(
+            Arg::new("year")
+                .short('y')
+                .long("year")
+                .required(false)
+                .default_value("2020")
+                .help("A year of the calendar"),
+        )
         .get_matches();
 
-    let day_str = matches.value_of("day");
-    let year_str = matches.value_of("year").unwrap_or("2020");
-    let year_num = year_str.parse::<u16>().unwrap_or(2020);
+    let day_num = matches.get_one::<u8>("day");
+    let year_num = matches.get_one::<u16>("year").unwrap();
 
     let key = "ADVENT_SESSION";
     match env::var(key) {
         Ok(session_value) => {
             let session = session_value.as_str();
 
-            for day_num in 1..26 {
-                if day_str.is_some() {
-                    let day_parsed = day_str.unwrap().parse::<u8>();
-                    if day_parsed.is_ok() && day_parsed.unwrap() != day_num {
+            for day in 1..26 {
+                if let Some(day_num) = day_num {
+                    if *day_num != day {
                         continue;
                     }
                 }
 
-                let input = advent::get_input(day_num, year_num, session);
+                let input = advent::get_input(day, *year_num, session);
                 if input.is_err() {
-                    eprintln!("Couldn't get input value for day {} / {}. Error: {}", day_num, year_num, input.unwrap_err());
+                    eprintln!(
+                        "Couldn't get input value for day {} / {}. Error: {}",
+                        day,
+                        year_num,
+                        input.unwrap_err()
+                    );
                     return;
                 }
 
-                print_answers(day_num, year_num, input.ok().unwrap());
+                print_answers(day, *year_num, input.ok().unwrap());
             }
         }
-        Err(e) => println!("Couldn't get {} key from environment variable. Description: {}", key, e),
+        Err(e) => println!(
+            "Couldn't get {} key from environment variable. Description: {}",
+            key, e
+        ),
     }
 
     println!("Done");

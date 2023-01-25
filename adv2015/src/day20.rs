@@ -3,19 +3,22 @@ use std::ops::*;
 pub fn get_richest_house_before_strike(input: &str) -> usize {
     if let Ok(desired_number) = input.parse::<usize>() {
         find_house(desired_number, count_presents)
-    } else { 0 }
+    } else {
+        0
+    }
 }
 
 pub fn get_richest_house_after_strike(input: &str) -> usize {
     if let Ok(desired_number) = input.parse::<usize>() {
         find_house(desired_number, count_strike_presents)
-    } else { 0 }
+    } else {
+        0
+    }
 }
 
 fn find_house(desired_number: usize, algorithm: fn(usize) -> usize) -> usize {
-    RangeFrom {
-        start: 1usize
-    }.find(|&house_number| algorithm(house_number) >= desired_number)
+    RangeFrom { start: 1usize }
+        .find(|&house_number| algorithm(house_number) >= desired_number)
         .unwrap_or(0)
 }
 
@@ -24,12 +27,8 @@ fn count_presents(house: usize) -> usize {
         return 0;
     }
 
-    (divisors::get_divisors(house)
-        .iter()
-        .sum::<usize>()
-        + 1
-        + if house > 2 { house } else { 0 }
-    ) * 10
+    (divisors::get_divisors(house).iter().sum::<usize>() + 1 + if house > 2 { house } else { 0 })
+        * 10
 }
 
 fn count_strike_presents(house: usize) -> usize {
@@ -40,13 +39,13 @@ fn count_strike_presents(house: usize) -> usize {
     (divisors::get_divisors(house)
         .iter()
         .filter(|elf| house / *elf <= 50)
-        .sum::<usize>() +
-        match house {
+        .sum::<usize>()
+        + match house {
             1..=2 => 1,
             3..=50 => house + 1,
             _ => house,
-        }
-    ) * 11
+        })
+        * 11
 }
 
 #[cfg(test)]

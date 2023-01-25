@@ -1,15 +1,11 @@
 use std::collections::HashSet;
 
 pub fn count_nice_lines(input: &str) -> usize {
-    input.lines()
-        .filter(|&s| is_nice(s))
-        .count()
+    input.lines().filter(|&s| is_nice(s)).count()
 }
 
 pub fn count_nice_lines_advanced(input: &str) -> usize {
-    input.lines()
-        .filter(|&s| is_nice_advanced(s))
-        .count()
+    input.lines().filter(|&s| is_nice_advanced(s)).count()
 }
 
 fn is_nice(s: &str) -> bool {
@@ -30,10 +26,7 @@ fn is_nice(s: &str) -> bool {
 
         pair = (pair.1, c);
 
-        if pair == ('a', 'b') ||
-            pair == ('c', 'd') ||
-            pair == ('p', 'q') ||
-            pair == ('x', 'y') {
+        if pair == ('a', 'b') || pair == ('c', 'd') || pair == ('p', 'q') || pair == ('x', 'y') {
             return false;
         }
 
@@ -99,15 +92,15 @@ mod tests {
 
     #[test]
     fn test_nice() {
-        ["ugknbfddgicrmopn", "aaa"].iter()
-            .for_each(|s| {
-                assert!(is_nice(s), "{} is nice, but it wasn't", s);
-            });
+        ["ugknbfddgicrmopn", "aaa"].iter().for_each(|s| {
+            assert!(is_nice(s), "{} is nice, but it wasn't", s);
+        });
     }
 
     #[test]
     fn test_naughty() {
-        ["jchzalrnumimnmhp", "haegwjzuvuyypxyu", "dvszwmarrgswjxmb"].iter()
+        ["jchzalrnumimnmhp", "haegwjzuvuyypxyu", "dvszwmarrgswjxmb"]
+            .iter()
             .for_each(|s| {
                 assert!(!is_nice(s), "{} is naughty, but it wasn't", s);
             });
@@ -115,45 +108,76 @@ mod tests {
 
     #[test]
     fn test_count_nice() {
-        let input = ["jchzalrnumimnmhp", "ugknbfddgicrmopn", "haegwjzuvuyypxyu", "aaa", "dvszwmarrgswjxmb"]
-            .join("\n");
+        let input = [
+            "jchzalrnumimnmhp",
+            "ugknbfddgicrmopn",
+            "haegwjzuvuyypxyu",
+            "aaa",
+            "dvszwmarrgswjxmb",
+        ]
+        .join("\n");
 
-        assert_eq!(count_nice_lines(input.as_str()), 2, "{} has two nice strings", input);
+        assert_eq!(
+            count_nice_lines(input.as_str()),
+            2,
+            "{} has two nice strings",
+            input
+        );
     }
 
     #[test]
     fn test_count_nice_lines_advanced() {
-        let input = ["qjhvhtzxzqqjkmpb", "xxyxx", "dieatyxxxlvhneoj", "xxxx"]
-            .join("\n");
+        let input = ["qjhvhtzxzqqjkmpb", "xxyxx", "dieatyxxxlvhneoj", "xxxx"].join("\n");
 
-        assert_eq!(count_nice_lines_advanced(input.as_str()), 3, "{} has three nice strings", input);
+        assert_eq!(
+            count_nice_lines_advanced(input.as_str()),
+            3,
+            "{} has three nice strings",
+            input
+        );
     }
 
     #[test]
     fn test_is_nice_advanced() {
-        ["qjhvhtzxzqqjkmpb", "xxyxx"].iter()
-            .for_each(|s| {
-                assert!(is_nice_advanced(s), "{} is nice (advanced), but it wasn't", s);
-            });
+        ["qjhvhtzxzqqjkmpb", "xxyxx"].iter().for_each(|s| {
+            assert!(
+                is_nice_advanced(s),
+                "{} is nice (advanced), but it wasn't",
+                s
+            );
+        });
     }
 
     #[test]
     fn test_is_naughty_advanced() {
-        ["uurcxstgmygtbstg", "ieodomkazucvgmuy"].iter()
+        ["uurcxstgmygtbstg", "ieodomkazucvgmuy"]
+            .iter()
             .for_each(|s| {
-                assert!(!is_nice_advanced(s), "{} is nice (advanced), but it wasn't", s);
+                assert!(
+                    !is_nice_advanced(s),
+                    "{} is nice (advanced), but it wasn't",
+                    s
+                );
             });
     }
 
     #[test]
     fn test_is_naughty_advanced_bugfix() {
-        assert!(!is_nice_advanced("dieatyxxxlvhneoj"), "dieatyxxxlvhneoj is nice (advanced), but it wasn't");
+        assert!(
+            !is_nice_advanced("dieatyxxxlvhneoj"),
+            "dieatyxxxlvhneoj is nice (advanced), but it wasn't"
+        );
     }
 
     #[test]
     fn test_is_nice_advanced_bugfix() {
-        assert!(is_nice_advanced("xxxx"), "xxxx is nice (advanced), but it wasn't");
-        assert!(is_nice_advanced("xxaxx"), "xxaxx is nice (advanced), but it wasn't");
+        assert!(
+            is_nice_advanced("xxxx"),
+            "xxxx is nice (advanced), but it wasn't"
+        );
+        assert!(
+            is_nice_advanced("xxaxx"),
+            "xxaxx is nice (advanced), but it wasn't"
+        );
     }
 }
-

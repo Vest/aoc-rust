@@ -14,14 +14,17 @@ struct Game {
 impl Game {
     fn new(input: &str) -> Game {
         let mut numbers: HashMap<usize, usize> = HashMap::new();
-        let round = input.split(|c| c == ',')
+        let round = input
+            .split(|c| c == ',')
             .map(&str::parse::<usize>)
             .filter_map(Result::ok)
             .enumerate()
             .map(|(pos, num)| {
                 numbers.insert(num, pos + 1);
                 pos + 1
-            }).max().unwrap_or_default();
+            })
+            .max()
+            .unwrap_or_default();
 
         Game {
             numbers_rounds: numbers,
@@ -51,7 +54,8 @@ impl Game {
                     next_number = Some(0);
                 }
 
-                self.numbers_rounds.insert(last_number.unwrap(), self.round - 1);
+                self.numbers_rounds
+                    .insert(last_number.unwrap(), self.round - 1);
             }
 
             if next_number.is_some() {
@@ -110,13 +114,13 @@ mod tests {
     #[ignore]
     fn test_find_number_30000000() {
         assert_eq!(find_number_30000000("0,3,6"), 175594);
-/*
-        assert_eq!(find_number_30000000("1,3,2"), 2578);
-        assert_eq!(find_number_30000000("2,1,3"), 3544142);
-        assert_eq!(find_number_30000000("1,2,3"), 261214);
-        assert_eq!(find_number_30000000("2,3,1"), 6895259);
-        assert_eq!(find_number_30000000("3,2,1"), 18);
-        assert_eq!(find_number_30000000("3,1,2"), 362);
- */
+        /*
+               assert_eq!(find_number_30000000("1,3,2"), 2578);
+               assert_eq!(find_number_30000000("2,1,3"), 3544142);
+               assert_eq!(find_number_30000000("1,2,3"), 261214);
+               assert_eq!(find_number_30000000("2,3,1"), 6895259);
+               assert_eq!(find_number_30000000("3,2,1"), 18);
+               assert_eq!(find_number_30000000("3,1,2"), 362);
+        */
     }
 }

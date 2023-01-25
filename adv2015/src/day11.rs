@@ -18,14 +18,14 @@ struct Password {
 impl Password {
     fn new_str(input: &str) -> Password {
         Password {
-            state: String::from(input)
+            state: String::from(input),
         }
     }
 
     #[allow(dead_code)]
     fn new() -> Password {
         let mut pwd = Password {
-            state: String::with_capacity(MAX_LENGTH)
+            state: String::with_capacity(MAX_LENGTH),
         };
 
         for _ in 0..MAX_LENGTH {
@@ -86,7 +86,11 @@ fn is_increased(input: &str) -> bool {
         let prev_ascii = prev_char.unwrap() as u8;
         let c_ascii = c as u8;
 
-        count = if c_ascii.checked_sub(prev_ascii) == Some(1) { count + 1 } else { 1 };
+        count = if c_ascii.checked_sub(prev_ascii) == Some(1) {
+            count + 1
+        } else {
+            1
+        };
 
         if count == 3 {
             return true;
@@ -99,9 +103,7 @@ fn is_increased(input: &str) -> bool {
 }
 
 fn is_not_confusing(input: &str) -> bool {
-    !input.contains(|c| {
-        c == 'i' || c == 'o' || c == 'l'
-    })
+    !input.contains(|c| c == 'i' || c == 'o' || c == 'l')
 }
 
 fn has_pairs(input: &str) -> bool {
@@ -159,7 +161,10 @@ mod tests {
         let pwd = Password::new();
         let pwd_str = pwd.get_password();
 
-        assert_eq!(pwd_str, "aaaaaaaa", "Expected a string with eight 'a' chars");
+        assert_eq!(
+            pwd_str, "aaaaaaaa",
+            "Expected a string with eight 'a' chars"
+        );
     }
 
     #[test]
@@ -169,7 +174,10 @@ mod tests {
 
         {
             let pwd_str = pwd.get_password();
-            assert_eq!(pwd_str, "aaaaaaab", "Expected a string with seven 'a' chars and one 'b'");
+            assert_eq!(
+                pwd_str, "aaaaaaab",
+                "Expected a string with seven 'a' chars and one 'b'"
+            );
         }
         pwd.inc();
         pwd.inc();
@@ -178,7 +186,10 @@ mod tests {
 
         {
             let pwd_str = pwd.get_password();
-            assert_eq!(pwd_str, "aaaaaaaf", "Expected a string with seven 'a' chars and one 'f'");
+            assert_eq!(
+                pwd_str, "aaaaaaaf",
+                "Expected a string with seven 'a' chars and one 'f'"
+            );
         }
     }
 
@@ -188,7 +199,10 @@ mod tests {
         pwd.inc();
         let pwd_str = pwd.get_password();
 
-        assert_eq!(pwd_str, "zzzzzzzz", "Expected a string with eight 'z' chars");
+        assert_eq!(
+            pwd_str, "zzzzzzzz",
+            "Expected a string with eight 'z' chars"
+        );
     }
 
     #[test]
@@ -197,14 +211,20 @@ mod tests {
         pwd.inc();
         let pwd_str = pwd.get_password();
 
-        assert_eq!(pwd_str, "aaaaaaaa", "Expected a string with eight 'a' chars");
+        assert_eq!(
+            pwd_str, "aaaaaaaa",
+            "Expected a string with eight 'a' chars"
+        );
     }
 
     #[test]
     fn test_password_iter() {
         let mut pwd = Password::new();
         while let Some(pass) = pwd.next() {
-            assert_eq!(pass, "aaaaaaab", "Expected a string with seven 'a' chars and one 'b'");
+            assert_eq!(
+                pass, "aaaaaaab",
+                "Expected a string with seven 'a' chars and one 'b'"
+            );
             break;
         }
     }

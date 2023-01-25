@@ -4,20 +4,17 @@ pub fn find_answer1(input: &str) -> usize {
     let mut mem: HashMap<usize, usize> = HashMap::new();
     let mut current_mask = String::new();
 
-    input.lines()
-        .map(&str::trim)
-        .for_each(|line: &str| {
-            if line.starts_with("mask") {
-                current_mask = extract_mask(line);
-            } else {
-                let (address, mut value) = extract_address_value(line);
-                value = apply_mask(value, current_mask.as_str());
-                mem.insert(address, value);
-            }
-        });
+    input.lines().map(&str::trim).for_each(|line: &str| {
+        if line.starts_with("mask") {
+            current_mask = extract_mask(line);
+        } else {
+            let (address, mut value) = extract_address_value(line);
+            value = apply_mask(value, current_mask.as_str());
+            mem.insert(address, value);
+        }
+    });
 
-    mem.values()
-        .sum()
+    mem.values().sum()
 }
 
 fn extract_mask(input: &str) -> String {
@@ -33,39 +30,35 @@ fn extract_address_value(input: &str) -> (usize, usize) {
 }
 
 fn apply_mask(mut value: usize, bitmask: &str) -> usize {
-    bitmask.chars()
+    bitmask
+        .chars()
         .rev()
         .enumerate()
-        .for_each(|(position, bit)| {
-            match bit {
-                '0' => {
-                    value &= !(1 << position);
-                }
-                '1' => {
-                    value |= 1 << position;
-                }
-                _ => (),
+        .for_each(|(position, bit)| match bit {
+            '0' => {
+                value &= !(1 << position);
             }
+            '1' => {
+                value |= 1 << position;
+            }
+            _ => (),
         });
 
     value
 }
 
 fn create_mask(address: usize, bitmask: &str) -> String {
-    bitmask.chars()
+    bitmask
+        .chars()
         .rev()
         .enumerate()
-        .map(|(position, bit)| {
-            match bit {
-                '0' => {
-                    match (address >> position) & 1 {
-                        0 => '0',
-                        _ => '1',
-                    }
-                }
-                '1' => '1',
-                _ => 'X',
-            }
+        .map(|(position, bit)| match bit {
+            '0' => match (address >> position) & 1 {
+                0 => '0',
+                _ => '1',
+            },
+            '1' => '1',
+            _ => 'X',
         })
         .collect::<String>()
         .chars()
@@ -76,47 +69,52 @@ fn create_mask(address: usize, bitmask: &str) -> String {
 fn generate_addresses(bitmask: &str) -> Vec<String> {
     let total = bitmask.chars().filter(|c| *c == 'X').count();
 
-    (0..2usize.pow(total as u32)).map(|i| {
-        let mut j = 0usize;
+    (0..2usize.pow(total as u32))
+        .map(|i| {
+            let mut j = 0usize;
 
-        bitmask.chars()
-            .map(|c| match c {
-                'X' => {
-                    let bit = (i & 1 << j) >> j;
-                    j += 1;
-                    if bit == 0 { '0' } else { '1' }
-                }
-                _ => c,
-            }).collect()
-    }).collect()
+            bitmask
+                .chars()
+                .map(|c| match c {
+                    'X' => {
+                        let bit = (i & 1 << j) >> j;
+                        j += 1;
+                        if bit == 0 {
+                            '0'
+                        } else {
+                            '1'
+                        }
+                    }
+                    _ => c,
+                })
+                .collect()
+        })
+        .collect()
 }
 
 pub fn find_answer2(input: &str) -> usize {
     let mut mem: HashMap<usize, usize> = HashMap::new();
     let mut mask: String = String::new();
 
-    input.lines()
-        .map(&str::trim)
-        .for_each(|line: &str| {
-            if line.starts_with("mask") {
-                mask = extract_mask(line);
-            } else {
-                let (address, value) = extract_address_value(line);
-                let addresses = generate_addresses(create_mask(address, mask.as_str()).as_str());
-                addresses.iter()
-                    .for_each(|addr| {
-                        mem.insert(bit_to_usize(addr), value);
-                    })
-            }
-        });
+    input.lines().map(&str::trim).for_each(|line: &str| {
+        if line.starts_with("mask") {
+            mask = extract_mask(line);
+        } else {
+            let (address, value) = extract_address_value(line);
+            let addresses = generate_addresses(create_mask(address, mask.as_str()).as_str());
+            addresses.iter().for_each(|addr| {
+                mem.insert(bit_to_usize(addr), value);
+            })
+        }
+    });
 
-    mem.values()
-        .sum()
+    mem.values().sum()
 }
 
 fn bit_to_usize(input: &str) -> usize {
-    input.chars()
-        .fold(0, |acc, bit_char| acc << 1 | if bit_char == '0' { 0 } else { 1 })
+    input.chars().fold(0, |acc, bit_char| {
+        acc << 1 | if bit_char == '0' { 0 } else { 1 }
+    })
 }
 
 #[cfg(test)]
@@ -131,14 +129,19 @@ mod tests {
 
     #[test]
     fn test_extract_mask() {
-        assert_eq!(extract_mask("mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X"), "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X");
+        assert_eq!(
+            extract_mask("mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X"),
+            "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X"
+        );
     }
 
     #[test]
     fn test_extract_address_value() {
-        assert_eq!(extract_address_value("mem[23073] = 4721114"), (23073, 4721114));
+        assert_eq!(
+            extract_address_value("mem[23073] = 4721114"),
+            (23073, 4721114)
+        );
     }
-
 
     #[test]
     fn test_apply_mask() {
@@ -149,16 +152,27 @@ mod tests {
 
     #[test]
     fn test_find_answer1() {
-        assert_eq!(find_answer1(r#"mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X
+        assert_eq!(
+            find_answer1(
+                r#"mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X
                                    mem[8] = 11
                                    mem[7] = 101
-                                   mem[8] = 0"#), 165);
+                                   mem[8] = 0"#
+            ),
+            165
+        );
     }
 
     #[test]
     fn test_create_mask() {
-        assert_eq!(create_mask(42, "000000000000000000000000000000X1001X"), "000000000000000000000000000000X1101X");
-        assert_eq!(create_mask(26, "00000000000000000000000000000000X0XX"), "00000000000000000000000000000001X0XX");
+        assert_eq!(
+            create_mask(42, "000000000000000000000000000000X1001X"),
+            "000000000000000000000000000000X1101X"
+        );
+        assert_eq!(
+            create_mask(26, "00000000000000000000000000000000X0XX"),
+            "00000000000000000000000000000001X0XX"
+        );
     }
 
     #[test]
@@ -177,10 +191,15 @@ mod tests {
 
     #[test]
     fn test_find_answer2() {
-        assert_eq!(find_answer2(r#"mask = 000000000000000000000000000000X1001X
+        assert_eq!(
+            find_answer2(
+                r#"mask = 000000000000000000000000000000X1001X
                                    mem[42] = 100
                                    mask = 00000000000000000000000000000000X0XX
-                                   mem[26] = 1"#), 208);
+                                   mem[26] = 1"#
+            ),
+            208
+        );
     }
 
     #[test]

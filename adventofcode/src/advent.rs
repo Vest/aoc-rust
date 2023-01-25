@@ -1,6 +1,6 @@
-use reqwest::header::{HeaderMap, HeaderValue, InvalidHeaderValue};
-use std::fmt::{Display};
 use core::fmt;
+use reqwest::header::{HeaderMap, HeaderValue, InvalidHeaderValue};
+use std::fmt::Display;
 
 pub enum HttpError {
     WrongHeader(InvalidHeaderValue),
@@ -38,7 +38,8 @@ pub fn get_input(day: u8, year: u16, session: &str) -> Result<String, HttpError>
         .default_headers(headers)
         .build()?;
 
-    let body = client.get(format!("https://adventofcode.com/{}/day/{}/input", year, day).as_str())
+    let body = client
+        .get(format!("https://adventofcode.com/{}/day/{}/input", year, day).as_str())
         .send()?
         .text()?;
 
@@ -55,7 +56,10 @@ mod tests {
         assert!(input.is_ok(), "The input response is not successful");
 
         let response = input.unwrap_or(String::from("fail"));
-        assert!(response.contains("Please log in"), "The response is unexpected: {}", response);
+        assert!(
+            response.contains("Please log in"),
+            "The response is unexpected: {}",
+            response
+        );
     }
 }
-

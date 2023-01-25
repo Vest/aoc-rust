@@ -8,7 +8,8 @@ struct Validation<'a> {
 
 impl Validation<'_> {
     fn is_valid(&self, number: usize) -> bool {
-        self.rules.iter()
+        self.rules
+            .iter()
             .any(|rule| (rule.0..=rule.1).contains(&number))
     }
 }
@@ -19,10 +20,13 @@ pub fn find_invalid_tickets(input: &str) -> usize {
 
     lines.find(|&line| line == "nearby tickets:");
 
-    lines.map(parse_numbers)
-        .map(|numbers: Vec<usize>| validate_all_rules(&numbers, &validations)
-            .iter()
-            .sum::<usize>())
+    lines
+        .map(parse_numbers)
+        .map(|numbers: Vec<usize>| {
+            validate_all_rules(&numbers, &validations)
+                .iter()
+                .sum::<usize>()
+        })
         .sum::<usize>()
 }
 
@@ -40,22 +44,26 @@ pub fn find_departure_tickets(input: &str) -> usize {
 
     lines.find(|&line| line == "nearby tickets:");
 
-    let other_tickets = lines.map(parse_numbers)
-        .filter(|numbers| numbers.iter()
-            .all(|number| is_number_correct(*number, &validations))
-        )
+    let other_tickets = lines
+        .map(parse_numbers)
+        .filter(|numbers| {
+            numbers
+                .iter()
+                .all(|number| is_number_correct(*number, &validations))
+        })
         .collect::<Vec<Vec<usize>>>();
 
     let correct_combination = find_validation_combination(&other_tickets, &validations);
 
-    correct_combination.iter()
+    correct_combination
+        .iter()
         .enumerate()
         .filter(|&(_, rule)| rule.name.starts_with("departure"))
         .map(|(pos, _)| your_ticket[pos])
         .product()
 }
 
-fn extract_rules<'a>(lines: &mut dyn Iterator<Item=&'a str>) -> Vec<Validation<'a>> {
+fn extract_rules<'a>(lines: &mut dyn Iterator<Item = &'a str>) -> Vec<Validation<'a>> {
     let mut validations: Vec<Validation> = Vec::new();
 
     while let Some(line) = lines.next() {
@@ -73,28 +81,29 @@ fn extract_rules<'a>(lines: &mut dyn Iterator<Item=&'a str>) -> Vec<Validation<'
 fn map_rule(input: &str) -> Option<Validation> {
     let mut splitter = input.split(':');
     let name = splitter.next()?;
-    let range = splitter.next()?.split("or")
+    let range = splitter
+        .next()?
+        .split("or")
         .map(&str::trim)
-        .map(|part: &str|
+        .map(|part: &str| {
             part.split('-')
                 .map(&str::parse::<usize>)
                 .filter_map(Result::ok)
                 .collect::<Vec<usize>>()
-        )
-        .filter_map(|parts| if parts.len() == 2 {
-            Some((parts[0], parts[1]))
-        } else {
-            None
+        })
+        .filter_map(|parts| {
+            if parts.len() == 2 {
+                Some((parts[0], parts[1]))
+            } else {
+                None
+            }
         })
         .collect::<Vec<(usize, usize)>>();
 
     if range.is_empty() {
         None
     } else {
-        Some(Validation {
-            name,
-            rules: range,
-        })
+        Some(Validation { name, rules: range })
     }
 }
 
@@ -106,21 +115,25 @@ fn validate_all_rules(vec: &Vec<usize>, validations: &Vec<Validation>) -> Vec<us
 }
 
 fn is_number_correct(number: usize, validations: &Vec<Validation>) -> bool {
-    validations.iter()
-        .any(|Validation { rules, .. }|
-            rules.iter()
-                .any(|&(from, to)| (from..=to).contains(&number))
-        )
+    validations.iter().any(|Validation { rules, .. }| {
+        rules
+            .iter()
+            .any(|&(from, to)| (from..=to).contains(&number))
+    })
 }
 
 fn parse_numbers(input: &str) -> Vec<usize> {
-    input.split(',')
+    input
+        .split(',')
         .map(&str::parse::<usize>)
         .filter_map(Result::ok)
         .collect::<Vec<usize>>()
 }
 
-fn find_validation_combination<'a>(tickets: &Vec<Vec<usize>>, validations: &'a Vec<Validation<'a>>) -> Vec<&'a Validation<'a>> {
+fn find_validation_combination<'a>(
+    tickets: &Vec<Vec<usize>>,
+    validations: &'a Vec<Validation<'a>>,
+) -> Vec<&'a Validation<'a>> {
     let validations_count = validations.len();
 
     let mut valid_rules = HashMap::<usize, &Validation>::new();
@@ -134,8 +147,7 @@ fn find_validation_combination<'a>(tickets: &Vec<Vec<usize>>, validations: &'a V
                     continue 'pos;
                 }
 
-                if tickets.iter()
-                    .all(|ticket| rule.is_valid(ticket[pos])) {
+                if tickets.iter().all(|ticket| rule.is_valid(ticket[pos])) {
                     if candidate.is_none() {
                         candidate = Some((rule, pos));
                     } else {
@@ -151,7 +163,8 @@ fn find_validation_combination<'a>(tickets: &Vec<Vec<usize>>, validations: &'a V
         }
     }
 
-    valid_rules.into_iter()
+    valid_rules
+        .into_iter()
         .sorted_by(|a, b| a.0.cmp(&b.0))
         .map(|(_, rule)| rule)
         .collect()
@@ -223,7 +236,8 @@ nearby tickets:
     fn test_extract_rules() {
         let mut lines = r#"class: 1-3 or 5-7
 row: 6-11 or 33-44
-seat: 13-40 or 45-50"#.lines();
+seat: 13-40 or 45-50"#
+            .lines();
         let result = extract_rules(&mut lines);
 
         assert_eq!(result.len(), 3);
@@ -244,13 +258,10 @@ seat: 13-40 or 45-50"#.lines();
     fn test_find_validation_combination() {
         let mut lines = r#"class: 0-1 or 4-19
 row: 0-5 or 8-19
-seat: 0-13 or 16-19"#.lines();
+seat: 0-13 or 16-19"#
+            .lines();
         let rules = extract_rules(&mut lines);
-        let tickets = vec![
-            vec![3, 9, 18],
-            vec![15, 1, 5],
-            vec![5, 14, 9]
-        ];
+        let tickets = vec![vec![3, 9, 18], vec![15, 1, 5], vec![5, 14, 9]];
 
         let ordered_rules = find_validation_combination(&tickets, &rules);
 

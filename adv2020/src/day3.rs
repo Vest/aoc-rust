@@ -16,7 +16,8 @@ pub fn count_multiple_slopes(input: &str) -> usize {
 
     let input = parse_input(input);
 
-    multiple.iter()
+    multiple
+        .iter()
         .map(|slope| count_trees(&input, slope))
         .fold(1, |count, acc| count * acc)
 }
@@ -24,17 +25,20 @@ pub fn count_multiple_slopes(input: &str) -> usize {
 fn count_trees(field: &Vec<Vec<Cell>>, slope: &Slope) -> usize {
     let mut col = 0usize;
 
-    field.iter()
+    field
+        .iter()
         .enumerate()
         .filter(|&row| {
             if row.0 % slope.down == 0 {
-                let is_tree = row.1.get(col % row.1.len())
-                    .unwrap_or(&Cell::Empty) == &Cell::Tree;
+                let is_tree = row.1.get(col % row.1.len()).unwrap_or(&Cell::Empty) == &Cell::Tree;
                 col += slope.right;
 
                 is_tree
-            } else { false }
-        }).count()
+            } else {
+                false
+            }
+        })
+        .count()
 }
 
 #[derive(PartialEq)]
@@ -49,11 +53,9 @@ struct Slope {
 }
 
 fn parse_input(input: &str) -> Vec<Vec<Cell>> {
-    input.lines()
-        .map(|l| l.trim()
-            .chars()
-            .map(parse_cell)
-            .collect())
+    input
+        .lines()
+        .map(|l| l.trim().chars().map(parse_cell).collect())
         .collect()
 }
 
