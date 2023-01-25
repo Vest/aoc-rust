@@ -4,9 +4,10 @@ pub fn find_earliest_bus(input: &str) -> usize {
     }
 
     let mut lines = input.lines();
-    let time = lines.next().unwrap()
-        .parse::<usize>().unwrap();
-    let bus = lines.next().unwrap()
+    let time = lines.next().unwrap().parse::<usize>().unwrap();
+    let bus = lines
+        .next()
+        .unwrap()
         .split(|c| c == ',')
         .map(str::parse::<usize>)
         .filter_map(Result::ok)
@@ -22,29 +23,33 @@ pub fn find_earliest_timestamp(input: &str) -> usize {
         return 0;
     }
 
-    let buses: Vec<(usize, usize)> = input.lines()
+    let buses: Vec<(usize, usize)> = input
+        .lines()
         .skip(1)
-        .next().unwrap()
+        .next()
+        .unwrap()
         .split(|c| c == ',')
         .enumerate()
-        .filter_map(|(pos, str)|
+        .filter_map(|(pos, str)| {
             if let Ok(num) = str.parse::<usize>() {
                 Some((pos, num))
             } else {
                 None
             }
-        )
-        .map(|(pos, num)| if pos != 0 {
-            let mut checked_sub = None;
-            let mut i = 1usize;
-            while checked_sub.is_none() {
-                checked_sub = (num * i).checked_sub(pos);
-                i += 1;
-            }
+        })
+        .map(|(pos, num)| {
+            if pos != 0 {
+                let mut checked_sub = None;
+                let mut i = 1usize;
+                while checked_sub.is_none() {
+                    checked_sub = (num * i).checked_sub(pos);
+                    i += 1;
+                }
 
-            (checked_sub.unwrap(), num)
-        } else {
-            (pos, num)
+                (checked_sub.unwrap(), num)
+            } else {
+                (pos, num)
+            }
         })
         .collect();
 
@@ -52,27 +57,24 @@ pub fn find_earliest_timestamp(input: &str) -> usize {
 }
 
 fn chinese_remainder_theorem(nums: &[(usize, usize)]) -> (usize, usize) {
-    let m_product: usize = nums.iter()
-        .map(|(_, modulo)| modulo)
-        .product();
+    let m_product: usize = nums.iter().map(|(_, modulo)| modulo).product();
 
-    let mi = nums.iter()
+    let mi = nums
+        .iter()
         .map(|(_, modulo)| m_product / modulo)
         .collect::<Vec<usize>>();
 
-    let yi = nums.iter()
+    let yi = nums
+        .iter()
         .map(|(_, modulo)| *modulo)
         .zip(mi.iter())
-        .map(|(modulo, &mi)| {
-            (1..mi).find(|&rem|
-                (rem * mi) % modulo == 1
-            ).unwrap()
-        })
+        .map(|(modulo, &mi)| (1..mi).find(|&rem| (rem * mi) % modulo == 1).unwrap())
         .collect::<Vec<usize>>();
 
     let x = (0..nums.len())
         .map(|i| nums[i].0 * mi[i] * yi[i])
-        .sum::<usize>() % m_product;
+        .sum::<usize>()
+        % m_product;
 
     (x, m_product)
 }
@@ -123,7 +125,13 @@ mod tests {
 
     #[test]
     fn test_chinese_remainder_theorem() {
-        assert_eq!(chinese_remainder_theorem(&[(2, 3), (3, 5), (1, 7)]), (8, 105));
-        assert_eq!(chinese_remainder_theorem(&[(0, 7), (12, 13), (55, 59), (25, 31), (12, 19)]), (1068781, 7 * 13 * 59 * 31 * 19));
+        assert_eq!(
+            chinese_remainder_theorem(&[(2, 3), (3, 5), (1, 7)]),
+            (8, 105)
+        );
+        assert_eq!(
+            chinese_remainder_theorem(&[(0, 7), (12, 13), (55, 59), (25, 31), (12, 19)]),
+            (1068781, 7 * 13 * 59 * 31 * 19)
+        );
     }
 }

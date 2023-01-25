@@ -69,4 +69,3 @@ mod tests {
         assert_eq!(calc_length(&"1".to_string(), 5), 6, "Length of 312211 is 6");
     }
 }
-

@@ -12,9 +12,10 @@ pub fn get_answer_without_red(input: &str) -> i32 {
 }
 
 fn extract_numbers(input: &str) -> Vec<i32> {
-    input.split_terminator(|c| {
-        c == '[' || c == ']' || c == ',' || c == '"' || c == ':' || c == '{' || c == '}'
-    })
+    input
+        .split_terminator(|c| {
+            c == '[' || c == ']' || c == ',' || c == '"' || c == ':' || c == '{' || c == '}'
+        })
         .filter(|s| !s.is_empty())
         .map(|s| s.parse::<i32>())
         .filter(|p| p.is_ok())
@@ -23,8 +24,7 @@ fn extract_numbers(input: &str) -> Vec<i32> {
 }
 
 fn sum_numbers(input: &Vec<i32>) -> i32 {
-    input.iter()
-        .sum()
+    input.iter().sum()
 }
 
 fn find_first_json_object(input: &str) -> &str {
@@ -57,7 +57,11 @@ fn scan_deep(input: &str) -> i32 {
     let res = find_first_json_object(input);
 
     if res == "" {
-        return if input.contains(r#":"red""#) { 0 } else { get_answer(input) };
+        return if input.contains(r#":"red""#) {
+            0
+        } else {
+            get_answer(input)
+        };
     }
 
     if let Some(i) = input.find(res) {
@@ -142,7 +146,6 @@ mod tests {
         assert_eq!(sum, 6);
     }
 
-
     #[test]
     fn test_sum_numbers_2() {
         let res = extract_numbers(r#"[]"#);
@@ -152,10 +155,19 @@ mod tests {
 
     #[test]
     fn test_find_json_object() {
-        assert_eq!(find_first_json_object(r#"[1,{"c":"red","b":2},3]"#), r#"{"c":"red","b":2}"#);
-        assert_eq!(find_first_json_object(r#"[1,{"c":"red",{"a":1},"b":2},3]"#), r#"{"c":"red",{"a":1},"b":2}"#);
+        assert_eq!(
+            find_first_json_object(r#"[1,{"c":"red","b":2},3]"#),
+            r#"{"c":"red","b":2}"#
+        );
+        assert_eq!(
+            find_first_json_object(r#"[1,{"c":"red",{"a":1},"b":2},3]"#),
+            r#"{"c":"red",{"a":1},"b":2}"#
+        );
         assert_eq!(find_first_json_object(r#"[1,3]"#), r#""#);
-        assert_eq!(find_first_json_object(r#"{"d":"red","e":[1,2,3,4],"f":5}"#), r#"{"d":"red","e":[1,2,3,4],"f":5}"#);
+        assert_eq!(
+            find_first_json_object(r#"{"d":"red","e":[1,2,3,4],"f":5}"#),
+            r#"{"d":"red","e":[1,2,3,4],"f":5}"#
+        );
     }
 
     #[test]

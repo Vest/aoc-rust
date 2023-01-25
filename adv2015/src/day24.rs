@@ -27,7 +27,8 @@ fn find_optimal_qe(packages: &Vec<usize>, weight: usize) -> usize {
             let current_count = filtered_group.len();
 
             if (lowest_qe == usize::MAX && lowest_count == usize::MAX)
-                || (current_count < lowest_count && current_qe < lowest_qe) {
+                || (current_count < lowest_count && current_qe < lowest_qe)
+            {
                 let rest_packages = subtract_vectors(packages, &filtered_group);
 
                 if group_with_weight_exists(&rest_packages, weight) {
@@ -46,7 +47,8 @@ fn find_optimal_qe(packages: &Vec<usize>, weight: usize) -> usize {
 }
 
 fn parse_packages(input: &str) -> Vec<usize> {
-    input.lines()
+    input
+        .lines()
         .map(|l| l.trim())
         .filter(|l| !l.is_empty())
         .filter_map(|p| p.parse::<usize>().ok())
@@ -72,7 +74,7 @@ impl SleighCombination {
 }
 
 impl Iterator for SleighCombination {
-    type Item = Box<dyn Iterator<Item=Vec<usize>>>;
+    type Item = Box<dyn Iterator<Item = Vec<usize>>>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.size += 1;
@@ -83,8 +85,10 @@ impl Iterator for SleighCombination {
 
         let copy_packages = self.packages.to_vec();
         let copy_weight = self.weight.clone();
-        Some(Box::new(Combinations::new(copy_packages, self.size)
-            .filter(move |group| group.iter().sum::<usize>() == copy_weight)))
+        Some(Box::new(
+            Combinations::new(copy_packages, self.size)
+                .filter(move |group| group.iter().sum::<usize>() == copy_weight),
+        ))
     }
 }
 
@@ -93,7 +97,8 @@ fn group_with_weight_exists(packages: &Vec<usize>, weight: usize) -> bool {
         let copy_packages = packages.to_vec();
 
         if Combinations::new(copy_packages, size)
-            .any(|packages| packages.iter().sum::<usize>() == weight) {
+            .any(|packages| packages.iter().sum::<usize>() == weight)
+        {
             return true;
         }
     }
@@ -103,15 +108,13 @@ fn group_with_weight_exists(packages: &Vec<usize>, weight: usize) -> bool {
 
 // quantum entanglement
 fn calc_qe(group: &Vec<usize>) -> usize {
-    group.iter()
-        .fold(1, |acc, p| acc * p)
+    group.iter().fold(1, |acc, p| acc * p)
 }
 
 fn subtract_vectors(from: &Vec<usize>, rhs: &Vec<usize>) -> Vec<usize> {
     let mut result = Vec::new();
 
-    result.extend(from.iter()
-        .filter(|i| !rhs.contains(i)));
+    result.extend(from.iter().filter(|i| !rhs.contains(i)));
 
     result
 }
@@ -122,10 +125,12 @@ mod tests {
 
     #[test]
     fn test_parse_packages() {
-        let packages = parse_packages(r#"1
+        let packages = parse_packages(
+            r#"1
         2
 
-        6"#);
+        6"#,
+        );
         assert_eq!(packages.len(), 3);
         assert_eq!(packages[0], 1);
         assert_eq!(packages[1], 2);
@@ -153,6 +158,9 @@ mod tests {
     #[test]
     fn test_find_optimal_qe() {
         let packages: Vec<usize> = vec![1, 2, 3, 4, 5, 7, 8, 9, 10, 11];
-        assert_eq!(find_optimal_qe(&packages, packages.iter().sum::<usize>() / 3), 99);
+        assert_eq!(
+            find_optimal_qe(&packages, packages.iter().sum::<usize>() / 3),
+            99
+        );
     }
 }

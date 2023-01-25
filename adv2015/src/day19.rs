@@ -1,6 +1,6 @@
-use regex::Regex;
-use std::collections::{HashSet};
 use rand::seq::SliceRandom;
+use regex::Regex;
+use std::collections::HashSet;
 
 pub fn count_unique_molecules(input: &str) -> usize {
     let (replacements, sample_molecule) = parse_all(input);
@@ -22,9 +22,7 @@ struct Replace<'a> {
 }
 
 fn parse_single_replace(line: &str) -> Replace {
-    let atoms: Vec<&str> = line.trim()
-        .split(" => ")
-        .collect();
+    let atoms: Vec<&str> = line.trim().split(" => ").collect();
     Replace {
         from: atoms[0],
         to: atoms[1],
@@ -36,20 +34,17 @@ fn parse_all(input: &str) -> (Vec<Replace>, &str) {
     let mut is_molecule = false;
     let mut molecule: &str = "";
 
-    input.lines()
-        .into_iter()
-        .map(&str::trim)
-        .for_each(|line| {
-            if line.is_empty() {
-                is_molecule = true;
-            }
+    input.lines().into_iter().map(&str::trim).for_each(|line| {
+        if line.is_empty() {
+            is_molecule = true;
+        }
 
-            if !is_molecule {
-                result.push(parse_single_replace(line));
-            } else {
-                molecule = line;
-            }
-        });
+        if !is_molecule {
+            result.push(parse_single_replace(line));
+        } else {
+            molecule = line;
+        }
+    });
 
     (result, molecule)
 }
@@ -57,7 +52,8 @@ fn parse_all(input: &str) -> (Vec<Replace>, &str) {
 fn split_molecule(input: &str) -> Vec<&str> {
     let mol_reg = Regex::new("(e)|([A-Z][a-d,f-z]?)").unwrap(); // everything but not "Xe". Xa, Xb
 
-    mol_reg.captures_iter(input)
+    mol_reg
+        .captures_iter(input)
         .map(|c| c.get(0).unwrap().as_str())
         .collect()
 }
@@ -66,28 +62,25 @@ fn build_molecules(molecule: &str, replacements: &Vec<Replace>) -> HashSet<Strin
     let mut molecules = HashSet::with_capacity(replacements.capacity());
     let atoms = split_molecule(molecule);
 
-    replacements.iter()
-        .for_each(|replace| {
-            for top in 0..atoms.len() {
-                let mut molecule: Vec<&str> = Vec::with_capacity(atoms.len());
-                if atoms[top] == replace.from {
-                    if top > 0 {
-                        molecule.extend(atoms.iter()
-                            .take(top));
-                    }
-                    molecule.push(replace.to);
-                    if top < atoms.len() - 1 {
-                        molecule.extend(atoms.iter()
-                            .skip(top + 1));
-                    }
-
-                    let result_molecule = String::from(molecule.concat());
-                    molecules.insert(result_molecule);
-
-                    continue;
+    replacements.iter().for_each(|replace| {
+        for top in 0..atoms.len() {
+            let mut molecule: Vec<&str> = Vec::with_capacity(atoms.len());
+            if atoms[top] == replace.from {
+                if top > 0 {
+                    molecule.extend(atoms.iter().take(top));
                 }
+                molecule.push(replace.to);
+                if top < atoms.len() - 1 {
+                    molecule.extend(atoms.iter().skip(top + 1));
+                }
+
+                let result_molecule = String::from(molecule.concat());
+                molecules.insert(result_molecule);
+
+                continue;
             }
-        });
+        }
+    });
 
     molecules
 }
@@ -112,8 +105,7 @@ fn build_molecule_from_e(molecule: &str, replacements: &Vec<Replace>) -> usize {
                 }
 
                 // couldn't find the solution
-                if potential_e.chars().filter(|c| *c == 'e')
-                    .count() > 1 {
+                if potential_e.chars().filter(|c| *c == 'e').count() > 1 {
                     break;
                 }
             } else {
@@ -198,7 +190,6 @@ mod tests {
     #[test]
     fn test_build_molecules() {
         let (replacements, sample_molecule) = parse_all(SAMPLE);
-
 
         let molecules = build_molecules(sample_molecule, &replacements);
 

@@ -17,7 +17,8 @@ pub fn find_more_expenses(input: &str) -> usize {
 }
 
 fn parse_input(input: &str) -> Vec<usize> {
-    input.lines()
+    input
+        .lines()
         .map(|l| l.trim())
         .filter_map(|n| n.parse::<usize>().ok())
         .collect()
@@ -90,21 +91,31 @@ mod tests {
 
     #[test]
     fn test_find_expenses() {
-        assert_eq!(find_expenses(r#"1721
+        assert_eq!(
+            find_expenses(
+                r#"1721
                    979
                    366
                    299
                    675
-                   1456"#), 514579);
+                   1456"#
+            ),
+            514579
+        );
     }
 
     #[test]
     fn test_find_more_expenses() {
-        assert_eq!(find_more_expenses(r#"1721
+        assert_eq!(
+            find_more_expenses(
+                r#"1721
                    979
                    366
                    299
                    675
-                   1456"#), 241861950);
+                   1456"#
+            ),
+            241861950
+        );
     }
 }

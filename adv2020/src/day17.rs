@@ -1,6 +1,6 @@
-use std::collections::HashSet;
-use std::cmp::{min, max};
 use itertools::iproduct;
+use std::cmp::{max, min};
+use std::collections::HashSet;
 
 pub fn count_standard_cube(input: &str) -> usize {
     let mut cube = Cube::load_from_string(input);
@@ -72,25 +72,24 @@ impl Cube {
                     self.dim_w.1 = max(self.dim_w.1, w);
                 }
             }
-            false => { self.cells.remove(coord); }
+            false => {
+                self.cells.remove(coord);
+            }
         };
     }
 
     fn load_from_string(input: &str) -> Cube {
         let mut cube = Cube::new();
 
-        input.lines()
+        input
+            .lines()
             .map(&str::trim)
             .enumerate()
             .for_each(|(row, line)| {
-                line.chars()
-                    .enumerate()
-                    .for_each(|(col, c)| {
-                        match c {
-                            '#' => cube.set(&Coord(col as i32, row as i32, 0, 0), true),
-                            _ => (),
-                        }
-                    })
+                line.chars().enumerate().for_each(|(col, c)| match c {
+                    '#' => cube.set(&Coord(col as i32, row as i32, 0, 0), true),
+                    _ => (),
+                })
             });
 
         cube
@@ -99,17 +98,19 @@ impl Cube {
     fn evolve(&mut self, is_hyper: bool) {
         let mut new_cube = Cube::new();
 
-        iproduct!(self.dim_x.0 - 1..=self.dim_x.1 + 1,
-                  self.dim_y.0 - 1..=self.dim_y.1 + 1,
-                  self.dim_z.0 - 1..=self.dim_z.1 + 1,
-                  self.dim_w.0 - 1..=self.dim_w.1 + 1)
-            .filter(|&(_, _, _, w)| is_hyper || w == 0)
-            .for_each(|(x, y, z, w)| {
-                let coord = Coord(x, y, z, w);
-                let should_activate = self.evolve_cell(&coord, is_hyper);
+        iproduct!(
+            self.dim_x.0 - 1..=self.dim_x.1 + 1,
+            self.dim_y.0 - 1..=self.dim_y.1 + 1,
+            self.dim_z.0 - 1..=self.dim_z.1 + 1,
+            self.dim_w.0 - 1..=self.dim_w.1 + 1
+        )
+        .filter(|&(_, _, _, w)| is_hyper || w == 0)
+        .for_each(|(x, y, z, w)| {
+            let coord = Coord(x, y, z, w);
+            let should_activate = self.evolve_cell(&coord, is_hyper);
 
-                new_cube.set(&coord, should_activate);
-            });
+            new_cube.set(&coord, should_activate);
+        });
 
         self.cells = new_cube.cells;
         self.dim_x = new_cube.dim_x;
@@ -124,13 +125,15 @@ impl Cube {
         let neighbours_count = iproduct!(-1..=1, -1..=1, -1..=1, -1..=1)
             .filter(|&(_, _, _, w)| is_hyper || w == 0)
             .filter(|&(dx, dy, dz, dw)| !(dx == 0 && dy == 0 && dz == 0 && dw == 0)) // exclude center
-            .filter(|&(dx, dy, dz, dw)| self.is_active(&Coord(cell_x + dx, cell_y + dy, cell_z + dz, cell_w + dw)))
+            .filter(|&(dx, dy, dz, dw)| {
+                self.is_active(&Coord(cell_x + dx, cell_y + dy, cell_z + dz, cell_w + dw))
+            })
             .count();
 
         let current_cell = self.is_active(coord);
 
         match current_cell {
-            true => (neighbours_count == 2 || neighbours_count == 3),
+            true => neighbours_count == 2 || neighbours_count == 3,
             false => neighbours_count == 3,
         }
     }

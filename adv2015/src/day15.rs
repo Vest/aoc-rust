@@ -25,7 +25,8 @@ struct Ingredient {
 }
 
 fn parse_line(input: &str) -> Ingredient {
-    let everything: Vec<&str> = input.split(|c: char| c == ':' || c == ',' || c.is_whitespace())
+    let everything: Vec<&str> = input
+        .split(|c: char| c == ':' || c == ',' || c.is_whitespace())
         .filter(|s| !s.is_empty()) // remove empty results, we don't need them
         .collect();
     let name = everything[0];
@@ -46,9 +47,7 @@ fn parse_line(input: &str) -> Ingredient {
 }
 
 fn parse_lines(input: &str) -> Vec<Ingredient> {
-    input.lines()
-        .map(|line| parse_line(line))
-        .collect()
+    input.lines().map(|line| parse_line(line)).collect()
 }
 
 fn calc_spoons(ingredients: &Vec<Ingredient>, spoons: &Vec<i32>) -> usize {
@@ -141,7 +140,8 @@ fn find_spoons_with_calories(ingredients: &Vec<Ingredient>) -> Vec<i32> {
 
         spoons[spoons_count - 1] = 100 - total;
 
-        let calories: i32 = spoons.iter()
+        let calories: i32 = spoons
+            .iter()
             .enumerate()
             .map(|(i, s)| ingredients[i].calories * s)
             .sum();
@@ -158,14 +158,14 @@ fn find_spoons_with_calories(ingredients: &Vec<Ingredient>) -> Vec<i32> {
     result
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_parse_line() {
-        let result = parse_line("Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8");
+        let result =
+            parse_line("Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8");
 
         assert_eq!(result.name, String::from("Butterscotch"));
         assert_eq!(result.capacity, -1);
@@ -185,7 +185,7 @@ mod tests {
     #[test]
     fn test_calc_spoons() {
         let ingredients = parse_lines("Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8\nCinnamon: capacity 2, durability 3, flavor -2, texture -1, calories 3");
-        let spoons = vec!(44, 56);
+        let spoons = vec![44, 56];
         let result = calc_spoons(&ingredients, &spoons);
 
         assert_eq!(result, 62842880);

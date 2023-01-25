@@ -1,19 +1,13 @@
 pub fn count_simple_passwords(input: &str) -> usize {
-    parse_input(input)
-        .filter(is_password_simple)
-        .count()
+    parse_input(input).filter(is_password_simple).count()
 }
 
 pub fn count_complex_passwords(input: &str) -> usize {
-    parse_input(input)
-        .filter(is_password_complex)
-        .count()
+    parse_input(input).filter(is_password_complex).count()
 }
 
 fn is_password_simple(rule: &Rule) -> bool {
-    let actual_count = rule.password.chars()
-        .filter(|c| *c == rule.letter)
-        .count();
+    let actual_count = rule.password.chars().filter(|c| *c == rule.letter).count();
 
     actual_count >= rule.from && actual_count <= rule.to
 }
@@ -42,28 +36,28 @@ struct Rule {
     password: String,
 }
 
-fn parse_input<'a>(input: &'a str) -> impl Iterator<Item=Rule> + 'a {
-    input.lines()
-        .filter_map(|line| {
-            let v: Vec<&str> = line.split(|c: char| c.is_whitespace() || c.is_ascii_punctuation()
-            ).filter(|&s| !s.is_empty())
-                .collect();
+fn parse_input<'a>(input: &'a str) -> impl Iterator<Item = Rule> + 'a {
+    input.lines().filter_map(|line| {
+        let v: Vec<&str> = line
+            .split(|c: char| c.is_whitespace() || c.is_ascii_punctuation())
+            .filter(|&s| !s.is_empty())
+            .collect();
 
-            if v.len() != 4 {
-                return None;
-            }
+        if v.len() != 4 {
+            return None;
+        }
 
-            let from = v[0].parse::<usize>().ok();
-            let to = v[1].parse::<usize>().ok();
-            let letter = v[2].parse::<char>().ok();
+        let from = v[0].parse::<usize>().ok();
+        let to = v[1].parse::<usize>().ok();
+        let letter = v[2].parse::<char>().ok();
 
-            Some(Rule {
-                from: from?,
-                to: to?,
-                letter: letter?,
-                password: String::from(v[3]),
-            })
+        Some(Rule {
+            from: from?,
+            to: to?,
+            letter: letter?,
+            password: String::from(v[3]),
         })
+    })
 }
 
 #[cfg(test)]
@@ -76,8 +70,11 @@ mod tests {
 
     #[test]
     fn test_parse_input() {
-        let result: Vec<Rule> = parse_input(r#"17-18 f: fffffffffffffffffff
-                                    1 abc"#).collect();
+        let result: Vec<Rule> = parse_input(
+            r#"17-18 f: fffffffffffffffffff
+                                    1 abc"#,
+        )
+        .collect();
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].from, 17);
         assert_eq!(result[0].to, 18);

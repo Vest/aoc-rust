@@ -15,7 +15,8 @@ pub fn find_code(input: &str) -> usize {
 }
 
 fn parse_input(input: &str) -> Coord {
-    let result: Vec<usize> = input.split(|c: char| c.is_whitespace() || c.is_alphabetic() || c.is_ascii_punctuation())
+    let result: Vec<usize> = input
+        .split(|c: char| c.is_whitespace() || c.is_alphabetic() || c.is_ascii_punctuation())
         .filter(|s| !s.is_empty())
         .filter_map(|s| s.parse::<usize>().ok())
         .collect();
@@ -101,7 +102,13 @@ mod tests {
         assert_eq!(coord.row, 2947);
         assert_eq!(coord.col, 3029);
 
-        assert_eq!(coord, Coord { row: 2947, col: 3029 });
+        assert_eq!(
+            coord,
+            Coord {
+                row: 2947,
+                col: 3029
+            }
+        );
     }
 
     #[test]
@@ -129,6 +136,9 @@ mod tests {
 
     #[test]
     fn test_find_code() {
-        assert_eq!(find_code("Give me bla-bla-bla row 6, bla-bla-bla col 4"), 24659492);
+        assert_eq!(
+            find_code("Give me bla-bla-bla row 6, bla-bla-bla col 4"),
+            24659492
+        );
     }
 }

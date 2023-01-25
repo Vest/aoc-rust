@@ -13,7 +13,8 @@ pub fn find_all_combinations(input: &str) -> usize {
 }
 
 fn parse_as_sorted(input: &str) -> Vec<usize> {
-    let mut result: Vec<usize> = input.lines()
+    let mut result: Vec<usize> = input
+        .lines()
         .map(&str::trim)
         .map(&str::parse::<usize>)
         .filter_map(Result::ok)
@@ -35,9 +36,9 @@ impl Default for OneTwo {
     }
 }
 
-
 fn group_by_difference(input: &[usize]) -> OneTwo {
-    input.windows(2)
+    input
+        .windows(2)
         .filter(check_jolt)
         .fold(OneTwo::default(), |mut acc, pair| {
             match pair[1].saturating_sub(pair[0]) {
@@ -57,7 +58,7 @@ fn check_jolt(pair: &&[usize]) -> bool {
 
     match pair[1].saturating_sub(pair[0]) {
         1 | 2 | 3 => true,
-        _ => false
+        _ => false,
     }
 }
 
@@ -66,9 +67,7 @@ fn is_chain_valid(chain: &[usize]) -> bool {
         return false;
     }
 
-    chain.windows(2)
-        .find(|pair| !check_jolt(pair))
-        .is_none()
+    chain.windows(2).find(|pair| !check_jolt(pair)).is_none()
 }
 
 fn count_possible_valid_chains(chain: &[usize]) -> usize {
@@ -76,18 +75,18 @@ fn count_possible_valid_chains(chain: &[usize]) -> usize {
 
     // creates a vector with jolts, with the difference equal to 1:
     // one_diffs: [[0, 1], [4, 5, 6, 7], [10, 11, 12], [15, 16], [19], [22]]
-    chain.windows(2)
-        .for_each(|window| {
-            let diff = window[1] - window[0];
-            let last = one_diffs.last_mut().unwrap();
-            last.push(window[0]);
-            if diff == 3 {
-                one_diffs.push(vec![]);
-            }
-        });
+    chain.windows(2).for_each(|window| {
+        let diff = window[1] - window[0];
+        let last = one_diffs.last_mut().unwrap();
+        last.push(window[0]);
+        if diff == 3 {
+            one_diffs.push(vec![]);
+        }
+    });
     one_diffs.last_mut().unwrap().push(*chain.last().unwrap());
 
-    one_diffs.iter()
+    one_diffs
+        .iter()
         .map(|joins| {
             let length = joins.len();
             if length == 1 || length == 2 {
@@ -107,7 +106,8 @@ fn count_one_diff_joints(adapters: &[usize]) -> usize {
     (1..length - 1)
         .map(|k| {
             // all possible combinations. E.g. [4, 5, 6, 7] gives [4, 5, 7], [4, 6, 7], [4, 5, 6, 7]
-            adapters[1..length - 1].iter()
+            adapters[1..length - 1]
+                .iter()
                 .combinations(k)
                 .filter(|joint_combination| {
                     let mut tmp_joint = vec![adapters[0]];
@@ -115,9 +115,11 @@ fn count_one_diff_joints(adapters: &[usize]) -> usize {
                     tmp_joint.push(*adapters.last().unwrap());
 
                     is_chain_valid(&tmp_joint)
-                }).count()
-        }).sum::<usize>() +
-        {
+                })
+                .count()
+        })
+        .sum::<usize>()
+        + {
             // Situation, when we check: [4, 5, 6, 7] -> [4, 7]
             if is_chain_valid(&vec![adapters[0], adapters[length - 1]]) {
                 1
@@ -166,8 +168,12 @@ mod tests {
 
     #[test]
     fn test_is_chain_valid() {
-        assert!(is_chain_valid(&vec![0, 1, 4, 5, 6, 7, 10, 11, 12, 15, 16, 19, 22]));
-        assert!(is_chain_valid(&vec![0, 1, 4, 5, 6, 7, 10, 12, 15, 16, 19, 22]));
+        assert!(is_chain_valid(&vec![
+            0, 1, 4, 5, 6, 7, 10, 11, 12, 15, 16, 19, 22
+        ]));
+        assert!(is_chain_valid(&vec![
+            0, 1, 4, 5, 6, 7, 10, 12, 15, 16, 19, 22
+        ]));
         assert!(is_chain_valid(&vec![0, 1, 4, 6, 7, 10, 12, 15, 16, 19, 22]));
 
         assert!(!is_chain_valid(&vec![0, 1, 5, 8]));
@@ -176,11 +182,17 @@ mod tests {
 
     #[test]
     fn test_count_possible_valid_chains() {
-        assert_eq!(count_possible_valid_chains(&vec![0, 1, 4, 5, 6, 7, 10, 11,
-                                                     12, 15, 16, 19, 22]), 8);
-        assert_eq!(count_possible_valid_chains(&vec![0, 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 17,
-                                                     18, 19, 20, 23, 24, 25, 28, 31, 32, 33, 34, 35,
-                                                     38, 39, 42, 45, 46, 47, 48, 49, 52]), 19208);
+        assert_eq!(
+            count_possible_valid_chains(&vec![0, 1, 4, 5, 6, 7, 10, 11, 12, 15, 16, 19, 22]),
+            8
+        );
+        assert_eq!(
+            count_possible_valid_chains(&vec![
+                0, 1, 2, 3, 4, 7, 8, 9, 10, 11, 14, 17, 18, 19, 20, 23, 24, 25, 28, 31, 32, 33, 34,
+                35, 38, 39, 42, 45, 46, 47, 48, 49, 52
+            ]),
+            19208
+        );
     }
 
     #[test]
