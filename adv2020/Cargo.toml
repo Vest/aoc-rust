@@ -12,5 +12,5 @@ bench = false
 doc = false
 
 [dependencies]
-combinations = "0.1.0"
-itertools = "0.10.5"
+combinations = "0.1"
+itertools = "0.10"
