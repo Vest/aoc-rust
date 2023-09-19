@@ -15,6 +15,6 @@ doc = false
 md5 = "0.7"
 permute = "0.2"
 combinations = "0.1"
-regex = "1.7"
+regex = "1.9"
 rand = "0.8"
 divisors = "0.2"

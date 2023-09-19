@@ -4,3 +4,4 @@ members = [
     "adv2020",
     "adventofcode",
 ]
+resolver = "2"
