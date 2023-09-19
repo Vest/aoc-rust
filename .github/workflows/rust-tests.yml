@@ -18,10 +18,10 @@ jobs:
         rust: [stable, nightly]
 
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v4
 
     - name: Use cache
-      uses: actions/cache@v4
+      uses: actions/cache@v3
       with:
         path: |
           ~/.cargo/registry
