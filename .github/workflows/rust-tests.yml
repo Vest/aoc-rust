@@ -18,10 +18,10 @@ jobs:
         rust: [stable, nightly]
 
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v4
 
     - name: Use cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: |
           ~/.cargo/registry
@@ -30,18 +30,13 @@ jobs:
           target
         key: advent-${{ matrix.os }}-rust-${{ matrix.rust }}-${{ hashFiles('Cargo.lock') }}
 
-    - name: Install Rust (${{ matrix.rust }})
-      uses: hecrj/setup-rust-action@v1
+    - uses: dtolnay/rust-toolchain@stable
+      name: Install Rust (${{ matrix.rust }})
       with:
-        rust-version: ${{ matrix.rust }}
+        toolchain: ${{ matrix.rust }}
 
     - name: Cargo Clean
-      uses: actions-rs/cargo@v1
-      with:
-        command: clean
+      run: cargo clean
 
     - name: Run tests
-      uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: --verbose
+      run: cargo test --verbose
