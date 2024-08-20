@@ -1,6 +1,6 @@
 [package]
 name = "adv2020"
-version = "0.17.1"
+version = "0.17.2"
 authors = ["Vest <Vest@users.noreply.github.com>"]
 edition = "2021"
 
@@ -13,4 +13,4 @@ doc = false
 
 [dependencies]
 combinations = "0.1"
-itertools = "0.11"
+itertools = "0.13"

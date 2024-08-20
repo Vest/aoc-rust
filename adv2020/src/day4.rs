@@ -16,7 +16,7 @@ pub fn count_advanced_results(input: &str) -> usize {
 fn parse_input(input: &str) -> Vec<String> {
     input
         .lines()
-        .group_by(|elt| elt.is_empty())
+        .chunk_by(|elt| elt.is_empty())
         .into_iter()
         .filter(|(key, _)| !key)
         .map(|(_, group)| {
