@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        rust: [nightly]
+        rust: [stable]
 
     steps:
     - name: Checkout
@@ -31,6 +31,10 @@ jobs:
         toolchain: ${{ matrix.rust }}
         default: true
         override: true
+        components: llvm-tools-preview
+
+    - name: Install cargo-llvm-cov
+      uses: taiki-e/install-action@cargo-llvm-cov
 
     - name: Clean build folder
       uses: actions-rs/cargo@v1
@@ -44,12 +48,14 @@ jobs:
         args: --all-features --no-fail-fast -- --include-ignored -Z unstable-options
       env:
         CARGO_INCREMENTAL: '0'
-        RUSTFLAGS: '-Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-        RUSTDOCFLAGS: '-Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
+        RUSTFLAGS: '-Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off'
+        RUSTDOCFLAGS: '-Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off'
 
-    - id: coverage
-      name: grcov
-      uses: actions-rs/grcov@v0.1
+    - name: Generate code coverage
+      id: coverage
+      run: cargo llvm-cov --all-features --exclude register_derive_impl --workspace --no-fail-fast --lcov --output-path lcov.info
+      env:
+        NODE_COVERALLS_DEBUG: true
 
     - name: Coveralls upload
       uses: coverallsapp/github-action@master
