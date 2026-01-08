@@ -61,4 +61,4 @@ jobs:
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }} # don't change this, because this is an internal token.
-        path-to-lcov: ${{ steps.coverage.outputs.report }}
+        path-to-lcov: lcov.info
